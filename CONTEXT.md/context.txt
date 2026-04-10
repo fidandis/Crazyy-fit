@@ -1,0 +1,25 @@
+# Crazyy Fit — Personal Trainer PWA
+
+## What this is
+Single-file PWA for a personal trainer managing multiple clients.
+Coach PIN: 9090. Clients log in via 4-digit PIN.
+
+## Key architecture
+- Single `pwa/index.html` — all CSS, JS, HTML in one file (~373KB)
+- Dark theme: #0a0a0a background, DM Mono + DM Sans + Bebas Neue fonts
+- localStorage for all data — Supabase optional for cloud sync
+- const CLIENTS = [] (empty) — all clients via dynamic_clients in localStorage
+
+## Features built
+- Multi-client PIN login with fire particle transition
+- Coach dashboard: mode badges (inperson/remote/blueprint), view-as-client,
+  pause/terminate/restore, adherence %, check-in snippets, compare, Supabase sync
+- Onboarding 3-step wizard: profile + BF% + activity level + macro calculation,
+  program picker (7 templates), exercise customiser
+- Macro engine: Mifflin-St Jeor BMR, activity multiplier, goal detection,
+  1g/lb protein minimum, 1.25g/lb for bodybuilder/muscle gain goals
+- XP + leveling (10 levels, 5 tiers), fire login transition, accordion home
+- Tabata timer with Web Audio haptic sounds (work/rest/countdown/complete)
+- Feature screens: Progress, Measurements, 1RM, Meal Plan, Check-In, Calendar,
+  Comparison, Macro Analyzer
+- Supabase sync, auto-update banner, alt exercise logger

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n '`\\\\${c\\\\.name}\\\\|`\\\\${c\\\\.goal}\\\\|`\\\\${notes}\\\\|`\\\\${c\\\\.name}' \"c:\\\\Users\\\\PC\\\\Downloads\\\\crazyy-fit\\\\pwa\\\\index.html\")",
+      "Bash(node -e \":*)",
+      "Bash(python3 -c \":*)",
+      "Bash(grep -v \"css\\\\|style\\\\|//\")",
+      "Bash(grep -v \"html\\\\|\\\\`\\\\|onclick\\\\|function\\\\|const \\\\|let \\\\|var \")",
+      "Bash(grep -v \"html\\\\|\\\\`\\\\|onclick\\\\|function \")",
+      "Read(//checkin-card|checkin-scale-btn|checkin-submit-btn|checkin-score-pill|checkin-history-item|checkin-q|meal-slot/b|meal-day-tab/b|meal-total-val|cal-cell/b|cal-grid/b|cal-nav-btn|cal-workout-pill|cal-rest-pill|cal-header-cell|cal-month-label/**)",
+      "Read(//c/Users/PC/Downloads/crazyy-fit/$2 ~ /**)"
+    ]
+  }
+}

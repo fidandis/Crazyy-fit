@@ -1,0 +1,24 @@
+[build]
+  publish = "pwa"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# /api/* → Netlify Functions (cleaner URLs in the app)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback — send everything else to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions."weekly-digest"]
+  schedule = "0 8 * * 1"

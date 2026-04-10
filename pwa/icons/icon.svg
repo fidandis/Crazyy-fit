@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0d0d0d" rx="80"/>
+
+  <!-- CRAZYY (white) + FIT (orange) on one line, vertically centred -->
+  <text
+    y="296"
+    font-family="Arial Black, Impact, sans-serif"
+    font-weight="900"
+    font-size="114"
+    text-anchor="middle"
+    letter-spacing="-2"
+  >
+    <tspan x="256" fill="#ffffff">CRAZYY</tspan><tspan fill="#ff6b35"> FIT</tspan>
+  </text>
+</svg>
