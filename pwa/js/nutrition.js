@@ -1243,21 +1243,35 @@ function _openQtyModalForFood(food, foodId) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   BARCODE SCANNER
-   Uses native BarcodeDetector API (Chromium-based mobile browsers)
-   Falls back to manual barcode entry on unsupported browsers (iOS Safari)
+   BARCODE SCANNER — ZXing JS (iOS Safari + Android Chrome)
+   Lazy-loads @zxing/library from jsDelivr CDN on first use.
+   Falls back to manual barcode entry if camera is denied.
 ══════════════════════════════════════════════════════════════ */
+function _loadZXing() {
+  if (window.ZXing) return Promise.resolve();
+  if (window._zxingLoadPromise) return window._zxingLoadPromise;
+  window._zxingLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    s.onload  = () => { window._zxingLoadPromise = null; resolve(); };
+    s.onerror = () => { window._zxingLoadPromise = null; reject(new Error('ZXing load failed')); };
+    document.head.appendChild(s);
+  });
+  return window._zxingLoadPromise;
+}
+
 async function openNutrBarcodeScanner() {
-  if ('BarcodeDetector' in window) {
-    try {
-      const formats = await BarcodeDetector.getSupportedFormats();
-      if (formats.includes('ean_13') || formats.includes('upc_a') || formats.includes('ean_8')) {
-        return openNutrBarcodeCameraScanner();
-      }
-    } catch (_) {}
+  // Always try live camera first (ZXing works on iOS Safari + Android)
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return openNutrBarcodeManual();
   }
-  // Fallback: manual entry
-  openNutrBarcodeManual();
+  try {
+    await _loadZXing();
+    openNutrBarcodeCameraScanner();
+  } catch (_) {
+    // ZXing CDN failed (offline) — fall back to manual
+    openNutrBarcodeManual();
+  }
 }
 
 function openNutrBarcodeManual() {
@@ -1267,7 +1281,7 @@ function openNutrBarcodeManual() {
   modal.style.cssText = 'position:fixed;inset:0;z-index:4300;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px">Enter Barcode</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Camera scanning not supported on this browser. Type the barcode digits from your product.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Type the barcode digits from your product.</div>
     <input class="fit-input" id="nutrBarcodeInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 3017620422003" style="font-size:16px;letter-spacing:1px;margin-bottom:14px" autofocus>
     <div id="nutrBarcodeStatus" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;min-height:14px"></div>
     <div style="display:flex;gap:10px">
@@ -1280,12 +1294,11 @@ function openNutrBarcodeManual() {
 }
 
 async function nutrBarcodeManualLookup() {
-  const input   = document.getElementById('nutrBarcodeInput');
-  const status  = document.getElementById('nutrBarcodeStatus');
-  const code    = (input?.value || '').replace(/\D/g, '');
+  const input  = document.getElementById('nutrBarcodeInput');
+  const status = document.getElementById('nutrBarcodeStatus');
+  const code   = (input?.value || '').replace(/\D/g, '');
   if (!code || code.length < 8) {
-    if (status) status.textContent = 'Barcode must be at least 8 digits';
-    if (status) status.style.color = '#e74c3c';
+    if (status) { status.textContent = 'Barcode must be at least 8 digits'; status.style.color = '#e74c3c'; }
     return;
   }
   if (status) { status.textContent = 'Looking up...'; status.style.color = 'var(--muted)'; }
@@ -1299,74 +1312,67 @@ async function nutrBarcodeManualLookup() {
     window._nutrOffMap = window._nutrOffMap || {};
     window._nutrOffMap[food.id] = food;
     _openQtyModalForFood(food, food.id);
-  } catch (err) {
+  } catch (_) {
     if (status) { status.textContent = 'Lookup failed — check connection'; status.style.color = '#e74c3c'; }
   }
 }
 
-async function openNutrBarcodeCameraScanner() {
+function openNutrBarcodeCameraScanner() {
   document.getElementById('nutrBarcodeCamModal')?.remove();
+
   const modal = document.createElement('div');
   modal.id = 'nutrBarcodeCamModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4400;background:#000;display:flex;flex-direction:column';
   modal.innerHTML = `
-    <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.5)">
+    <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.6)">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#fff">Scan Barcode</div>
-      <button onclick="closeNutrBarcodeCam()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 8px">✕</button>
+      <button onclick="closeNutrBarcodeCam()" style="background:none;border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:0 8px">×</button>
     </div>
     <div style="flex:1;position:relative;overflow:hidden">
-      <video id="nutrBarcodeVideo" style="width:100%;height:100%;object-fit:cover" playsinline muted></video>
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;max-width:320px;height:120px;border:2px solid var(--accent);border-radius:12px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.35)"></div>
+      <video id="nutrBarcodeVideo" style="width:100%;height:100%;object-fit:cover" playsinline muted autoplay></video>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;max-width:300px;height:110px;border:2px solid var(--accent);border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.4)"></div>
     </div>
-    <div id="nutrBarcodeCamStatus" style="padding:12px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#fff;background:rgba(0,0,0,.5);min-height:20px">Point camera at a barcode...</div>
-    <div style="padding:12px 20px;background:rgba(0,0,0,.5);display:flex;justify-content:center">
-      <button onclick="closeNutrBarcodeCam();openNutrBarcodeManual()" style="background:var(--surface);color:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Enter Manually</button>
+    <div id="nutrBarcodeCamStatus" style="padding:14px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#fff;background:rgba(0,0,0,.6)">Point camera at barcode…</div>
+    <div style="padding:10px 20px 24px;background:rgba(0,0,0,.6);display:flex;justify-content:center">
+      <button onclick="closeNutrBarcodeCam();openNutrBarcodeManual()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Enter Manually</button>
     </div>`;
   document.body.appendChild(modal);
 
-  let stream = null;
-  let scanning = true;
-  AppState._nutrBarcodeAbort = () => { scanning = false; if (stream) stream.getTracks().forEach(t => t.stop()); };
+  let reader = null;
+
+  AppState._nutrBarcodeAbort = () => {
+    try { reader?.reset(); } catch (_) {}
+    document.getElementById('nutrBarcodeCamModal')?.remove();
+  };
+
+  const video = document.getElementById('nutrBarcodeVideo');
+  const status = document.getElementById('nutrBarcodeCamStatus');
 
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const video = document.getElementById('nutrBarcodeVideo');
-    video.srcObject = stream;
-    await video.play();
+    reader = new ZXing.BrowserMultiFormatReader();
+    reader.decodeFromVideoDevice(null, video, async (result, err) => {
+      if (!result) return; // err fires every frame with no barcode — ignore
+      const code = result.getText();
+      try { reader.reset(); } catch (_) {}
 
-    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
-    const status = document.getElementById('nutrBarcodeCamStatus');
+      if (status) status.textContent = 'Found: ' + code + ' — looking up…';
+      haptic('success');
 
-    const tick = async () => {
-      if (!scanning) return;
       try {
-        const codes = await detector.detect(video);
-        if (codes && codes.length) {
-          const code = codes[0].rawValue;
-          scanning = false;
-          if (status) status.textContent = 'Found: ' + code + ' — looking up...';
-          haptic('success');
-          stream.getTracks().forEach(t => t.stop());
-          try {
-            const food = await nutrOnlineLookupBarcode(code);
-            closeNutrBarcodeCam();
-            if (!food) { showFitToast('Product not in database'); return; }
-            window._nutrOffMap = window._nutrOffMap || {};
-            window._nutrOffMap[food.id] = food;
-            _openQtyModalForFood(food, food.id);
-          } catch (_) {
-            closeNutrBarcodeCam();
-            showFitToast('Lookup failed');
-          }
-          return;
-        }
-      } catch (_) {}
-      if (scanning) setTimeout(tick, 250);
-    };
-    tick();
+        const food = await nutrOnlineLookupBarcode(code);
+        closeNutrBarcodeCam();
+        if (!food) { showFitToast('Product not in database — try manual entry'); return; }
+        window._nutrOffMap = window._nutrOffMap || {};
+        window._nutrOffMap[food.id] = food;
+        _openQtyModalForFood(food, food.id);
+      } catch (_) {
+        closeNutrBarcodeCam();
+        showFitToast('Lookup failed — check connection');
+      }
+    });
   } catch (err) {
-    const status = document.getElementById('nutrBarcodeCamStatus');
-    if (status) status.textContent = 'Camera access denied. Use Enter Manually.';
+    if (status) status.textContent = 'Camera error: ' + (err.message || 'denied');
+    setTimeout(() => { closeNutrBarcodeCam(); openNutrBarcodeManual(); }, 1800);
   }
 }
 
