@@ -5,10 +5,18 @@ Single-file PWA for a personal trainer managing multiple clients.
 Coach PIN: 9090. Clients log in via 4-digit PIN.
 
 ## Key architecture
-- Single `pwa/index.html` — all CSS, JS, HTML in one file (~373KB)
+- Single `pwa/index.html` — all CSS, JS, HTML in one file (~676KB, ~12,154 lines)
 - Dark theme: #0a0a0a background, DM Mono + DM Sans + Bebas Neue fonts
 - localStorage for all data — Supabase optional for cloud sync
 - const CLIENTS = [] (empty) — all clients via dynamic_clients in localStorage
+- AppState object (L1486) — centralized runtime state
+- getLS(key, fallback) helper (L1584) — wraps safeJSON(localStorage.getItem(key))
+- Netlify deployment: netlify.toml publishes pwa/ directory
+
+## Login screen (L1398)
+- "Enter PIN" → startPinLogin()
+- "Join — Start Your Program" → openSignup() (signup/lead capture)
+- "Coach Login" → selectCoach()
 
 ## Features built
 - Multi-client PIN login with fire particle transition
@@ -20,6 +28,92 @@ Coach PIN: 9090. Clients log in via 4-digit PIN.
   1g/lb protein minimum, 1.25g/lb for bodybuilder/muscle gain goals
 - XP + leveling (10 levels, 5 tiers), fire login transition, accordion home
 - Tabata timer with Web Audio haptic sounds (work/rest/countdown/complete)
+- SVG tab bar: buildTabBarHTML() with stroke-based icons, 4-char uppercase labels
+- AI Program Review: gathers client data, calls Anthropic API (claude-sonnet-4-20250514)
+  for program analysis, approved recs applied to client plan
+- Coach Notes Log: per-client timestamped notes with flag/delete
+- Analytics Panel: cross-client stats (L9614)
+- Badges/achievements system: renderBadgesScreen + renderBadgesInCard (L9675)
+- Movement Library: coach-managed exercise database (L9807)
+- Periodization: phase-based training blocks per client (L9938)
+- Progression Suggestions: auto-generated weight/rep suggestions (L10063)
+- Email system: Resend API for welcome, credentials, broadcast, coach-message emails
+- Signup / lead capture: openSignup() (L10625), openLeads() (L10715)
+- Schedule drag-and-drop reorder (L10778)
+- Schedule day detail view (L10896)
 - Feature screens: Progress, Measurements, 1RM, Meal Plan, Check-In, Calendar,
-  Comparison, Macro Analyzer
-- Supabase sync, auto-update banner, alt exercise logger
+  Comparison, Macro Analyzer, Badges
+- Supabase sync with per-client push notifications (L10989+)
+
+## Key JS sections (by line)
+- L835:  COACH + CLIENTS config
+- L1486: AppState (centralized state)
+- L1574: safeJSON / L1584: getLS helpers
+- L1591: validatePin/Weight/Calories/HR
+- L1613: calculateWeightProgress
+- L1627: showScreen
+- L1640: buildLogin
+- L1693: pinKey / handlePinSubmit
+- L1773: launchApp (fire transition, builds app shell + tab bar)
+- L1922: buildTabBarHTML (SVG tab bar builder, shared)
+- L2074: switchTab / renderContent
+- L2974: logout
+- L3320: checkURLParams (Apple Shortcut URL ingestion)
+- L3369: selectCoach / launchCoach
+- L3406: renderCoachDashboard
+- L4920: getAllClients / getDynamicClients / saveDynamicClients
+- L4965: exportAllData / restoreFromBackup
+- L5059: PROGRAM_TEMPLATES (7 templates)
+- L5272: Onboarding wizard (obState, 3 steps)
+- L6081: getArchivedClients
+- L6120: pauseClient / unpauseClient
+- L6162: terminateClient / restoreClient
+- L7162: coachViewAsClient / L7202: exitClientView
+- L7293: openMoreMenu
+- L7319: renderFeature (Progress, Measurements, 1RM, Meal Plan, Check-In, Calendar, Comparison)
+- L9166: gatherClientDataForAI / L9217: openAIReview
+- L9558: getCoachNotesLog / buildCoachNotesLogHtml
+- L9614: toggleAnalyticsPanel / buildAnalyticsPanel
+- L9675: renderBadgesScreen / renderBadgesInCard
+- L9807: Movement Library (getMovementLibrary, renderMovementLibrary)
+- L9927: Periodization (openPeriodizationScreen, renderPeriodizationScreen)
+- L10063: Progression suggestions (checkProgressionRules)
+- L10201: sendEmail (Resend API)
+- L10625: openSignup / L10715: openLeads
+- L10778: Schedule drag-and-drop
+- L10989: sbInit / sbUpsert / sbSelect (Supabase helpers)
+- L11039: sbAutoSync / L11088: subscribeToPush
+- L11118: syncAllClients / L11167: syncClientData / L11247: pullClientData
+- L11387: pullFromCloud
+- L11489: showUpdateBanner / applyUpdate
+- L11507: openAltModal (alternative exercise logger)
+- L11577: quickLogWorkout
+- L11615: obCalcBF / obUpdateMacroPreview
+- L11674: calcClientMacros (Mifflin-St Jeor BMR, macro engine)
+
+## Tab bar (SVG, L1922)
+buildTabBarHTML(tabs) uses _TAB_SVG map + _TAB_LBL map.
+Labels: HOME, PLAN, WORK, ENDU, NUTR, SCAN, LOG, WINS, PROG, MORE
+Used in launchApp (L1976) and coachViewAsClient (L7162 area).
+
+## localStorage keys pattern
+- `fit_logs_{cid}` — fitness log entries
+- `wl_{cid}_{dayId}` — workout logger sets
+- `wl_hist_{cid}_{dayId}` — workout history
+- `macro_scores_{cid}` — macro analysis scores
+- `meas_{cid}`, `prs_{cid}`, `meals_{cid}`, `checkins_{cid}` — feature data
+- `dynamic_clients` — dynamically added clients
+- `terminated_clients`, `paused_clients`, `archived_clients`
+- `notif_log_{cid}` — notification/message thread
+- `client_goals_{cid}`, `goal_cur_{cid}_{goalId}` — goals
+- `rest_prefs_{cid}` — rest timer preferences
+- `video_links_{cid}` — exercise video links
+- `periodization_{cid}` — periodization phases
+- `prog_suggestions_{cid}` — progression suggestions
+- `movement_library` — coach exercise library
+- `signups` — signup leads
+- `sb_url`, `sb_key` — Supabase credentials
+
+## Anthropic API usage
+Direct browser call in runAnalysis() and openAIReview() to
+https://api.anthropic.com/v1/messages. Model: claude-sonnet-4-20250514.

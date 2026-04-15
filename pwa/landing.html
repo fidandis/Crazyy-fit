@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crazyy Fit — Your Coach, In Your Pocket</title>
+  <meta name="description" content="A real coach is watching your results. Crazyy Fit gives your trainer the tools to see everything — your workouts, macros, check-ins, and progress — so nothing slips through the cracks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #161616;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f0;
+      --muted: #888;
+      --accent: #ff4500;
+      --accent2: #ff6b35;
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --bebas: 'Bebas Neue', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      background: rgba(10,10,10,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--bebas);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-cta {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--text);
+      padding: 9px 18px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-cta:hover { background: var(--accent); color: #fff; }
+
+    /* ── SECTIONS ── */
+    section { padding: 80px 24px; max-width: 960px; margin: 0 auto; }
+    .full-bleed { max-width: none; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 120px 24px 80px;
+      max-width: 960px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 28px;
+      height: 1px;
+      background: var(--accent);
+    }
+    h1.hero-headline {
+      font-family: var(--bebas);
+      font-size: clamp(64px, 14vw, 140px);
+      line-height: 0.92;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+    h1.hero-headline span { color: var(--accent); }
+    .hero-sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 44px;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 500; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: #fff;
+      padding: 16px 32px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-secondary {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 16px 0;
+      transition: color 0.2s;
+    }
+    .btn-secondary:hover { color: var(--text); }
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 24px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--border);
+      text-transform: uppercase;
+      animation: fadeUpDown 2.4s ease-in-out infinite;
+    }
+    @keyframes fadeUpDown {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50% { opacity: 0.8; transform: translateY(-4px); }
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 24px;
+    }
+    .stats-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--bebas);
+      font-size: 48px;
+      letter-spacing: 1px;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-num span { color: var(--accent); }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-tag::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+    }
+    h2.section-title {
+      font-family: var(--bebas);
+      font-size: clamp(42px, 8vw, 80px);
+      line-height: 0.95;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    h2.section-title span { color: var(--accent); }
+    .section-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.7;
+      font-weight: 300;
+      margin-bottom: 52px;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2px;
+    }
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 32px 28px;
+      transition: background 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-card:hover { background: var(--bg3); border-color: rgba(255,255,255,0.12); }
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .feature-name {
+      font-family: var(--bebas);
+      font-size: 22px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+    .feature-badge {
+      display: inline-block;
+      margin-top: 14px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(255,69,0,0.1);
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-bg {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 40px;
+      margin-top: 52px;
+    }
+    .step {
+      position: relative;
+      padding-left: 20px;
+      border-left: 2px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: var(--accent); }
+    .step-num {
+      font-family: var(--bebas);
+      font-size: 64px;
+      line-height: 1;
+      color: rgba(255,69,0,0.12);
+      margin-bottom: 8px;
+      display: block;
+      transition: color 0.2s;
+    }
+    .step:hover .step-num { color: rgba(255,69,0,0.25); }
+    .step-title {
+      font-family: var(--bebas);
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* ── PROGRAM TEMPLATES ── */
+    .templates-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 52px;
+    }
+    .template-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--muted);
+      background: var(--bg2);
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .template-pill:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,69,0,0.05); }
+    .template-pill.highlight { border-color: var(--accent); color: var(--accent); background: rgba(255,69,0,0.08); }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2px;
+      margin-top: 52px;
+    }
+    .testimonial {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 28px 24px;
+    }
+    .testimonial-stars {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 3px;
+      margin-bottom: 14px;
+    }
+    .testimonial-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .author-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ff8c00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--bebas);
+      font-size: 16px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .author-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+    .author-tag {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── FINAL CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 24px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+    }
+    .cta-inner { max-width: 640px; margin: 0 auto; }
+    .cta-section h2 {
+      font-family: var(--bebas);
+      font-size: clamp(48px, 10vw, 96px);
+      line-height: 0.93;
+      margin-bottom: 24px;
+    }
+    .cta-section h2 span { color: var(--accent); }
+    .cta-section p {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: var(--bebas);
+      font-size: 20px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .footer-logo span { color: var(--accent); }
+    .footer-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--border);
+      text-transform: uppercase;
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      overflow: hidden;
+      background: var(--accent);
+      padding: 12px 0;
+      white-space: nowrap;
+    }
+    .marquee-track {
+      display: inline-flex;
+      animation: marquee 28s linear infinite;
+    }
+    .marquee-track span {
+      font-family: var(--bebas);
+      font-size: 18px;
+      letter-spacing: 3px;
+      color: #fff;
+      padding: 0 32px;
+    }
+    .marquee-track span::before {
+      content: '✦';
+      margin-right: 32px;
+      opacity: 0.5;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ── PHONE MOCKUP ── */
+    .hero-visual {
+      display: none;
+    }
+    @media (min-width: 800px) {
+      .hero-wrap {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 60px;
+        align-items: center;
+        min-height: 100svh;
+        padding: 120px 24px 80px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .hero { min-height: unset; padding: 0; margin: 0; }
+      .hero-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    .phone-frame {
+      width: 220px;
+      height: 440px;
+      background: var(--bg3);
+      border-radius: 32px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(255,69,0,0.12), 0 0 160px rgba(255,69,0,0.04);
+    }
+    .phone-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+    }
+    .phone-screen {
+      position: absolute;
+      inset: 0;
+      padding: 30px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pscreen-header {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .pscreen-xp {
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+    .pscreen-xp-label {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .pscreen-xp-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .pscreen-xp-fill {
+      height: 100%;
+      width: 62%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+    }
+    .pscreen-card {
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      flex: 1;
+    }
+    .pscreen-card-label {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .pscreen-exercise {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pscreen-exercise:last-child { border-bottom: none; }
+    .pscreen-ex-name {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+    .pscreen-ex-sets {
+      font-family: var(--mono);
+      font-size: 8px;
+      color: var(--accent);
+    }
+    .pscreen-tabbar {
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+    }
+    .pscreen-tab {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+    .pscreen-tab.active {
+      color: var(--accent);
+    }
+    .pscreen-tab-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 3px auto 0;
+    }
+
+    /* ── AI BADGE ── */
+    .ai-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,69,0,0.08);
+      border: 1px solid rgba(255,69,0,0.2);
+      border-radius: 3px;
+      padding: 3px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 16px; }
+      section { padding: 64px 16px; }
+      .hero { padding: 100px 16px 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">CRAZYY<span>FIT</span></a>
+    <div style="display:flex;gap:12px;align-items:center">
+      <a href="/login" style="font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:9px 0;transition:color .2s" onmouseover="this.style.color='#f0f0f0'" onmouseout="this.style.color='#888'">Sign In</a>
+      <a href="/pricing.html" class="nav-cta">Buy Your Blueprint</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero-wrap">
+    <div class="hero" id="hero">
+      <div class="hero-tag">Real Coach. Real Accountability.</div>
+      <h1 class="hero-headline">
+        YOUR<br>
+        COACH<br>
+        <span>SEES</span><br>
+        EVERYTHING.
+      </h1>
+      <p class="hero-sub">
+        Not an AI. Not a generic plan. A <strong>real trainer watching your results</strong> — your workouts, your macros, your check-ins — and adjusting your program when it matters.
+      </p>
+      <div class="hero-actions">
+        <a href="/login" class="btn-primary">Log In to Your Program</a>
+        <a href="#features" class="btn-secondary">See what's inside ↓</a>
+      </div>
+      <div class="hero-scroll-hint">↓ scroll</div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="pscreen-header">Today's Workout</div>
+          <div class="pscreen-xp">
+            <div class="pscreen-xp-label">LVL 4 — COMPETITOR · 620 XP</div>
+            <div class="pscreen-xp-bar"><div class="pscreen-xp-fill"></div></div>
+          </div>
+          <div class="pscreen-card">
+            <div class="pscreen-card-label">Push A — Upper</div>
+            <div class="pscreen-exercise">
+              <span class="pscreen-ex-name">Bench Press</span>
+              <span class="pscreen-ex-sets">4 × 8</span>
+            </div>
+            <div class="pscreen-exercise">
+              <span class="pscreen-ex-name">OHP</span>
+              <span class="pscreen-ex-sets">3 × 10</span>
+            </div>
+            <div class="pscreen-exercise">
+              <span class="pscreen-ex-name">Incline DB</span>
+              <span class="pscreen-ex-sets">3 × 12</span>
+            </div>
+            <div class="pscreen-exercise">
+              <span class="pscreen-ex-name">Tricep Ext</span>
+              <span class="pscreen-ex-sets">3 × 15</span>
+            </div>
+            <div class="pscreen-exercise">
+              <span class="pscreen-ex-name">Lat Raise</span>
+              <span class="pscreen-ex-sets">4 × 15</span>
+            </div>
+          </div>
+          <div class="pscreen-tabbar">
+            <div class="pscreen-tab">HOME</div>
+            <div class="pscreen-tab">PLAN</div>
+            <div class="pscreen-tab active">WORK<div class="pscreen-tab-dot"></div></div>
+            <div class="pscreen-tab">NUTR</div>
+            <div class="pscreen-tab">MORE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span>Real Coach Oversight</span>
+      <span>Workout Logging</span>
+      <span>Macro Tracking</span>
+      <span>Coach Messaging</span>
+      <span>Progress Check-Ins</span>
+      <span>XP + Leveling</span>
+      <span>Tabata Timer</span>
+      <span>Periodization</span>
+      <span>Real Accountability</span>
+      <span>Real Coach Oversight</span>
+      <span>Workout Logging</span>
+      <span>Macro Tracking</span>
+      <span>Coach Messaging</span>
+      <span>Progress Check-Ins</span>
+      <span>XP + Leveling</span>
+      <span>Tabata Timer</span>
+      <span>Periodization</span>
+      <span>Real Accountability</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">1<span>×1</span></div>
+        <div class="stat-label">Real Coach Assigned</div>
+      </div>
+      <div>
+        <div class="stat-num">7<span>+</span></div>
+        <div class="stat-label">Program Templates</div>
+      </div>
+      <div>
+        <div class="stat-num">0</div>
+        <div class="stat-label">Generic AI Plans</div>
+      </div>
+      <div>
+        <div class="stat-num"><span>∞</span></div>
+        <div class="stat-label">Accountability</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-tag">What's Inside</div>
+    <h2 class="section-title">YOUR COACH<br>HAS A<br><span>FULL PICTURE.</span></h2>
+    <p class="section-sub">Every rep, every meal, every check-in — logged in one place so your trainer can give you real feedback, not guesses.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🏋️</span>
+        <div class="feature-name">Workout Logger</div>
+        <p class="feature-desc">Log sets, reps, and weight in real time. Your coach can see exactly what you lifted, when, and whether you're hitting the program.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <div class="feature-name">Coach-Built Programs</div>
+        <p class="feature-desc">Your trainer assigns your plan directly in the app. Exercises, rep ranges, rest periods — fully customised for you, not pulled from a template.</p>
+        <span class="feature-badge">Coach Assigned</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🥩</span>
+        <div class="feature-name">Macro Tracking</div>
+        <p class="feature-desc">Your targets are set by your coach based on your goals and body stats. Scan meals to log intake — your trainer sees how consistently you're hitting them.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏱️</span>
+        <div class="feature-name">Tabata Timer</div>
+        <p class="feature-desc">Built-in interval timer with haptic audio. Custom rounds, work/rest durations, and countdown sounds — no app switching mid-circuit.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📈</span>
+        <div class="feature-name">Check-Ins & Progress</div>
+        <p class="feature-desc">Weekly check-ins, body measurements, comparison photos, and 1RM records — all fed directly to your coach so adjustments are based on real data.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔥</span>
+        <div class="feature-name">XP + Leveling</div>
+        <p class="feature-desc">10 levels across 5 tiers — Rookie through Elite. Every logged workout and check-in earns XP. Your coach can see your streak at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📅</span>
+        <div class="feature-name">Weekly Schedule</div>
+        <p class="feature-desc">Your training week laid out clearly. Session notes, rest days, deload weeks — your coach plans it, you execute it.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💬</span>
+        <div class="feature-name">Coach Messaging</div>
+        <p class="feature-desc">Direct messages from your trainer inside the app. Program updates, feedback, and accountability check-ins — no WhatsApp threads required.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-name">Progression Tracking</div>
+        <p class="feature-desc">Your coach gets automatic suggestions when you're ready to progress. No more waiting for your next call to add weight to the bar.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-bg">
+    <section id="how">
+      <div class="section-tag">How It Works</div>
+      <h2 class="section-title">YOUR COACH<br>IS WITH YOU<br><span>THE WHOLE WAY.</span></h2>
+      <p class="section-sub">You log in. Your coach watches. Adjustments happen in real time — not at your next check-in call.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <div class="step-title">Your Coach Sets You Up</div>
+          <p class="step-desc">You get a PIN, complete your profile — weight, body fat, activity level — and your trainer builds your program directly in the app.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <div class="step-title">You Train. You Log.</div>
+          <p class="step-desc">Follow your program, log every set, hit your macros, and submit weekly check-ins. Everything your coach needs is captured automatically.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <div class="step-title">Your Coach Adjusts.</div>
+          <p class="step-desc">Your trainer reviews your data, updates your plan, and sends feedback through the app. You're never flying blind — and neither are they.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <!-- TESTIMONIALS -->
+  <section id="results">
+    <div class="section-tag">Client Results</div>
+    <h2 class="section-title">WHAT IT FEELS<br>LIKE TO HAVE A<br><span>REAL COACH.</span></h2>
+    <p class="section-sub">Not a chatbot. Not a generic plan. An actual person who can see your numbers and knows when something's off.</p>
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"My coach spotted I was under-eating on training days before I even noticed. She updated my macros inside the app that same day. That kind of detail is impossible without this."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">JM</div>
+          <div>
+            <div class="author-name">James M.</div>
+            <div class="author-tag">Muscle Gain · 12 weeks in</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"I used to send spreadsheets and photos over WhatsApp. Now my coach just logs in and sees everything. It's like having them in the gym without the hourly rate."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SK</div>
+          <div>
+            <div class="author-name">Sarah K.</div>
+            <div class="author-tag">Fat Loss · Remote client</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Knowing my coach can see my logs makes me actually do the work. I haven't missed a session in 7 weeks. The accountability is real — not just a notification."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">DT</div>
+          <div>
+            <div class="author-name">Dan T.</div>
+            <div class="author-tag">Powerlifting · In-person</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <div class="cta-section">
+    <div class="cta-inner">
+      <div class="section-tag" style="justify-content:center; margin-bottom:16px;">Get Started</div>
+      <h2>PICK YOUR<br><span>BLUEPRINT.</span></h2>
+      <p>Two ways to get coached. A program you follow on your own, or full transformation coaching with your coach in your corner every week.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <a href="/pricing.html" class="btn-primary">Buy Your Blueprint</a>
+        <a href="/login" style="font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:16px 0;transition:color .2s" onmouseover="this.style.color='#f0f0f0'" onmouseout="this.style.color='#888'">Already a client? Sign in →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">CRAZYY<span>FIT</span></div>
+    <div class="footer-note">Real coaching. Real accountability. Real results.</div>
+  </footer>
+
+</body>
+</html>
