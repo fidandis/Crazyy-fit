@@ -1323,6 +1323,8 @@ async function obSaveClient(btn) {
         tdee:     _macros.tdee,
         bmr:      _macros.bmr,
         goalLabel: _macros.goalLabel,
+        trainingDay: _macros.trainingDay,
+        restDay:     _macros.restDay,
         macros: [
           {label:'Daily Calories', val:_macros.calories.toLocaleString(), unit:' kcal', color:accent,    desc:'TDEE '+_macros.tdee+' kcal adjusted for '+_macros.goalLabel+'. Reassess every 2–3 weeks.'},
           {label:'Protein',        val:String(_macros.protein),           unit:'g',     color:'#ff9f7a', desc:'1g per lb bodyweight minimum. Preserves muscle and maximises satiety.'},

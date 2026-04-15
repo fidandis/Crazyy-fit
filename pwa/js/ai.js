@@ -2654,6 +2654,18 @@ function obUpdateMacroPreview() {
     + macroCell(m.carbs + 'g', 'Carbs', 'var(--accent)')
     + macroCell(m.fat + 'g', 'Fat', '#aaa')
     + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px">'
+    + '<div style="font-size:8px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Training Day</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--accent)">' + m.trainingDay.calories.toLocaleString() + ' kcal</div>'
+    + '<div style="font-size:9px;color:var(--muted)">' + m.trainingDay.carbs + 'g carbs · ' + m.trainingDay.protein + 'g P · ' + m.trainingDay.fat + 'g F</div>'
+    + '</div>'
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px">'
+    + '<div style="font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Rest Day</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text)">' + m.restDay.calories.toLocaleString() + ' kcal</div>'
+    + '<div style="font-size:9px;color:var(--muted)">' + m.restDay.carbs + 'g carbs · ' + m.restDay.protein + 'g P · ' + m.restDay.fat + 'g F</div>'
+    + '</div>'
+    + '</div>'
     + '<div style="' + monoSt + ';line-height:1.9">'
     + 'BMR: <b>' + m.bmr + '</b> kcal &nbsp;·&nbsp; TDEE: <b>' + m.tdee + '</b> kcal<br>'
     + 'Goal: ' + m.goalLabel + '<br>'

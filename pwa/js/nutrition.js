@@ -14,23 +14,23 @@
 const FOOD_DB = [
   // Proteins
   // Chicken (raw unless noted)
-  { id:'chicken_breast',  cat:'Protein', name:'Chicken Breast (Raw)',   cal:120, p:22,  c:0,   f:2.6, serving:'100g' },
-  { id:'chk_breast_ckd',  cat:'Protein', name:'Chicken Breast (Cooked)',cal:165, p:31,  c:0,   f:3.6, serving:'100g' },
-  { id:'chk_breast_6oz',  cat:'Protein', name:'Chicken Breast (6oz)',   cal:281, p:53,  c:0,   f:6.1, serving:'170g' },
-  { id:'chk_breast_8oz',  cat:'Protein', name:'Chicken Breast (8oz)',   cal:374, p:70,  c:0,   f:8.2, serving:'227g' },
-  { id:'chicken_thigh',   cat:'Protein', name:'Chicken Thigh (Boneless)',cal:209,p:26,  c:0,   f:11,  serving:'100g' },
-  { id:'chk_thigh_skin',  cat:'Protein', name:'Chicken Thigh (With Skin)',cal:247,p:22, c:0,   f:17,  serving:'100g' },
-  { id:'chk_drumstick',   cat:'Protein', name:'Chicken Drumstick',      cal:172, p:28,  c:0,   f:5.7, serving:'100g (no bone)' },
-  { id:'chk_wing',        cat:'Protein', name:'Chicken Wing (Cooked)',  cal:203, p:30,  c:0,   f:8.1, serving:'1 wing (55g)' },
-  { id:'chk_tenders',     cat:'Protein', name:'Chicken Tenders',        cal:131, p:23,  c:0,   f:3.5, serving:'100g' },
+  { id:'chicken_breast',  cat:'Protein', name:'Chicken Breast (Raw)',   cal:120, p:22,  c:0,   f:2.6, serving:'100g', fiber:0,   sodium:74,  sugar:0   },
+  { id:'chk_breast_ckd',  cat:'Protein', name:'Chicken Breast (Cooked)',cal:165, p:31,  c:0,   f:3.6, serving:'100g', fiber:0,   sodium:74,  sugar:0   },
+  { id:'chk_breast_6oz',  cat:'Protein', name:'Chicken Breast (6oz)',   cal:281, p:53,  c:0,   f:6.1, serving:'170g', fiber:0,   sodium:126, sugar:0   },
+  { id:'chk_breast_8oz',  cat:'Protein', name:'Chicken Breast (8oz)',   cal:374, p:70,  c:0,   f:8.2, serving:'227g', fiber:0,   sodium:168, sugar:0   },
+  { id:'chicken_thigh',   cat:'Protein', name:'Chicken Thigh (Boneless)',cal:209,p:26,  c:0,   f:11,  serving:'100g', fiber:0,   sodium:84,  sugar:0   },
+  { id:'chk_thigh_skin',  cat:'Protein', name:'Chicken Thigh (With Skin)',cal:247,p:22, c:0,   f:17,  serving:'100g', fiber:0,   sodium:86,  sugar:0   },
+  { id:'chk_drumstick',   cat:'Protein', name:'Chicken Drumstick',      cal:172, p:28,  c:0,   f:5.7, serving:'100g (no bone)', fiber:0, sodium:90, sugar:0 },
+  { id:'chk_wing',        cat:'Protein', name:'Chicken Wing (Cooked)',  cal:203, p:30,  c:0,   f:8.1, serving:'1 wing (55g)',   fiber:0, sodium:60, sugar:0 },
+  { id:'chk_tenders',     cat:'Protein', name:'Chicken Tenders',        cal:131, p:23,  c:0,   f:3.5, serving:'100g', fiber:0,   sodium:75,  sugar:0   },
   // Ground beef by lean/fat ratio
-  { id:'gb_97_3',         cat:'Protein', name:'Ground Beef 97/3',      cal:130, p:25,  c:0,   f:3,   serving:'100g' },
-  { id:'gb_96_4',         cat:'Protein', name:'Ground Beef 96/4',      cal:137, p:24,  c:0,   f:4,   serving:'100g' },
-  { id:'gb_93_7',         cat:'Protein', name:'Ground Beef 93/7',      cal:152, p:22,  c:0,   f:7,   serving:'100g' },
-  { id:'gb_90_10',        cat:'Protein', name:'Ground Beef 90/10',     cal:176, p:20,  c:0,   f:10,  serving:'100g' },
-  { id:'ground_beef',     cat:'Protein', name:'Ground Beef 85/15',     cal:215, p:19,  c:0,   f:15,  serving:'100g' },
-  { id:'gb_80_20',        cat:'Protein', name:'Ground Beef 80/20',     cal:254, p:17,  c:0,   f:20,  serving:'100g' },
-  { id:'gb_75_25',        cat:'Protein', name:'Ground Beef 75/25',     cal:292, p:15,  c:0,   f:25,  serving:'100g' },
+  { id:'gb_97_3',         cat:'Protein', name:'Ground Beef 97/3',      cal:130, p:25,  c:0,   f:3,   serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'gb_96_4',         cat:'Protein', name:'Ground Beef 96/4',      cal:137, p:24,  c:0,   f:4,   serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'gb_93_7',         cat:'Protein', name:'Ground Beef 93/7',      cal:152, p:22,  c:0,   f:7,   serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'gb_90_10',        cat:'Protein', name:'Ground Beef 90/10',     cal:176, p:20,  c:0,   f:10,  serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'ground_beef',     cat:'Protein', name:'Ground Beef 85/15',     cal:215, p:19,  c:0,   f:15,  serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'gb_80_20',        cat:'Protein', name:'Ground Beef 80/20',     cal:254, p:17,  c:0,   f:20,  serving:'100g', fiber:0, sodium:72,  sugar:0 },
+  { id:'gb_75_25',        cat:'Protein', name:'Ground Beef 75/25',     cal:292, p:15,  c:0,   f:25,  serving:'100g', fiber:0, sodium:72,  sugar:0 },
 
   // Beef cuts (raw, 100g)
   { id:'beef_sirloin',    cat:'Protein', name:'Sirloin Steak',         cal:207, p:26,  c:0,   f:10,  serving:'100g' },
@@ -53,60 +53,60 @@ const FOOD_DB = [
   { id:'turkey_breast',   cat:'Protein', name:'Turkey Breast (Cooked)',cal:135, p:30,  c:0,   f:1,   serving:'100g' },
   { id:'turkey_cutlet',   cat:'Protein', name:'Turkey Cutlet',         cal:147, p:32,  c:0,   f:1.4, serving:'100g' },
   // Fish & Seafood (specific)
-  { id:'salmon_atlantic',  cat:'Protein', name:'Atlantic Salmon (Farmed)',cal:208,p:20,  c:0,   f:13,  serving:'100g' },
-  { id:'salmon_wild',      cat:'Protein', name:'Wild Salmon (Sockeye)', cal:168, p:23,  c:0,   f:7.7, serving:'100g' },
-  { id:'salmon_fillet_6oz',cat:'Protein', name:'Salmon Fillet (6oz)',   cal:354, p:38,  c:0,   f:22,  serving:'170g' },
-  { id:'tuna_canned',      cat:'Protein', name:'Tuna (Canned, Water)',  cal:109, p:25,  c:0,   f:0.5, serving:'100g' },
-  { id:'tuna_albacore',    cat:'Protein', name:'Albacore Tuna (Canned)',cal:123, p:27,  c:0,   f:1.6, serving:'100g' },
-  { id:'tuna_yellowfin',   cat:'Protein', name:'Yellowfin Tuna (Raw)',  cal:109, p:24,  c:0,   f:0.5, serving:'100g' },
-  { id:'tilapia',          cat:'Protein', name:'Tilapia (Fillet)',      cal:129, p:26,  c:0,   f:2.7, serving:'100g' },
-  { id:'shrimp',           cat:'Protein', name:'Shrimp (Cooked)',       cal:99,  p:24,  c:0,   f:0.3, serving:'100g' },
-  { id:'shrimp_large',     cat:'Protein', name:'Jumbo Shrimp (5 pieces)',cal:50, p:12,  c:0,   f:0.2, serving:'5 jumbo (85g)' },
-  { id:'egg_whole',       cat:'Protein', name:'Egg (Large)',           cal:78,  p:6,   c:0.6, f:5,   serving:'1 egg' },
-  { id:'egg_whites',      cat:'Protein', name:'Egg Whites',            cal:52,  p:11,  c:0.7, f:0.2, serving:'100g' },
-  { id:'greek_yogurt',    cat:'Protein', name:'Greek Yogurt (0%)',     cal:59,  p:10,  c:3.6, f:0.4, serving:'100g' },
-  { id:'cottage_cheese',  cat:'Protein', name:'Cottage Cheese',        cal:90,  p:12,  c:3,   f:2.5, serving:'100g' },
-  { id:'whey_protein',    cat:'Protein', name:'Whey Protein (1 scoop)',cal:120, p:24,  c:3,   f:2,   serving:'30g scoop' },
+  { id:'salmon_atlantic',  cat:'Protein', name:'Atlantic Salmon (Farmed)',cal:208,p:20,  c:0,   f:13,  serving:'100g',         fiber:0, sodium:59,  sugar:0 },
+  { id:'salmon_wild',      cat:'Protein', name:'Wild Salmon (Sockeye)', cal:168, p:23,  c:0,   f:7.7, serving:'100g',         fiber:0, sodium:47,  sugar:0 },
+  { id:'salmon_fillet_6oz',cat:'Protein', name:'Salmon Fillet (6oz)',   cal:354, p:38,  c:0,   f:22,  serving:'170g',         fiber:0, sodium:100, sugar:0 },
+  { id:'tuna_canned',      cat:'Protein', name:'Tuna (Canned, Water)',  cal:109, p:25,  c:0,   f:0.5, serving:'100g',         fiber:0, sodium:247, sugar:0 },
+  { id:'tuna_albacore',    cat:'Protein', name:'Albacore Tuna (Canned)',cal:123, p:27,  c:0,   f:1.6, serving:'100g',         fiber:0, sodium:310, sugar:0 },
+  { id:'tuna_yellowfin',   cat:'Protein', name:'Yellowfin Tuna (Raw)',  cal:109, p:24,  c:0,   f:0.5, serving:'100g',         fiber:0, sodium:40,  sugar:0 },
+  { id:'tilapia',          cat:'Protein', name:'Tilapia (Fillet)',      cal:129, p:26,  c:0,   f:2.7, serving:'100g',         fiber:0, sodium:56,  sugar:0 },
+  { id:'shrimp',           cat:'Protein', name:'Shrimp (Cooked)',       cal:99,  p:24,  c:0,   f:0.3, serving:'100g',         fiber:0, sodium:211, sugar:0 },
+  { id:'shrimp_large',     cat:'Protein', name:'Jumbo Shrimp (5 pieces)',cal:50, p:12,  c:0,   f:0.2, serving:'5 jumbo (85g)', fiber:0, sodium:179, sugar:0 },
+  { id:'egg_whole',       cat:'Protein', name:'Egg (Large)',           cal:78,  p:6,   c:0.6, f:5,   serving:'1 egg',        fiber:0,   sodium:70,  sugar:0.6 },
+  { id:'egg_whites',      cat:'Protein', name:'Egg Whites',            cal:52,  p:11,  c:0.7, f:0.2, serving:'100g',         fiber:0,   sodium:166, sugar:0.7 },
+  { id:'greek_yogurt',    cat:'Protein', name:'Greek Yogurt (0%)',     cal:59,  p:10,  c:3.6, f:0.4, serving:'100g',         fiber:0,   sodium:36,  sugar:3.6 },
+  { id:'cottage_cheese',  cat:'Protein', name:'Cottage Cheese',        cal:90,  p:12,  c:3,   f:2.5, serving:'100g',         fiber:0,   sodium:364, sugar:3   },
+  { id:'whey_protein',    cat:'Protein', name:'Whey Protein (1 scoop)',cal:120, p:24,  c:3,   f:2,   serving:'30g scoop',    fiber:0,   sodium:80,  sugar:2   },
   { id:'protein_bar',     cat:'Protein', name:'Protein Bar',           cal:210, p:20,  c:21,  f:8,   serving:'1 bar' },
   { id:'edamame',         cat:'Protein', name:'Edamame',               cal:122, p:11,  c:9.9, f:5.2, serving:'100g' },
 
   // Grains & Carbs
-  { id:'white_rice',      cat:'Carbs',   name:'White Rice (Cooked)',   cal:130, p:2.7, c:28,  f:0.3, serving:'100g' },
-  { id:'brown_rice',      cat:'Carbs',   name:'Brown Rice (Cooked)',   cal:111, p:2.6, c:23,  f:0.9, serving:'100g' },
-  { id:'oats_dry',        cat:'Carbs',   name:'Oats (Dry)',            cal:150, p:5,   c:27,  f:2.7, serving:'40g' },
-  { id:'oatmeal_cooked',  cat:'Carbs',   name:'Oatmeal (Cooked)',      cal:166, p:5.9, c:28,  f:3.6, serving:'1 cup' },
-  { id:'pasta_cooked',    cat:'Carbs',   name:'Pasta (Cooked)',        cal:131, p:5,   c:25,  f:1.1, serving:'100g' },
-  { id:'sweet_potato',    cat:'Carbs',   name:'Sweet Potato (Baked)',  cal:90,  p:2,   c:21,  f:0.1, serving:'100g' },
-  { id:'white_potato',    cat:'Carbs',   name:'White Potato (Baked)',  cal:86,  p:1.9, c:20,  f:0.1, serving:'100g' },
-  { id:'quinoa_cooked',   cat:'Carbs',   name:'Quinoa (Cooked)',       cal:120, p:4.4, c:21,  f:1.9, serving:'100g' },
-  { id:'bread_ww',        cat:'Carbs',   name:'Whole Wheat Bread',     cal:79,  p:4,   c:13,  f:1.1, serving:'1 slice' },
-  { id:'bread_white',     cat:'Carbs',   name:'White Bread',           cal:79,  p:2.7, c:15,  f:1,   serving:'1 slice' },
+  { id:'white_rice',      cat:'Carbs',   name:'White Rice (Cooked)',   cal:130, p:2.7, c:28,  f:0.3, serving:'100g',      fiber:0.4, sodium:1,   sugar:0   },
+  { id:'brown_rice',      cat:'Carbs',   name:'Brown Rice (Cooked)',   cal:111, p:2.6, c:23,  f:0.9, serving:'100g',      fiber:1.8, sodium:5,   sugar:0   },
+  { id:'oats_dry',        cat:'Carbs',   name:'Oats (Dry)',            cal:150, p:5,   c:27,  f:2.7, serving:'40g',       fiber:4,   sodium:0,   sugar:0.4 },
+  { id:'oatmeal_cooked',  cat:'Carbs',   name:'Oatmeal (Cooked)',      cal:166, p:5.9, c:28,  f:3.6, serving:'1 cup',     fiber:4,   sodium:9,   sugar:0.5 },
+  { id:'pasta_cooked',    cat:'Carbs',   name:'Pasta (Cooked)',        cal:131, p:5,   c:25,  f:1.1, serving:'100g',      fiber:1.8, sodium:1,   sugar:0.6 },
+  { id:'sweet_potato',    cat:'Carbs',   name:'Sweet Potato (Baked)',  cal:90,  p:2,   c:21,  f:0.1, serving:'100g',      fiber:3,   sodium:55,  sugar:5   },
+  { id:'white_potato',    cat:'Carbs',   name:'White Potato (Baked)',  cal:86,  p:1.9, c:20,  f:0.1, serving:'100g',      fiber:1.8, sodium:10,  sugar:1   },
+  { id:'quinoa_cooked',   cat:'Carbs',   name:'Quinoa (Cooked)',       cal:120, p:4.4, c:21,  f:1.9, serving:'100g',      fiber:2.8, sodium:7,   sugar:0.9 },
+  { id:'bread_ww',        cat:'Carbs',   name:'Whole Wheat Bread',     cal:79,  p:4,   c:13,  f:1.1, serving:'1 slice',   fiber:2,   sodium:132, sugar:1.4 },
+  { id:'bread_white',     cat:'Carbs',   name:'White Bread',           cal:79,  p:2.7, c:15,  f:1,   serving:'1 slice',   fiber:0.6, sodium:142, sugar:1.5 },
   { id:'tortilla_flour',  cat:'Carbs',   name:'Flour Tortilla',        cal:146, p:3.8, c:25,  f:3.5, serving:'1 medium' },
   { id:'bagel',           cat:'Carbs',   name:'Bagel (Plain)',         cal:270, p:10,  c:53,  f:1.5, serving:'1 bagel' },
   { id:'rice_cakes',      cat:'Carbs',   name:'Rice Cakes (Plain)',    cal:35,  p:0.7, c:7.3, f:0.3, serving:'1 cake' },
 
   // Fruits
-  { id:'banana',          cat:'Fruit',   name:'Banana (Medium)',       cal:105, p:1.3, c:27,  f:0.4, serving:'1 medium' },
-  { id:'apple',           cat:'Fruit',   name:'Apple (Medium)',        cal:95,  p:0.5, c:25,  f:0.3, serving:'1 medium' },
-  { id:'blueberries',     cat:'Fruit',   name:'Blueberries',           cal:57,  p:0.7, c:14,  f:0.3, serving:'100g' },
-  { id:'strawberries',    cat:'Fruit',   name:'Strawberries',          cal:32,  p:0.7, c:7.7, f:0.3, serving:'100g' },
+  { id:'banana',          cat:'Fruit',   name:'Banana (Medium)',       cal:105, p:1.3, c:27,  f:0.4, serving:'1 medium',  fiber:3.1, sodium:1,   sugar:14  },
+  { id:'apple',           cat:'Fruit',   name:'Apple (Medium)',        cal:95,  p:0.5, c:25,  f:0.3, serving:'1 medium',  fiber:4.4, sodium:2,   sugar:19  },
+  { id:'blueberries',     cat:'Fruit',   name:'Blueberries',           cal:57,  p:0.7, c:14,  f:0.3, serving:'100g',      fiber:2.4, sodium:1,   sugar:10  },
+  { id:'strawberries',    cat:'Fruit',   name:'Strawberries',          cal:32,  p:0.7, c:7.7, f:0.3, serving:'100g',      fiber:2,   sodium:1,   sugar:4.9 },
   { id:'orange',          cat:'Fruit',   name:'Orange (Medium)',       cal:62,  p:1.2, c:15,  f:0.2, serving:'1 medium' },
   { id:'mango',           cat:'Fruit',   name:'Mango (1 cup)',         cal:99,  p:1.4, c:25,  f:0.6, serving:'1 cup' },
   { id:'grapes',          cat:'Fruit',   name:'Grapes',                cal:69,  p:0.7, c:18,  f:0.2, serving:'100g' },
 
   // Vegetables
-  { id:'broccoli',        cat:'Veggie',  name:'Broccoli',              cal:34,  p:2.8, c:6.6, f:0.4, serving:'100g' },
-  { id:'spinach',         cat:'Veggie',  name:'Spinach',               cal:23,  p:2.9, c:3.6, f:0.4, serving:'100g' },
-  { id:'carrots',         cat:'Veggie',  name:'Carrots',               cal:41,  p:0.9, c:9.6, f:0.2, serving:'100g' },
-  { id:'bell_pepper',     cat:'Veggie',  name:'Bell Pepper',           cal:31,  p:1,   c:6,   f:0.3, serving:'100g' },
-  { id:'cucumber',        cat:'Veggie',  name:'Cucumber',              cal:15,  p:0.6, c:3.6, f:0.1, serving:'100g' },
-  { id:'tomato',          cat:'Veggie',  name:'Tomato',                cal:18,  p:0.9, c:3.9, f:0.2, serving:'100g' },
-  { id:'green_beans',     cat:'Veggie',  name:'Green Beans',           cal:31,  p:1.8, c:7,   f:0.2, serving:'100g' },
-  { id:'asparagus',       cat:'Veggie',  name:'Asparagus',             cal:20,  p:2.2, c:3.9, f:0.1, serving:'100g' },
-  { id:'kale',            cat:'Veggie',  name:'Kale',                  cal:49,  p:4.3, c:8.8, f:0.9, serving:'100g' },
-  { id:'cauliflower',     cat:'Veggie',  name:'Cauliflower',           cal:25,  p:1.9, c:5,   f:0.3, serving:'100g' },
-  { id:'zucchini',        cat:'Veggie',  name:'Zucchini',              cal:17,  p:1.2, c:3.1, f:0.3, serving:'100g' },
-  { id:'mushrooms',       cat:'Veggie',  name:'Mushrooms',             cal:22,  p:3.1, c:3.3, f:0.3, serving:'100g' },
+  { id:'broccoli',        cat:'Veggie',  name:'Broccoli',              cal:34,  p:2.8, c:6.6, f:0.4, serving:'100g', fiber:2.6, sodium:33,  sugar:1.5 },
+  { id:'spinach',         cat:'Veggie',  name:'Spinach',               cal:23,  p:2.9, c:3.6, f:0.4, serving:'100g', fiber:2.2, sodium:79,  sugar:0.4 },
+  { id:'carrots',         cat:'Veggie',  name:'Carrots',               cal:41,  p:0.9, c:9.6, f:0.2, serving:'100g', fiber:2.8, sodium:69,  sugar:4.7 },
+  { id:'bell_pepper',     cat:'Veggie',  name:'Bell Pepper',           cal:31,  p:1,   c:6,   f:0.3, serving:'100g', fiber:2.1, sodium:4,   sugar:3.7 },
+  { id:'cucumber',        cat:'Veggie',  name:'Cucumber',              cal:15,  p:0.6, c:3.6, f:0.1, serving:'100g', fiber:0.5, sodium:2,   sugar:1.7 },
+  { id:'tomato',          cat:'Veggie',  name:'Tomato',                cal:18,  p:0.9, c:3.9, f:0.2, serving:'100g', fiber:1.2, sodium:5,   sugar:2.6 },
+  { id:'green_beans',     cat:'Veggie',  name:'Green Beans',           cal:31,  p:1.8, c:7,   f:0.2, serving:'100g', fiber:3.4, sodium:6,   sugar:1.5 },
+  { id:'asparagus',       cat:'Veggie',  name:'Asparagus',             cal:20,  p:2.2, c:3.9, f:0.1, serving:'100g', fiber:2.1, sodium:2,   sugar:1.9 },
+  { id:'kale',            cat:'Veggie',  name:'Kale',                  cal:49,  p:4.3, c:8.8, f:0.9, serving:'100g', fiber:3.6, sodium:38,  sugar:1.5 },
+  { id:'cauliflower',     cat:'Veggie',  name:'Cauliflower',           cal:25,  p:1.9, c:5,   f:0.3, serving:'100g', fiber:2,   sodium:30,  sugar:1.9 },
+  { id:'zucchini',        cat:'Veggie',  name:'Zucchini',              cal:17,  p:1.2, c:3.1, f:0.3, serving:'100g', fiber:1,   sodium:8,   sugar:2.5 },
+  { id:'mushrooms',       cat:'Veggie',  name:'Mushrooms',             cal:22,  p:3.1, c:3.3, f:0.3, serving:'100g', fiber:1,   sodium:5,   sugar:2   },
 
   // Dairy
   { id:'milk_whole',      cat:'Dairy',   name:'Whole Milk',            cal:61,  p:3.2, c:4.8, f:3.3, serving:'100ml' },
@@ -116,9 +116,9 @@ const FOOD_DB = [
   { id:'cream_cheese',    cat:'Dairy',   name:'Cream Cheese',          cal:99,  p:1.7, c:1.2, f:9.8, serving:'28g (2 tbsp)' },
 
   // Fats & Nuts
-  { id:'avocado_half',    cat:'Fats',    name:'Avocado (Half)',        cal:120, p:1.5, c:6.4, f:11,  serving:'1 half' },
-  { id:'almonds',         cat:'Fats',    name:'Almonds',               cal:164, p:6,   c:6.1, f:14,  serving:'28g (1oz)' },
-  { id:'peanut_butter',   cat:'Fats',    name:'Peanut Butter',         cal:190, p:7,   c:7,   f:16,  serving:'2 tbsp' },
+  { id:'avocado_half',    cat:'Fats',    name:'Avocado (Half)',        cal:120, p:1.5, c:6.4, f:11,  serving:'1 half',    fiber:5,   sodium:4,   sugar:0.7 },
+  { id:'almonds',         cat:'Fats',    name:'Almonds',               cal:164, p:6,   c:6.1, f:14,  serving:'28g (1oz)', fiber:3.5, sodium:0,   sugar:1.3 },
+  { id:'peanut_butter',   cat:'Fats',    name:'Peanut Butter',         cal:190, p:7,   c:7,   f:16,  serving:'2 tbsp',    fiber:1.9, sodium:136, sugar:3.4 },
   { id:'almond_butter',   cat:'Fats',    name:'Almond Butter',         cal:196, p:6.7, c:6.1, f:18,  serving:'2 tbsp' },
   { id:'olive_oil',       cat:'Fats',    name:'Olive Oil',             cal:119, p:0,   c:0,   f:13.5,serving:'1 tbsp' },
   { id:'walnuts',         cat:'Fats',    name:'Walnuts',               cal:185, p:4.3, c:3.9, f:18,  serving:'28g (1oz)' },
@@ -339,16 +339,28 @@ function saveNutrDiary(cid, date, diary) {
   }
 }
 function calcDiaryTotals(diary) {
-  let cal = 0, p = 0, c = 0, f = 0;
+  let cal = 0, p = 0, c = 0, f = 0, fiber = 0, sodium = 0, sugar = 0;
   ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(meal => {
     (diary[meal] || []).forEach(item => {
-      cal += (item.cal || 0) * (item.qty || 1);
-      p   += (item.p   || 0) * (item.qty || 1);
-      c   += (item.c   || 0) * (item.qty || 1);
-      f   += (item.f   || 0) * (item.qty || 1);
+      const q = item.qty || 1;
+      cal    += (item.cal    || 0) * q;
+      p      += (item.p      || 0) * q;
+      c      += (item.c      || 0) * q;
+      f      += (item.f      || 0) * q;
+      fiber  += (item.fiber  || 0) * q;
+      sodium += (item.sodium || 0) * q;
+      sugar  += (item.sugar  || 0) * q;
     });
   });
-  return { cal: Math.round(cal), p: Math.round(p * 10) / 10, c: Math.round(c * 10) / 10, f: Math.round(f * 10) / 10 };
+  return {
+    cal:    Math.round(cal),
+    p:      Math.round(p      * 10) / 10,
+    c:      Math.round(c      * 10) / 10,
+    f:      Math.round(f      * 10) / 10,
+    fiber:  Math.round(fiber  * 10) / 10,
+    sodium: Math.round(sodium),
+    sugar:  Math.round(sugar  * 10) / 10,
+  };
 }
 
 function getWaterLog(cid)       { return getLS('water_log_' + cid, []); }
@@ -464,8 +476,9 @@ function _nutrWaterSection(cid, date, glasses, accent) {
 const _MEAL_ICONS = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snacks: '🍎' };
 
 function _nutrMealSection(cid, meal, label, items, accent, date) {
-  const mealCal = items.reduce((s, i) => s + (i.cal || 0) * (i.qty || 1), 0);
-  const mealP   = items.reduce((s, i) => s + (i.p   || 0) * (i.qty || 1), 0);
+  const mealCal    = items.reduce((s, i) => s + (i.cal || 0) * (i.qty || 1), 0);
+  const mealP      = items.reduce((s, i) => s + (i.p   || 0) * (i.qty || 1), 0);
+  const mealTarget = (getMealTargets(cid))[meal] || 0;
 
   let foodRows = items.length === 0
     ? `<div class="nutr-empty-meal">No foods logged yet</div>`
@@ -482,9 +495,10 @@ function _nutrMealSection(cid, meal, label, items, accent, date) {
         </div>`;
       }).join('');
 
+  const mealPct    = mealTarget > 0 ? Math.min(100, Math.round((mealCal / mealTarget) * 100)) : null;
   const totalsHtml = mealCal > 0
-    ? `<span style="color:${accent}">${Math.round(mealCal)} kcal</span>${mealP > 0 ? ` · <span style="color:#ff9f7a">${Math.round(mealP)}g P</span>` : ''}`
-    : `<span style="color:var(--faint)">—</span>`;
+    ? `<span style="color:${accent}">${Math.round(mealCal)} kcal</span>${mealP > 0 ? ` · <span style="color:#ff9f7a">${Math.round(mealP)}g P</span>` : ''}${mealTarget > 0 ? ` <span class="nutr-meal-target-badge">${mealPct}% of ${mealTarget}</span>` : ''}`
+    : `<span style="color:var(--faint)">—</span>${mealTarget > 0 ? ` <span class="nutr-meal-target-badge">Goal: ${mealTarget} kcal</span>` : ''}`;
 
   const freq = getFrequents(cid, 3);
   const freqChips = freq.length
@@ -513,6 +527,7 @@ function _nutrMealSection(cid, meal, label, items, accent, date) {
 
 /* ── 7-DAY HISTORY ───────────────────────────────────────────── */
 function _nutrHistory(cid, calTarget, accent) {
+  const mode = AppState._nutrHistoryMode || 'cal'; // 'cal'|'p'|'c'|'f'
   const logs  = getCalorieIntakeLogs(cid);
   const today = new Date().toISOString().slice(0, 10);
   const last7 = [];
@@ -520,18 +535,25 @@ function _nutrHistory(cid, calTarget, accent) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const key   = d.toISOString().slice(0, 10);
     const entry = logs.find(l => l.date === key);
-    last7.push({ key, label: d.toLocaleDateString('en', { weekday: 'short' }), cal: entry?.calories || 0 });
+    last7.push({ key, label: d.toLocaleDateString('en', { weekday: 'short' }), cal: entry?.calories || 0, p: entry?.protein || 0, c: entry?.carbs || 0, f: entry?.fat || 0 });
   }
-  const maxCal = Math.max(...last7.map(d => d.cal), calTarget || 1);
-  const daysHit = last7.filter(d => d.cal > 0 && calTarget > 0 && d.cal >= calTarget * 0.9).length;
+
+  const valOf = d => mode === 'p' ? d.p : mode === 'c' ? d.c : mode === 'f' ? d.f : d.cal;
+  const vals  = last7.map(valOf);
+  const maxV  = Math.max(...vals, mode === 'cal' ? (calTarget || 1) : 1);
+  const daysHit = mode === 'cal' ? last7.filter(d => d.cal > 0 && calTarget > 0 && d.cal >= calTarget * 0.9).length : 0;
+  const modeColor = mode === 'p' ? '#ff9f7a' : mode === 'c' ? '#e8ff47' : mode === 'f' ? '#7adfff' : accent;
+  const modeUnit  = mode === 'cal' ? 'kcal' : 'g';
 
   const bars = last7.map(d => {
-    const pct      = Math.min(100, Math.round((d.cal / maxCal) * 100));
+    const v        = valOf(d);
+    const pct      = Math.min(100, maxV > 0 ? Math.round((v / maxV) * 100) : 0);
     const isToday  = d.key === today;
-    const hit      = calTarget > 0 && d.cal >= calTarget * 0.9;
-    const barColor = d.cal === 0 ? 'var(--border)' : hit ? '#2ecc71' : accent;
+    const hit      = mode === 'cal' && calTarget > 0 && d.cal >= calTarget * 0.9;
+    const barColor = v === 0 ? 'var(--border)' : hit ? '#2ecc71' : modeColor;
+    const lbl      = v > 0 ? (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : String(Math.round(v))) : '';
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;cursor:pointer" onclick="setNutrDate('${esc(cid)}','${esc(d.key)}')">
-      <div style="font-family:'DM Mono',monospace;font-size:7px;color:var(--muted)">${d.cal > 0 ? (d.cal >= 1000 ? (d.cal / 1000).toFixed(1) + 'k' : d.cal) : ''}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:7px;color:var(--muted)">${lbl}</div>
       <div style="width:100%;background:var(--surface2);border-radius:3px;height:40px;display:flex;align-items:flex-end;overflow:hidden">
         <div style="width:100%;height:${pct}%;background:${barColor};border-radius:3px 3px 0 0;transition:height .3s"></div>
       </div>
@@ -539,13 +561,279 @@ function _nutrHistory(cid, calTarget, accent) {
     </div>`;
   }).join('');
 
+  const modeBtns = [['cal','Kcal',accent],['p','Protein','#ff9f7a'],['c','Carbs','#e8ff47'],['f','Fat','#7adfff']].map(([m, lbl, col]) =>
+    `<button onclick="AppState._nutrHistoryMode='${m}';const c=(getAllClients().find(x=>x.id==='${esc(cid)}')||AppState.currentClient);if(c){const el=document.getElementById('panel-nutrition');if(el)el.innerHTML=renderNutritionTracker(c);}" style="padding:3px 8px;border-radius:4px;border:1px solid ${mode===m?col:' var(--border)'};background:${mode===m?col+'22':'none'};color:${mode===m?col:'var(--muted)'};font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.5px;cursor:pointer">${lbl}</button>`
+  ).join('');
+
   return `<div class="card" style="margin-bottom:12px">
     <div class="card-block">
-      <div class="block-label" style="margin-bottom:10px">7-Day History${daysHit > 0 ? ` · <span style="color:#2ecc71;text-transform:none">${daysHit}/7 on target</span>` : ''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="block-label">7-Day History${daysHit > 0 ? ` · <span style="color:#2ecc71;text-transform:none">${daysHit}/7 on target</span>` : ''}</div>
+        <div style="display:flex;gap:4px">${modeBtns}</div>
+      </div>
       <div style="display:flex;gap:5px;align-items:flex-end">${bars}</div>
-      ${calTarget ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTarget} kcal</div></div>` : ''}
+      ${mode === 'cal' && calTarget ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTarget} kcal</div></div>` : ''}
     </div>
   </div>`;
+}
+
+/* ── MEAL TARGETS (per-meal calorie goal) ────────────────────── */
+function getMealTargets(cid) {
+  return getLS('nutr_meal_targets_' + cid, { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 });
+}
+function saveMealTargets(cid, t) {
+  localStorage.setItem('nutr_meal_targets_' + cid, JSON.stringify(t));
+}
+function openMealTargetModal(cid) {
+  document.getElementById('nutrMealTargetModal')?.remove();
+  const t = getMealTargets(cid);
+  const modal = document.createElement('div');
+  modal.id = 'nutrMealTargetModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+  modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Targets</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Set per-meal calorie goals (0 = no target).</div>
+    ${['breakfast','lunch','dinner','snacks'].map(m => `
+    <div class="ob-field" style="margin-bottom:10px">
+      <label class="ob-label">${m[0].toUpperCase()+m.slice(1)}</label>
+      <input class="ob-input" id="mt-${m}" type="number" inputmode="numeric" placeholder="e.g. 600" value="${t[m]||0}">
+    </div>`).join('')}
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="ob-next-btn" style="flex:1" onclick="confirmMealTargets('${esc(cid)}')">Save →</button>
+      <button class="ob-back-btn" onclick="document.getElementById('nutrMealTargetModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+function confirmMealTargets(cid) {
+  const t = { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 };
+  ['breakfast','lunch','dinner','snacks'].forEach(m => {
+    t[m] = parseInt(document.getElementById('mt-' + m)?.value) || 0;
+  });
+  saveMealTargets(cid, t);
+  document.getElementById('nutrMealTargetModal')?.remove();
+  const c = (getAllClients().find(cl => cl.id === cid)) || AppState.currentClient;
+  if (c) { const panel = document.getElementById('panel-nutrition'); if (panel) panel.innerHTML = renderNutritionTracker(c); }
+}
+
+/* ── TOP FOODS ANALYSIS ──────────────────────────────────────── */
+function buildTopFoodsSection(cid, accent) {
+  const foodMap = {};
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const diary = safeJSON(localStorage.getItem('nutr_diary_' + cid + '_' + key), null);
+    if (!diary) continue;
+    ['breakfast','lunch','dinner','snacks'].forEach(meal => {
+      (diary[meal] || []).forEach(item => {
+        const k = item.name || 'Unknown';
+        if (!foodMap[k]) foodMap[k] = { name: k, cal: 0, count: 0 };
+        foodMap[k].cal   += (item.cal || 0) * (item.qty || 1);
+        foodMap[k].count += 1;
+      });
+    });
+  }
+  const ranked = Object.values(foodMap).sort((a, b) => b.cal - a.cal).slice(0, 5);
+  if (!ranked.length) return '';
+  const maxCal = ranked[0].cal || 1;
+  const rows = ranked.map((f, i) => {
+    const pct = Math.round((f.cal / maxCal) * 100);
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+        <div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%">${esc(f.name)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${Math.round(f.cal)} kcal · ×${f.count}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:3px;height:5px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${i===0?accent:'rgba(255,107,53,.4)'};border-radius:3px;transition:width .3s"></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card" style="margin-bottom:12px">
+    <div class="card-block">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="block-label">Top Foods This Week</div>
+      </div>
+      ${rows}
+    </div>
+  </div>`;
+}
+
+/* ── MONTHLY REPORT ──────────────────────────────────────────── */
+function openMonthlyReport(cid, calTarget, accent) {
+  const now  = new Date();
+  const year = now.getFullYear();
+  const mon  = now.getMonth();
+  const days = new Date(year, mon + 1, 0).getDate();
+  let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, loggedDays = 0, waterDays = 0, totalWater = 0;
+  let bestCal = 0, bestDate = '', streak = calcLogStreak(cid);
+
+  for (let d = 1; d <= days; d++) {
+    const dt  = new Date(year, mon, d);
+    if (dt > now) break;
+    const key  = dt.toISOString().slice(0, 10);
+    const diary = safeJSON(localStorage.getItem('nutr_diary_' + cid + '_' + key), null);
+    const t     = diary ? calcDiaryTotals(diary) : null;
+    if (t && t.cal > 0) {
+      totalCal += t.cal; totalP += t.p; totalC += t.c; totalF += t.f; loggedDays++;
+      if (t.cal > bestCal) { bestCal = t.cal; bestDate = key; }
+    }
+    const waterEntry = (getWaterLog(cid).find(e => e.date === key) || {}).glasses || 0;
+    if (waterEntry >= 8) waterDays++;
+    totalWater += waterEntry;
+  }
+
+  const elapsed = now.getDate();
+  const avgCal  = loggedDays ? Math.round(totalCal / loggedDays) : 0;
+  const avgP    = loggedDays ? Math.round(totalP   / loggedDays) : 0;
+  const avgC    = loggedDays ? Math.round(totalC   / loggedDays) : 0;
+  const avgF    = loggedDays ? Math.round(totalF   / loggedDays) : 0;
+  const adherPct = calTarget ? Math.round((loggedDays / elapsed) * 100) : 0;
+  const monthName = now.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+
+  document.getElementById('nutrMonthlyModal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'nutrMonthlyModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
+  modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:400px;max-height:88vh;overflow-y:auto">
+    <div style="padding:18px 18px 0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px">${esc(monthName)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">${loggedDays} of ${elapsed} days logged</div>
+        </div>
+        <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px">&times;</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--surface2);border-radius:8px;padding:12px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG CALORIES</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent}">${avgCal || '—'}</div>
+          ${calTarget ? `<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">target: ${calTarget}</div>` : ''}
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">LOG STREAK</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#f1c40f">${streak}d</div>
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">consecutive days</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">AVG DAILY MACROS</div>
+        <div style="display:flex;gap:16px">
+          <div><div style="font-size:13px;font-weight:600;color:#ff9f7a">${avgP}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Protein</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:#e8ff47">${avgC}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Carbs</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:#7adfff">${avgF}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Fat</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">WATER GOAL DAYS</div>
+          <div style="font-size:16px;font-weight:700;color:#5dade2">${waterDays} / ${elapsed}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG WATER</div>
+          <div style="font-size:16px;font-weight:700;color:#5dade2">${loggedDays ? (totalWater / elapsed).toFixed(1) : '—'} glasses</div>
+        </div>
+      </div>
+
+      ${bestDate ? `<div style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:16px">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">BEST DAY</div>
+        <div style="font-size:13px;font-weight:600">${new Date(bestDate+'T12:00:00').toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'})} — ${bestCal} kcal</div>
+      </div>` : ''}
+
+      ${adherPct > 0 ? `<div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px"><span>Logging adherence</span><span>${adherPct}%</span></div>
+        <div style="background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
+          <div style="width:${adherPct}%;height:100%;background:${adherPct>=80?'#2ecc71':adherPct>=50?accent:'#e74c3c'};border-radius:4px;transition:width .4s"></div>
+        </div>
+      </div>` : ''}
+
+      <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px;border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;margin-bottom:18px">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+/* ── MEAL REMINDERS ──────────────────────────────────────────── */
+function getNutrReminders(cid) {
+  return getLS('nutr_reminders_' + cid, { breakfast: { enabled: false, time: '08:00' }, lunch: { enabled: false, time: '12:30' }, dinner: { enabled: false, time: '19:00' } });
+}
+function saveNutrReminders(cid, reminders) {
+  localStorage.setItem('nutr_reminders_' + cid, JSON.stringify(reminders));
+}
+function openNutrRemindersModal(cid) {
+  document.getElementById('nutrRemindersModal')?.remove();
+  const rem = getNutrReminders(cid);
+  const modal = document.createElement('div');
+  modal.id = 'nutrRemindersModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+  modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Reminders</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Push notifications when app is open. Works on Android; iOS requires app installed to home screen.</div>
+    ${['breakfast','lunch','dinner'].map(m => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12px;font-weight:500;text-transform:capitalize">${m}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="time" id="rem-time-${m}" value="${rem[m]?.time||'08:00'}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:10px">
+        <label style="position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0">
+          <input type="checkbox" id="rem-on-${m}" ${rem[m]?.enabled?'checked':''} style="opacity:0;width:0;height:0">
+          <span onclick="this.previousElementSibling.click()" style="position:absolute;inset:0;background:${rem[m]?.enabled?'#2ecc71':'var(--surface2)'};border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s"></span>
+        </label>
+      </div>
+    </div>`).join('')}
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="ob-next-btn" style="flex:1" onclick="confirmNutrReminders('${esc(cid)}')">Save →</button>
+      <button class="ob-back-btn" onclick="document.getElementById('nutrRemindersModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+function confirmNutrReminders(cid) {
+  const rem = {};
+  ['breakfast','lunch','dinner'].forEach(m => {
+    rem[m] = {
+      enabled: document.getElementById('rem-on-' + m)?.checked || false,
+      time:    document.getElementById('rem-time-' + m)?.value || '08:00',
+    };
+  });
+  saveNutrReminders(cid, rem);
+  // Request notification permission if any enabled
+  const anyOn = Object.values(rem).some(r => r.enabled);
+  if (anyOn && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+  document.getElementById('nutrRemindersModal')?.remove();
+  showFitToast('Reminders saved');
+}
+// Schedule today's pending reminders on page load (called from renderNutritionTracker)
+function _scheduleNutrReminders(cid) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const rem  = getNutrReminders(cid);
+  const now  = new Date();
+  const todayKey = now.toISOString().slice(0, 10);
+  ['breakfast','lunch','dinner'].forEach(m => {
+    const r = rem[m];
+    if (!r?.enabled) return;
+    const [h, mi] = (r.time || '08:00').split(':').map(Number);
+    const fire = new Date(now); fire.setHours(h, mi, 0, 0);
+    if (fire <= now) return; // already past
+    const key = 'rem_fired_' + cid + '_' + m + '_' + todayKey;
+    if (localStorage.getItem(key)) return; // already fired today
+    const delay = fire - now;
+    setTimeout(() => {
+      localStorage.setItem(key, '1');
+      const diary = getNutrDiary(cid, todayKey);
+      const count = Object.values(diary).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0);
+      if (count > 0) return; // already logged for this meal
+      new Notification('CrazyyFit — ' + m[0].toUpperCase() + m.slice(1), { body: "Time to log your " + m + "! Tap to open.", icon: './icons/icon-192.png', tag: 'nutr-' + m });
+    }, delay);
+  });
 }
 
 /* ── MAIN RENDER ─────────────────────────────────────────────── */
@@ -559,18 +847,34 @@ function renderNutritionTracker(c) {
   const n      = c.data && c.data.nutrition;
   const accent = c.accent || 'var(--accent)';
 
-  // Extract macro targets from client data
+  // ── Determine if today is a training or rest day from schedule ──
+  const schedDays = c.data?.schedule?.days || [];
+  const jsDay = new Date(date + 'T12:00:00').getDay(); // 0=Sun
+  const dayMap = ['sun','mon','tue','wed','thu','fri','sat'];
+  const todayLabel = dayMap[jsDay];
+  const schedDay = schedDays.find(d => d.label?.toLowerCase() === todayLabel);
+  const isTrainingDay = schedDay ? !['rest','wk-rest'].includes((schedDay.type||schedDay.tag||'').toLowerCase()) : null;
+
+  // ── Base macro targets from client data ──
   const _mv = (label) => {
     if (!n || !n.macros) return 0;
     const m = n.macros.find(m => new RegExp(label, 'i').test(m.label));
     return parseInt(m?.val) || 0;
   };
-  const targets = {
-    cal: _mv('calorie|kcal') || 2000,
-    p:   _mv('protein')      || 150,
-    c:   _mv('carb')         || 200,
-    f:   _mv('fat')          || 65,
-  };
+  const baseCal = _mv('calorie|kcal') || (n?.calories) || 2000;
+  const baseP   = _mv('protein')      || (n?.protein)  || 150;
+  const baseC   = _mv('carb')         || (n?.carbs)    || 200;
+  const baseF   = _mv('fat')          || (n?.fat)      || 65;
+
+  // ── Apply training/rest day split if available ──
+  let targets, dayTypeLabel = null;
+  if (isTrainingDay !== null && n?.trainingDay && n?.restDay) {
+    const split = isTrainingDay ? n.trainingDay : n.restDay;
+    targets = { cal: split.calories, p: split.protein, c: split.carbs, f: split.fat };
+    dayTypeLabel = isTrainingDay ? 'Training Day' : 'Rest Day';
+  } else {
+    targets = { cal: baseCal, p: baseP, c: baseC, f: baseF };
+  }
 
   // Date navigation
   const isToday  = date === today;
@@ -597,6 +901,16 @@ function renderNutritionTracker(c) {
     ${_nutrRing(totals.p,   targets.p,   'Protein',  'g',   '#ff9f7a')}
     ${_nutrRing(totals.c,   targets.c,   'Carbs',    'g',   '#e8ff47')}
     ${_nutrRing(totals.f,   targets.f,   'Fat',      'g',   '#7adfff')}
+  </div>`;
+
+  // Day type badge + micronutrient strip
+  const netCarbs = Math.max(0, Math.round((totals.c - totals.fiber) * 10) / 10);
+  html += `<div class="nutr-micro-strip">
+    ${dayTypeLabel ? `<span class="nutr-day-badge" style="background:${isTrainingDay ? accent + '22' : 'rgba(136,136,136,.15)'};color:${isTrainingDay ? accent : 'var(--muted)'};border-color:${isTrainingDay ? accent + '55' : 'var(--border)'}">${esc(dayTypeLabel)}</span>` : ''}
+    ${totals.fiber  > 0 ? `<span class="nutr-micro-pill">Fiber <b>${totals.fiber}g</b></span>` : ''}
+    ${totals.sugar  > 0 ? `<span class="nutr-micro-pill">Sugar <b>${totals.sugar}g</b></span>` : ''}
+    ${totals.sodium > 0 ? `<span class="nutr-micro-pill">Sodium <b>${totals.sodium}mg</b></span>` : ''}
+    ${totals.fiber  > 0 ? `<span class="nutr-micro-pill">Net Carbs <b>${netCarbs}g</b></span>` : ''}
   </div>`;
 
   // Remaining summary strip
@@ -641,10 +955,15 @@ function renderNutritionTracker(c) {
   // 7-day history
   html += _nutrHistory(c.id, targets.cal, accent);
 
+  // Top foods this week
+  html += buildTopFoodsSection(c.id, accent);
+
   // Targets reference card
+  const mealTargets = getMealTargets(c.id);
   html += `<div class="nutr-targets-bar">
     <div class="nutr-targets-row">
       <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase">Daily Targets</span>
+      <button onclick="openMealTargetModal('${esc(c.id)}')" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:4px;cursor:pointer">Meal Goals</button>
     </div>
     <div class="nutr-targets-vals">
       <span style="color:${accent}">${targets.cal} kcal</span>
@@ -652,6 +971,10 @@ function renderNutritionTracker(c) {
       <span style="color:#e8ff47">${targets.c}g carbs</span>
       <span style="color:#7adfff">${targets.f}g fat</span>
     </div>
+    ${(n?.trainingDay && n?.restDay) ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:8px;line-height:1.7">
+      Train: <span style="color:${accent}">${n.trainingDay.calories} kcal</span> · ${n.trainingDay.carbs}g C &nbsp;|&nbsp;
+      Rest: <span style="color:var(--muted)">${n.restDay.calories} kcal</span> · ${n.restDay.carbs}g C
+    </div>` : ''}
     ${n && n.macros && n.macros.length ? (() => {
       const txt = n.macros.map(m => `${m.label}: ${m.val}${m.unit}`).join(' · ');
       return `<button class="macro-copy-btn" style="margin-top:10px" onclick="navigator.clipboard?.writeText(${JSON.stringify(txt)}).then(()=>showFitToast('Macros copied!')).catch(()=>showFitToast(${JSON.stringify(txt)}))">Copy Targets for MyFitnessPal</button>`;
@@ -665,6 +988,15 @@ function renderNutritionTracker(c) {
       ${n.supplements && n.supplements.length ? `<div class="card-block"><div class="block-label">Supplements</div><ul class="tip-list">${n.supplements.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}
     </div>`;
   }
+
+  // Action row: reminders + monthly report
+  html += `<div style="display:flex;gap:8px;margin-top:12px;margin-bottom:4px">
+    <button class="nutr-meal-mini-btn" style="flex:1" onclick="openNutrRemindersModal('${esc(c.id)}')">Meal Reminders</button>
+    <button class="nutr-meal-mini-btn" style="flex:1" onclick="openMonthlyReport('${esc(c.id)}',${targets.cal},'${esc(accent)}')">Monthly Report</button>
+  </div>`;
+
+  // Schedule reminders for today
+  _scheduleNutrReminders(c.id);
 
   return html;
 }
@@ -1029,7 +1361,7 @@ function confirmNutrAddFood(foodId) {
 
   const diary = getNutrDiary(cid, date);
   if (!diary[meal]) diary[meal] = [];
-  diary[meal].push({ id: food.id, name: food.name, cal: food.cal, p: food.p, c: food.c, f: food.f, qty, serving: food.serving });
+  diary[meal].push({ id: food.id, name: food.name, cal: food.cal, p: food.p, c: food.c, f: food.f, qty, serving: food.serving, fiber: food.fiber || 0, sodium: food.sodium || 0, sugar: food.sugar || 0 });
   saveNutrDiary(cid, date, diary);
   addToRecents(cid, food);
   sbAutoSync(cid);
@@ -1045,15 +1377,30 @@ function confirmNutrAddFood(foodId) {
   if (panel) panel.innerHTML = renderNutritionTracker(c);
 }
 
-/* ── CUSTOM FOOD MODAL ───────────────────────────────────────── */
-function openNutrCustomFood() {
+/* ── CUSTOM FOOD MODAL (with Recipe Builder tab) ──────────────── */
+window._recipeIngredients = [];
+
+function openNutrCustomFood(mode) {
+  mode = mode || 'manual'; // 'manual' | 'recipe'
   document.getElementById('nutrCustomFoodModal')?.remove();
+  window._recipeIngredients = [];
 
   const modal = document.createElement('div');
   modal.id    = 'nutrCustomFoodModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center';
-  modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:480px;box-sizing:border-box">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px">Custom Food</div>
+
+  const tabStyle = (m) => `padding:6px 14px;border-radius:4px;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;background:${mode===m?'var(--accent)':'var(--surface2)'};color:${mode===m?'#000':'var(--muted)'}`;
+
+  modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px 28px;width:100%;max-width:500px;box-sizing:border-box;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">Custom Food</div>
+      <div style="display:flex;gap:6px">
+        <button onclick="openNutrCustomFood('manual')" style="${tabStyle('manual')}">Manual</button>
+        <button onclick="openNutrCustomFood('recipe')" style="${tabStyle('recipe')}">Recipe</button>
+      </div>
+    </div>
+
+    ${mode === 'manual' ? `
     <div class="ob-field" style="margin-bottom:10px">
       <label class="ob-label">Food Name</label>
       <input class="ob-input" id="cf-name" type="text" placeholder="e.g. Homemade protein bowl" autofocus>
@@ -1064,24 +1411,150 @@ function openNutrCustomFood() {
     </div>
     <div class="ob-input-row" style="margin-bottom:10px">
       <div class="ob-field"><label class="ob-label">Calories</label>
-        <input class="ob-input" id="cf-cal" type="number" placeholder="0" inputmode="numeric"></div>
+        <input class="ob-input" id="cf-cal" type="number" placeholder="0" inputmode="numeric" oninput="cfUpdateCalPreview()"></div>
       <div class="ob-field"><label class="ob-label">Protein (g)</label>
-        <input class="ob-input" id="cf-p" type="number" placeholder="0" inputmode="numeric"></div>
+        <input class="ob-input" id="cf-p" type="number" placeholder="0" inputmode="numeric" oninput="cfUpdateCalPreview()"></div>
     </div>
-    <div class="ob-input-row" style="margin-bottom:20px">
+    <div class="ob-input-row" style="margin-bottom:10px">
       <div class="ob-field"><label class="ob-label">Carbs (g)</label>
-        <input class="ob-input" id="cf-c" type="number" placeholder="0" inputmode="numeric"></div>
+        <input class="ob-input" id="cf-c" type="number" placeholder="0" inputmode="numeric" oninput="cfUpdateCalPreview()"></div>
       <div class="ob-field"><label class="ob-label">Fat (g)</label>
-        <input class="ob-input" id="cf-f" type="number" placeholder="0" inputmode="numeric"></div>
+        <input class="ob-input" id="cf-f" type="number" placeholder="0" inputmode="numeric" oninput="cfUpdateCalPreview()"></div>
     </div>
+    <div class="ob-input-row" style="margin-bottom:16px">
+      <div class="ob-field"><label class="ob-label">Fiber (g) <span style="color:var(--faint)">opt</span></label>
+        <input class="ob-input" id="cf-fiber" type="number" placeholder="0" inputmode="decimal"></div>
+      <div class="ob-field"><label class="ob-label">Sodium (mg) <span style="color:var(--faint)">opt</span></label>
+        <input class="ob-input" id="cf-sodium" type="number" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div id="cf-cal-preview" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:14px;letter-spacing:.5px"></div>
     <div style="display:flex;gap:10px">
       <button class="ob-next-btn" style="flex:1" onclick="confirmNutrCustomFood()">Save & Add →</button>
       <button class="ob-back-btn" onclick="document.getElementById('nutrCustomFoodModal').remove()">Cancel</button>
     </div>
+    ` : `
+    <div class="ob-field" style="margin-bottom:10px">
+      <label class="ob-label">Recipe Name</label>
+      <input class="ob-input" id="cf-name" type="text" placeholder="e.g. Chicken Rice Bowl">
+    </div>
+    <div class="ob-field" style="margin-bottom:12px">
+      <label class="ob-label">Serves</label>
+      <input class="ob-input" id="cf-serves" type="number" placeholder="1" value="1" min="1" inputmode="numeric" oninput="cfRecipeUpdateTotals()">
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">ADD INGREDIENTS</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <input class="ob-input" id="cf-ing-search" type="text" placeholder="Search food..." style="flex:1" oninput="cfRecipeSearch(this.value)" autocomplete="off">
+    </div>
+    <div id="cf-ing-results" style="max-height:120px;overflow-y:auto;margin-bottom:10px;border:1px solid var(--border);border-radius:6px"></div>
+    <div id="cf-ing-list" style="margin-bottom:10px"></div>
+    <div id="cf-recipe-totals" style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;min-height:32px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="ob-next-btn" style="flex:1" onclick="confirmNutrRecipe()">Save Recipe →</button>
+      <button class="ob-back-btn" onclick="document.getElementById('nutrCustomFoodModal').remove()">Cancel</button>
+    </div>
+    `}
   </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
   setTimeout(() => document.getElementById('cf-name')?.focus(), 60);
+}
+
+function cfUpdateCalPreview() {
+  const p = parseFloat(document.getElementById('cf-p')?.value) || 0;
+  const c = parseFloat(document.getElementById('cf-c')?.value) || 0;
+  const f = parseFloat(document.getElementById('cf-f')?.value) || 0;
+  const computed = Math.round(p * 4 + c * 4 + f * 9);
+  const el = document.getElementById('cf-cal-preview');
+  if (el && (p || c || f)) el.textContent = `Macro-computed calories: ~${computed} kcal`;
+  else if (el) el.textContent = '';
+}
+
+function cfRecipeSearch(q) {
+  const el = document.getElementById('cf-ing-results');
+  if (!el) return;
+  if (!q || q.length < 1) { el.innerHTML = ''; return; }
+  const ql = q.toLowerCase();
+  const cid = AppState._nutrSearchCid;
+  const custom = getCustomFoods(cid).map(f => ({ ...f, _custom: true }));
+  const results = [...custom, ...FOOD_DB].filter(f => f.name.toLowerCase().includes(ql)).slice(0, 12);
+  el.innerHTML = results.map((f, i) =>
+    `<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:11px" onclick="cfRecipeAddIngredient(${i})" data-idx="${i}">${esc(f.name)} <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${f.cal}kcal/${esc(f.serving)}</span></div>`
+  ).join('');
+  window._cfRecipeSearchResults = results;
+}
+
+function cfRecipeAddIngredient(idx) {
+  const f = (window._cfRecipeSearchResults || [])[idx];
+  if (!f) return;
+  window._recipeIngredients.push({ id: f.id, name: f.name, cal: f.cal, p: f.p, c: f.c, f: f.f, fiber: f.fiber || 0, sodium: f.sodium || 0, serving: f.serving, qty: 1 });
+  document.getElementById('cf-ing-search').value = '';
+  document.getElementById('cf-ing-results').innerHTML = '';
+  cfRecipeRenderList();
+  cfRecipeUpdateTotals();
+}
+
+function cfRecipeRenderList() {
+  const el = document.getElementById('cf-ing-list');
+  if (!el) return;
+  if (!window._recipeIngredients.length) { el.innerHTML = ''; return; }
+  el.innerHTML = window._recipeIngredients.map((ing, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="flex:1;font-size:11px">${esc(ing.name)}</div>
+      <input type="number" value="${ing.qty}" min="0.25" step="0.25" inputmode="decimal" style="width:52px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-family:'DM Mono',monospace;font-size:10px;text-align:center" oninput="window._recipeIngredients[${i}].qty=parseFloat(this.value)||1;cfRecipeUpdateTotals()">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);min-width:36px;text-align:right">${Math.round(ing.cal * ing.qty)} kcal</div>
+      <button onclick="window._recipeIngredients.splice(${i},1);cfRecipeRenderList();cfRecipeUpdateTotals()" style="background:none;border:none;color:var(--danger);font-size:14px;cursor:pointer;padding:0 4px">×</button>
+    </div>`).join('');
+}
+
+function cfRecipeUpdateTotals() {
+  cfRecipeRenderList();
+  const el = document.getElementById('cf-recipe-totals');
+  if (!el) return;
+  const serves = Math.max(1, parseInt(document.getElementById('cf-serves')?.value) || 1);
+  let cal = 0, p = 0, c = 0, f = 0, fiber = 0, sodium = 0;
+  window._recipeIngredients.forEach(ing => {
+    const q = ing.qty || 1;
+    cal    += (ing.cal    || 0) * q;
+    p      += (ing.p      || 0) * q;
+    c      += (ing.c      || 0) * q;
+    f      += (ing.f      || 0) * q;
+    fiber  += (ing.fiber  || 0) * q;
+    sodium += (ing.sodium || 0) * q;
+  });
+  window._cfRecipeTotals = { cal: Math.round(cal/serves), p: Math.round(p/serves*10)/10, c: Math.round(c/serves*10)/10, f: Math.round(f/serves*10)/10, fiber: Math.round(fiber/serves*10)/10, sodium: Math.round(sodium/serves) };
+  const t = window._cfRecipeTotals;
+  el.innerHTML = `Per serving (1 of ${serves}): <b style="color:var(--text)">${t.cal} kcal</b> · ${t.p}g P · ${t.c}g C · ${t.f}g F${t.fiber>0?' · '+t.fiber+'g fiber':''}`;
+}
+
+function confirmNutrRecipe() {
+  const cid   = AppState._nutrSearchCid;
+  const meal  = AppState._nutrSearchMeal;
+  const date  = AppState._nutrSearchDate;
+  const name  = document.getElementById('cf-name')?.value?.trim();
+  const serves = Math.max(1, parseInt(document.getElementById('cf-serves')?.value) || 1);
+  if (!name) { const el = document.getElementById('cf-name'); if (el) el.style.borderColor = '#e74c3c'; return; }
+  if (!window._recipeIngredients.length) { showFitToast('Add at least one ingredient'); return; }
+  cfRecipeUpdateTotals();
+  const t = window._cfRecipeTotals || {};
+  const serving = serves > 1 ? `1 of ${serves} servings` : '1 serving';
+  const customs = getCustomFoods(cid);
+  const newFood = { id: Date.now(), cat: 'Custom', name, serving, cal: t.cal||0, p: t.p||0, c: t.c||0, f: t.f||0, fiber: t.fiber||0, sodium: t.sodium||0, _recipe: true };
+  customs.push(newFood);
+  saveCustomFoods(cid, customs);
+  const diary = getNutrDiary(cid, date);
+  if (!diary[meal]) diary[meal] = [];
+  diary[meal].push({ id: newFood.id, name, cal: newFood.cal, p: newFood.p, c: newFood.c, f: newFood.f, fiber: newFood.fiber, sodium: newFood.sodium, qty: 1, serving });
+  saveNutrDiary(cid, date, diary);
+  addToRecents(cid, newFood);
+  sbAutoSync(cid);
+  document.getElementById('nutrCustomFoodModal')?.remove();
+  closeNutrSearch();
+  haptic('success');
+  showFitToast(name + ' added');
+  const cl = (getAllClients().find(cl => cl.id === cid)) || AppState.currentClient;
+  if (!cl) return;
+  const panel = document.getElementById('panel-nutrition');
+  if (panel) panel.innerHTML = renderNutritionTracker(cl);
 }
 
 function confirmNutrCustomFood() {
@@ -1091,10 +1564,12 @@ function confirmNutrCustomFood() {
   const nameEl  = document.getElementById('cf-name');
   const name    = nameEl?.value?.trim();
   const serving = document.getElementById('cf-serving')?.value?.trim() || '1 serving';
-  const cal     = parseFloat(document.getElementById('cf-cal')?.value) || 0;
-  const p       = parseFloat(document.getElementById('cf-p')?.value)   || 0;
-  const c       = parseFloat(document.getElementById('cf-c')?.value)   || 0;
-  const f       = parseFloat(document.getElementById('cf-f')?.value)   || 0;
+  const cal     = parseFloat(document.getElementById('cf-cal')?.value)   || 0;
+  const p       = parseFloat(document.getElementById('cf-p')?.value)     || 0;
+  const c       = parseFloat(document.getElementById('cf-c')?.value)     || 0;
+  const f       = parseFloat(document.getElementById('cf-f')?.value)     || 0;
+  const fiber   = parseFloat(document.getElementById('cf-fiber')?.value) || 0;
+  const sodium  = parseFloat(document.getElementById('cf-sodium')?.value)|| 0;
 
   if (!name) {
     if (nameEl) nameEl.style.borderColor = '#e74c3c';
@@ -1103,14 +1578,14 @@ function confirmNutrCustomFood() {
 
   // Save to custom food library
   const customs = getCustomFoods(cid);
-  const newFood = { id: Date.now(), cat: 'Custom', name, serving, cal, p, c, f };
+  const newFood = { id: Date.now(), cat: 'Custom', name, serving, cal, p, c, f, fiber, sodium };
   customs.push(newFood);
   saveCustomFoods(cid, customs);
 
   // Add directly to diary
   const diary = getNutrDiary(cid, date);
   if (!diary[meal]) diary[meal] = [];
-  diary[meal].push({ id: newFood.id, name, cal, p, c, f, qty: 1, serving });
+  diary[meal].push({ id: newFood.id, name, cal, p, c, f, fiber, sodium, qty: 1, serving });
   saveNutrDiary(cid, date, diary);
   addToRecents(cid, newFood);
   sbAutoSync(cid);

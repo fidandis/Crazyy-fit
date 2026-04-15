@@ -135,7 +135,19 @@ function calcClientMacros(state) {
     tips.push('Aim for 2+ months before reassessing — changes show in mirror before the scale.');
   }
 
-  return { calories, protein, carbs, fat, tdee, bmr, goalLabel, rateNote, tips, isWeightLoss, isBulk, isRecomp };
+  // ── Training day vs rest day split ──────────────────────────
+  // Training days: +15% carbs (extra glycogen), same protein/fat
+  // Rest days: -20% carbs (lower demand), same protein/fat
+  var trainingCarbs = Math.round(Math.round(carbs * 1.15) / 5) * 5;
+  var trainingCals  = Math.round((protein * 4 + trainingCarbs * 4 + fat * 9) / 50) * 50;
+  var restCarbs     = Math.max(50, Math.round(Math.round(carbs * 0.80) / 5) * 5);
+  var restCals      = Math.round((protein * 4 + restCarbs * 4 + fat * 9) / 50) * 50;
+
+  return {
+    calories, protein, carbs, fat, tdee, bmr, goalLabel, rateNote, tips, isWeightLoss, isBulk, isRecomp,
+    trainingDay: { calories: trainingCals, protein, carbs: trainingCarbs, fat },
+    restDay:     { calories: restCals,     protein, carbs: restCarbs,     fat },
+  };
 }
 
 /* ── INIT ── */
