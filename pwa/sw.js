@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v25';
+const CACHE = 'crazyy-fit-v26';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
@@ -20,6 +20,7 @@ const ASSETS = [
   './js/features.js',
   './js/ai.js',
   './js/macros.js',
+  './js/nutrition.js',
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap'
 ];
 
