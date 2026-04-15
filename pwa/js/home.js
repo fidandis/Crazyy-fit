@@ -200,6 +200,11 @@ function renderHome(c) {
     h += `</div>`;
   }
 
+  // Week Overview — always visible, popped out
+  if (c.data && c.data.schedule && c.data.schedule.days) {
+    h += `<div class="home-week-wrap">${renderSchedule(c.data.schedule, c)}</div>`;
+  }
+
   // Weather alert (async — filled in after render)
   h += `<div id="weather-alert-${c.id}"></div>`;
 
@@ -209,36 +214,6 @@ function renderHome(c) {
   // Instagram latest post
   h += buildHomeIgSection(c.accent);
 
-  // Accordions (all lazy — home is its own tab, no eager renders)
-  h += `<div class="acc-wrap">`;
-  h += accSection('training', '🏋️', 'Training', 'Schedule, workouts & fitness log', c.accent, function() {
-    return renderSchedule(c.data.schedule, c) + (c.data.workouts ? renderWorkouts(c.data.workouts, c) : '') + renderFitnessLog(c);
-  });
-  h += accSection('nutrition', '🥗', 'Nutrition', 'Macros, meal plan & food tracker', c.accent, function() {
-    return renderNutrition(c.data.nutrition, c);
-  });
-  h += accSection('body', '📏', 'Body & Stats', 'Weight, measurements & progress', c.accent, function() {
-    return renderBodyStats(c);
-  });
-  h += accSection('strength', '💪', 'Strength & 1RM', 'PR tracker & 1RM calculator', c.accent, function() {
-    return renderStrength(c);
-  });
-  h += accSection('checkin-acc', '📋', 'Weekly Check-In', 'Sleep, energy, adherence & photo', c.accent, function() {
-    return renderCheckin(c);
-  });
-  h += accSection('milestones-acc', '🏆', 'Milestones', getUnlockedMilestones(c.id).length + ' of ' + MILESTONES.length + ' unlocked', c.accent, function() {
-    return renderMilestonesPanel(c);
-  });
-  h += accSection('tools', '⚡', 'Tools', 'Tabata, habits, calendar & more', c.accent, function() {
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button onclick="openTabataScreen()" class="fit-log-btn">⚡ Tabata</button>
-      <button onclick="openFeature('habits')" class="fit-log-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">✅ Habits</button>
-      <button onclick="openFeature('calendar')" class="fit-log-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">📅 Calendar</button>
-      <button onclick="openFeature('meals')" class="fit-log-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">🍽️ Meal Plan</button>
-      <button onclick="openFeature('summary')" class="fit-log-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">📊 Monthly Report</button>
-    </div>`;
-  });
-  h += `</div>`;
   return h;
 }
 

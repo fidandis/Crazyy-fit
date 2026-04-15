@@ -1218,17 +1218,33 @@ function renderCalendar(c) {
     const schedDay = sched.find(s => s.label === dayLabel);
     const isToday  = date.toDateString() === today.toDateString();
     const wasLogged= logs.some(l => new Date(l.date).toDateString() === date.toDateString());
+    const dateISO  = date.toISOString().slice(0,10);
+
+    // Resolve color from same logic as week overview cards
+    const isStrength = schedDay && (schedDay.type === 'wk-a' || schedDay.type === 'wk-b' || schedDay.type === 'wk-c');
+    const isCard     = schedDay && schedDay.type === 'wk-card';
+    const isRest     = !schedDay || schedDay.tag === 'Rest';
+    const hue        = isStrength && schedDay.title ? _schedHueForTitle(schedDay.title) : null;
+    const pillColor  = isRest ? null : hue !== null ? `hsl(${hue},62%,64%)` : isCard ? '#ffb347' : 'var(--accent)';
+    const pillBg     = isRest ? null : hue !== null ? `hsla(${hue},68%,56%,.18)` : isCard ? 'rgba(255,179,71,.15)' : 'rgba(255,107,53,.15)';
+    const barColor   = isRest ? 'transparent' : pillColor;
+
     let pill = '';
-    if (schedDay && schedDay.tag !== 'Rest') {
-      pill = `<div class="cal-workout-pill">${(schedDay.title||schedDay.tag).slice(0,10)}</div>`;
-      if (wasLogged) pill += `<div style="font-size:7px;color:#2ecc71">✓ Done</div>`;
-    } else if (schedDay) {
-      pill = `<div class="cal-rest-pill">Rest</div>`;
+    if (!isRest) {
+      const tagLabel = (schedDay.tag || '').toUpperCase();
+      const title    = (schedDay.title || '').slice(0, 12);
+      pill = `<div class="cal-type-tag" style="background:${pillBg};color:${pillColor}">${tagLabel}</div>
+              <div class="cal-workout-title" style="color:${pillColor}">${title}</div>`;
+      if (wasLogged) pill += `<div class="cal-done-label">Done</div>`;
     }
-    const dateISO = date.toISOString().slice(0,10);
-    html += `<div class="cal-cell${isToday?' today':''}${wasLogged?' has-workout':''}" onclick="openCalDayDetail('${c.id}','${dateISO}')">
-      <div class="cal-date" style="color:${isToday?'var(--accent)':'var(--muted)'}">${day}</div>${pill}
-      ${wasLogged?'<div class="cal-done-dot"></div>':''}
+
+    html += `<div class="cal-cell${isToday?' today':''}${wasLogged?' has-workout':''}"
+      style="${barColor && barColor !== 'transparent' ? `--cal-bar:${barColor}` : ''}"
+      onclick="openCalDayDetail('${c.id}','${dateISO}')">
+      <div class="cal-top-bar"></div>
+      <div class="cal-date" style="color:${isToday ? pillColor || 'var(--accent)' : 'var(--muted)'}">${day}</div>
+      ${pill}
+      ${wasLogged ? '<div class="cal-done-dot"></div>' : ''}
     </div>`;
   }
   html += `</div>`;

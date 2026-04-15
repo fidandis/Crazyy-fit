@@ -1613,3 +1613,15 @@ input[type=button],input[type=submit]{touch-action:manipulation;}
 .nutr-meal-actions .nutr-add-food-btn{flex:1;border-top:none;}
 .nutr-meal-mini-btn{padding:10px 12px;background:none;border:none;border-left:1px dashed var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;cursor:pointer;white-space:nowrap;}
 .nutr-meal-mini-btn:active{background:var(--surface2);color:var(--accent);}
+
+/* Home — week overview always-visible wrap */
+.home-week-wrap{padding:0 0 4px;}
+.home-week-wrap .panel-title{padding:16px 20px 8px;font-size:14px;}
+
+/* Calendar — week-overview-style color coding */
+.cal-cell{position:relative;overflow:hidden;}
+.cal-top-bar{height:3px;width:100%;background:var(--cal-bar,transparent);margin-bottom:3px;border-radius:2px 2px 0 0;}
+.cal-type-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:7px;padding:1px 4px;border-radius:3px;letter-spacing:.5px;font-weight:700;margin-bottom:2px;}
+.cal-workout-title{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-done-label{font-family:'DM Mono',monospace;font-size:6px;color:#2ecc71;letter-spacing:.5px;margin-top:2px;}
+.cal-cell.has-workout{background:rgba(255,255,255,.02);}
