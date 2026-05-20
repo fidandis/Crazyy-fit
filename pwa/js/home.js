@@ -20,9 +20,10 @@ function buildRestDayContent() {
 function renderHome(c) {
   const logs = getFitnessLogs(c.id);
   const xp   = getXP(c.id);
-  const now  = Date.now();
+  const nowDate = new Date();
+  const now  = nowDate.getTime();
   const days7= ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const todayLabel = days7[new Date().getDay()];
+  const todayLabel = days7[nowDate.getDay()];
   const sched      = c.data.schedule && c.data.schedule.days ? c.data.schedule.days : [];
   const todayDay   = sched.find(s => s.label === todayLabel);
   const weekLogs   = logs.filter(l => l.date && (now - new Date(l.date).getTime()) < 7*86400000);
@@ -33,7 +34,7 @@ function renderHome(c) {
     const logged4w = logs.filter(l => l.date && (now - new Date(l.date).getTime()) < 28*86400000).length;
     adherencePct = Math.min(100, Math.round(logged4w / (trainingDays * 4) * 100));
   }
-  const hr = new Date().getHours();
+  const hr = nowDate.getHours();
   const greet = hr < 12 ? 'Good morning,' : hr < 17 ? 'Good afternoon,' : 'Good evening,';
   const firstName = c.name.split(' ')[0];
 
@@ -44,7 +45,7 @@ function renderHome(c) {
   h += `<div class="home-hero">
     <div class="home-hero-greeting">${greet}</div>
     <div class="home-hero-name"><span style="color:${c.accent}">${firstName}</span></div>
-    <div class="home-hero-date">${new Date().toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</div>
+    <div class="home-hero-date">${nowDate.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</div>
   </div>`;
 
   // Stats row
@@ -135,8 +136,9 @@ function renderHome(c) {
     // Missed workout nudge — only show on training days where nothing has been logged yet today
     if (!isRest && todayWorkoutDayId) {
       const _wlToday = getWlData(c.id, todayWorkoutDayId);
-      const _loggedToday = logs.some(l => l.date && new Date(l.date).toDateString() === new Date().toDateString());
-      const _wlDoneToday = _wlToday?._countedDate === new Date().toDateString();
+      const _todayStr = nowDate.toDateString();
+      const _loggedToday = logs.some(l => l.date && new Date(l.date).toDateString() === _todayStr);
+      const _wlDoneToday = _wlToday?._countedDate === _todayStr;
       if (!_loggedToday && !_wlDoneToday) {
         h += `<div class="wl-nudge-banner" onclick="const btn=document.querySelector('[data-tid=&quot;workouts&quot;]');if(btn)btn.click()">
           <div class="wl-nudge-icon">💪</div>
@@ -153,9 +155,9 @@ function renderHome(c) {
     h += `<div class="home-today-card">
       <div class="home-today-header">
         <div>
-          <div class="home-today-label">${todayLabel} · ${todayDay.tag}</div>
-          <div class="home-today-title" style="color:${isRest ? 'var(--muted)' : c.accent}">${todayDay.title}</div>
-          <div class="home-today-sub">${todayDay.sub || ''}</div>
+          <div class="home-today-label">${esc(todayLabel)} · ${esc(todayDay.tag)}</div>
+          <div class="home-today-title" style="color:${isRest ? 'var(--muted)' : c.accent}">${esc(todayDay.title)}</div>
+          <div class="home-today-sub">${esc(todayDay.sub || '')}</div>
         </div>
         <div style="font-size:28px">${isRest ? '😴' : '💪'}</div>
       </div>
@@ -165,10 +167,10 @@ function renderHome(c) {
       todayExercises.forEach((ex, exIdx) => {
         h += `<div class="home-today-ex-row" id="today-ex-row-${c.id}-${exIdx}">
           <div class="home-today-ex-main">
-            <div class="home-today-ex-name" id="today-ex-name-${c.id}-${exIdx}">${ex.name}<button class="ex-swap-btn" onclick="openExerciseSwap('${c.id}',${exIdx})" title="Swap exercise">↔</button></div>
-            <div class="home-today-ex-meta" id="today-ex-meta-${c.id}-${exIdx}">${ex.sets ? ex.sets + (ex.reps ? ' · ' + ex.reps : '') : ''}</div>
+            <div class="home-today-ex-name" id="today-ex-name-${c.id}-${exIdx}">${esc(ex.name)}<button class="ex-swap-btn" onclick="openExerciseSwap('${c.id}',${exIdx})" title="Swap exercise">↔</button></div>
+            <div class="home-today-ex-meta" id="today-ex-meta-${c.id}-${exIdx}">${ex.sets ? esc(ex.sets) + (ex.reps ? ' · ' + esc(ex.reps) : '') : ''}</div>
           </div>
-          <div class="home-today-ex-sets" id="today-ex-sets-${c.id}-${exIdx}">${ex.sets || ''}</div>
+          <div class="home-today-ex-sets" id="today-ex-sets-${c.id}-${exIdx}">${esc(ex.sets || '')}</div>
         </div>`;
       });
       h += `</div>`;
@@ -418,10 +420,22 @@ async function checkWeatherAlert(c) {
   if (!address || !_clientHasRunningToday(c)) return;
   const el = document.getElementById('weather-alert-' + c.id);
   if (!el) return;
+  // Cache by (address, current 3-hour slot) — wttr.in's forecast resolution.
+  // Avoids hammering on every home re-render and survives across sessions.
+  const slotKey = address + '|' + Math.floor(Date.now() / (3 * 3600 * 1000));
+  const cacheKey = 'wx_cache_' + c.id;
+  let data;
   try {
-    const resp = await fetch('https://wttr.in/' + encodeURIComponent(address) + '?format=j1');
-    if (!resp.ok) return;
-    const data = await resp.json();
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && cached.slot === slotKey) data = cached.data;
+  } catch (_) {}
+  try {
+    if (!data) {
+      const resp = await fetch('https://wttr.in/' + encodeURIComponent(address) + '?format=j1');
+      if (!resp.ok) return;
+      data = await resp.json();
+      try { localStorage.setItem(cacheKey, JSON.stringify({ slot: slotKey, data })); } catch (_) {}
+    }
     const hour = new Date().getHours();
     const hourly = data.weather?.[0]?.hourly || [];
     if (!hourly.length) return;
@@ -519,6 +533,9 @@ function coachViewAsClient(cid) {
   const c = clients.find(cl => cl.id === cid);
   if (!c) return;
   currentClient = c;
+  AppState.currentClient = c;
+  AppState.coachViewingClientId = cid;
+  AppState._isCoachView = true;
 
   // Use the identical launchApp flow — coach sees exactly what the client sees
   document.documentElement.style.setProperty('--accent', c.accent);
@@ -557,6 +574,9 @@ function coachViewAsClient(cid) {
 function exitClientView() {
   document.getElementById('coachPreviewBar').style.display = 'none';
   currentClient = null;
+  AppState.currentClient = null;
+  AppState.coachViewingClientId = null;
+  AppState._isCoachView = false;
   showScreen('coach');
   renderCoachDashboard();
 }
@@ -628,7 +648,7 @@ function openClientNotifLog() {
   backdrop.className = 'notif-backdrop';
   const items = log.length ? log.slice().reverse().map(n =>
     `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:14px">${n.msg}</div>
+      <div style="font-size:14px">${esc(n.msg)}</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">${new Date(n.ts).toLocaleDateString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
     </div>`
   ).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:10px">No messages yet</div>';

@@ -41,6 +41,7 @@ function renderFeature(id, c) {
   if (id === 'habits')       body.innerHTML = renderHabitTracker(c);
   if (id === 'summary')      body.innerHTML = renderMonthlySummary(c);
   if (id === 'badges')       body.innerHTML = renderBadgesScreen(c);
+  if (id === 'musclemap')  { body.innerHTML = renderMuscleMap(c); _mmAfterRender(c); }
 }
 
 /* ── STORAGE HELPERS ─────────────────────────────────────────── */
@@ -128,12 +129,98 @@ function saveMealPlan(cid, d) { localStorage.setItem('meals_' + cid, JSON.string
 function getCheckins(cid) { return getLS('checkins_' + cid, []); }
 function saveCheckins(cid, d) { localStorage.setItem('checkins_' + cid, JSON.stringify(d)); }
 
-/* ── PHOTO GALLERY ─────────────────────────────────────────── */
-function getPhotos(cid) { return getLS('progress_photos_' + cid, []); }
-function savePhotos(cid, d) { localStorage.setItem('progress_photos_' + cid, JSON.stringify(d)); }
+/* ── PHOTO GALLERY ─────────────────────────────────────────────
+   Photos live in IndexedDB (`crazyyfit_photos` DB, store `photos`).
+   Keeping them out of localStorage avoids the synchronous-parse hit
+   of multi-MB base64 strings on every gallery render and on every
+   `JSON.stringify(localStorage)` style backup.
+   Sync API is preserved via an in-memory cache (_photosMem) that
+   hydrates lazily; renderPhotoGallery shows a placeholder and
+   re-renders once hydration completes.
+─────────────────────────────────────────────────────────────── */
+const _photosMem = {};       // cid -> photos[] (cached after hydration)
+const _photosHydrated = {};  // cid -> true|Promise (in-flight)
+let _photosDbP = null;
+function _photosDb() {
+  if (_photosDbP) return _photosDbP;
+  _photosDbP = new Promise((resolve, reject) => {
+    const req = indexedDB.open('crazyyfit_photos', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('photos');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return _photosDbP;
+}
+async function _photosIdbGet(cid) {
+  const db = await _photosDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('photos', 'readonly');
+    const req = tx.objectStore('photos').get(cid);
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror   = () => reject(req.error);
+  });
+}
+async function _photosIdbPut(cid, photos) {
+  const db = await _photosDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('photos', 'readwrite');
+    tx.objectStore('photos').put(photos, cid);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => reject(tx.error);
+  });
+}
+// One-time migration: if legacy localStorage entry exists, move it to IDB.
+async function _photosMigrateIfNeeded(cid) {
+  const lsKey = 'progress_photos_' + cid;
+  const raw = localStorage.getItem(lsKey);
+  if (!raw) return null;
+  let legacy;
+  try { legacy = JSON.parse(raw); } catch { legacy = null; }
+  if (!Array.isArray(legacy)) { localStorage.removeItem(lsKey); return null; }
+  if (legacy.length) {
+    try { await _photosIdbPut(cid, legacy); } catch (_) { /* if IDB blocked, leave LS alone */ return legacy; }
+  }
+  localStorage.removeItem(lsKey);
+  return legacy;
+}
+function hydratePhotos(cid) {
+  if (_photosHydrated[cid] === true) return Promise.resolve(_photosMem[cid] || []);
+  if (_photosHydrated[cid]) return _photosHydrated[cid];
+  _photosHydrated[cid] = (async () => {
+    let arr = await _photosIdbGet(cid).catch(() => []);
+    if (!arr || !arr.length) {
+      const migrated = await _photosMigrateIfNeeded(cid);
+      if (migrated && migrated.length) arr = migrated;
+    } else {
+      // Still try to migrate-and-clear leftover LS entry in the background
+      _photosMigrateIfNeeded(cid).catch(() => {});
+    }
+    _photosMem[cid] = arr || [];
+    _photosHydrated[cid] = true;
+    return _photosMem[cid];
+  })();
+  return _photosHydrated[cid];
+}
+function getPhotos(cid) {
+  if (_photosHydrated[cid] === true) return _photosMem[cid] || [];
+  hydratePhotos(cid); // kick off; returns [] this call
+  return [];
+}
+function savePhotos(cid, d) {
+  _photosMem[cid] = d;
+  _photosHydrated[cid] = true;
+  _photosIdbPut(cid, d).catch(e => console.error('Photo save failed:', e));
+}
 const _photoCache = {};
 function renderPhotoGallery(c) {
   const standalone = getPhotos(c.id);
+  // First render in this session: hydrate from IDB then re-render
+  if (_photosHydrated[c.id] !== true) {
+    hydratePhotos(c.id).then(() => {
+      // Only re-render if user is still on the photos feature
+      if (currentClient?.id === c.id) renderFeature('photos', c);
+    });
+  }
   const checkins   = getCheckins(c.id).filter(ci => ci.photo || ci.photoUrl).map(ci => ({ date: ci.date, src: ci.photo || ci.photoUrl, source: 'check-in' }));
   const all = [...standalone, ...checkins].sort((a,b) => new Date(b.date) - new Date(a.date));
   // Store full srcs in cache keyed by index so onclick doesn't embed huge b64
@@ -373,6 +460,13 @@ let _restTimerCid = null;
 let _restTimerExName = null;
 let _restTimerTotal = 90;
 let _restTimerRemaining = 0;
+// Absolute deadline (ms since epoch). Source of truth for remaining time —
+// each tick recomputes `_restTimerRemaining` from this, instead of
+// decrementing a counter. setInterval ticks drift heavily on mobile
+// (iOS throttles backgrounded tabs, sleeping screens skip ticks); a
+// deadline-based timer stays accurate even when the page misses ticks.
+let _restTimerEndAt = 0;
+let _restTimerVisListener = null;
 
 function parseRestSecs(text) {
   if (!text) return null;
@@ -402,6 +496,7 @@ function startRestTimer(secs, exName, cid) {
   _restTimerExName  = exName || '';
   _restTimerTotal   = secs;
   _restTimerRemaining = secs;
+  _restTimerEndAt   = Date.now() + secs * 1000;
   if (typeof acquireWakeLock === 'function') acquireWakeLock('rest');
 
   let bar = document.getElementById('restTimerBar');
@@ -437,24 +532,31 @@ function startRestTimer(secs, exName, cid) {
   const isCustom = exName && prefs[exName] && prefs[exName] !== secs;
   if (subEl) subEl.textContent = isCustom ? 'REST · CUSTOM' : 'REST';
 
-  const updateDisplay = () => {
+  // Tick computes remaining from the absolute deadline — self-correcting
+  // even when setInterval misses ticks (iOS background throttling, locked
+  // screen, heavy main-thread work).
+  const tick = () => {
+    const msLeft = _restTimerEndAt - Date.now();
+    _restTimerRemaining = Math.max(0, Math.ceil(msLeft / 1000));
     if (countEl) countEl.textContent = _restTimerRemaining;
     if (circleEl) {
       const pct = _restTimerTotal > 0 ? _restTimerRemaining / _restTimerTotal : 0;
       circleEl.setAttribute('stroke-dashoffset', String(Math.round(113 * (1 - pct))));
     }
-  };
-  updateDisplay();
-  setTimeout(() => bar.classList.add('visible'), 10);
-  _restTimerInterval = setInterval(() => {
-    _restTimerRemaining--;
-    updateDisplay();
-    if (_restTimerRemaining <= 0) {
+    if (msLeft <= 0) {
       stopRestTimer();
       if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
       showFitToast('Rest over — go!');
     }
-  }, 1000);
+  };
+  tick();
+  setTimeout(() => bar.classList.add('visible'), 10);
+  _restTimerInterval = setInterval(tick, 250); // 4x/s for smooth countdown + fast catch-up after a long gap
+
+  // When the page comes back to foreground, force an immediate recompute
+  // so the visible number snaps to reality before the next interval tick.
+  _restTimerVisListener = () => { if (!document.hidden) tick(); };
+  document.addEventListener('visibilitychange', _restTimerVisListener);
 }
 
 function adjustRestTimer(delta) {
@@ -462,6 +564,8 @@ function adjustRestTimer(delta) {
   const newTotal = Math.max(5, _restTimerTotal + delta);
   _restTimerRemaining = newRemaining;
   _restTimerTotal = newTotal;
+  // Push the deadline forward/back to match — the tick loop reads from this
+  _restTimerEndAt = Date.now() + newRemaining * 1000;
   // Save as custom pref
   if (_restTimerCid && _restTimerExName) saveRestPref(_restTimerCid, _restTimerExName, newTotal);
   // Update display
@@ -474,6 +578,11 @@ function adjustRestTimer(delta) {
 
 function stopRestTimer() {
   if (_restTimerInterval) { clearInterval(_restTimerInterval); _restTimerInterval = null; }
+  if (_restTimerVisListener) {
+    document.removeEventListener('visibilitychange', _restTimerVisListener);
+    _restTimerVisListener = null;
+  }
+  if (typeof releaseWakeLock === 'function') releaseWakeLock('rest');
   const bar = document.getElementById('restTimerBar');
   if (bar) {
     bar.classList.remove('visible');
@@ -999,7 +1108,8 @@ function addMealItem(cid, day, slot) {
   if (existing) existing.remove();
   const modal = document.createElement('div');
   modal.id = 'mealAddModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center';
+  modal.className = 'app-overlay app-overlay--dim';
+  modal.style.zIndex = '3000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:480px">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:16px">Add Food — ${slot}</div>
     <div class="ob-field"><label class="ob-label">Food Item</label>
@@ -1112,7 +1222,7 @@ function renderCheckin(c) {
 
   html += `<div style="margin-bottom:14px">
     <div class="checkin-q">📝 Notes for your coach</div>
-    <textarea class="checkin-textarea" placeholder="How are you feeling? Any injuries, wins, or concerns?" oninput="AppState.checkinState.notes=this.value">${AppState.checkinState.notes}</textarea>
+    <textarea class="checkin-textarea" placeholder="How are you feeling? Any injuries, wins, or concerns?" oninput="AppState.checkinState.notes=this.value">${esc(AppState.checkinState.notes)}</textarea>
   </div>`;
 
   html += `<div style="margin-bottom:4px">
@@ -1204,21 +1314,91 @@ function renderCalendar(c) {
   const firstDay = new Date(AppState.calYear, AppState.calMonth, 1);
   const lastDay  = new Date(AppState.calYear, AppState.calMonth+1, 0);
   const startDow = firstDay.getDay();
+  const today = new Date();
+
+  // Build a set of logged-day strings for fast lookup
+  const loggedDateSet = new Set(logs.filter(l => l.date).map(l => new Date(l.date).toDateString()));
+
+  // Per-date set count from workout logger (today's wlData and historical archives)
+  const setsByDate = {};
+  sched.forEach(sd => {
+    const dayId = sd.id || (sd.label || '').toLowerCase();
+    if (!dayId) return;
+    const wd = getWlData(c.id, dayId);
+    if (wd?._countedDate && wd?.exercises) {
+      const cnt = Object.values(wd.exercises).reduce((n, ex) => n + (ex?.sets?.filter(s => s && (s.done || s.weight))?.length || 0), 0);
+      if (cnt) setsByDate[wd._countedDate] = (setsByDate[wd._countedDate] || 0) + cnt;
+    }
+    const wh = getWlHistory(c.id, dayId);
+    (wh || []).forEach(h => {
+      if (!h?.date || !h?.exercises) return;
+      const k = new Date(h.date).toDateString();
+      const cnt = Object.values(h.exercises).reduce((n, ex) => n + (ex?.sets?.filter(s => s && (s.done || s.weight))?.length || 0), 0);
+      if (cnt) setsByDate[k] = (setsByDate[k] || 0) + cnt;
+    });
+  });
+
+  // Streak: consecutive days backwards from today (or yesterday) with a log
+  let streak = 0;
+  const cur = new Date(today);
+  cur.setHours(0,0,0,0);
+  // If today not logged, start from yesterday so an in-progress streak isn't broken at midnight
+  if (!loggedDateSet.has(cur.toDateString())) cur.setDate(cur.getDate() - 1);
+  while (loggedDateSet.has(cur.toDateString())) {
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+
+  // Best streak across all logs
+  let bestStreak = 0;
+  if (loggedDateSet.size) {
+    const sortedTs = [...loggedDateSet].map(s => new Date(s).getTime()).sort((a,b)=>a-b);
+    let run = 1; bestStreak = 1;
+    for (let i=1; i<sortedTs.length; i++) {
+      const diff = (sortedTs[i] - sortedTs[i-1]) / 86400000;
+      if (Math.abs(diff - 1) < 0.1) { run++; if (run > bestStreak) bestStreak = run; } else { run = 1; }
+    }
+  }
+
+  const isCurrentMonth = today.getFullYear() === AppState.calYear && today.getMonth() === AppState.calMonth;
+  const todayBtn = !isCurrentMonth
+    ? `<button class="cal-nav-btn" onclick="AppState.calMonth=new Date().getMonth();AppState.calYear=new Date().getFullYear();renderFeature('calendar',currentClient)" style="margin-left:6px">Today</button>`
+    : '';
+
   let html = `<div class="cal-nav">
     <button class="cal-nav-btn" onclick="AppState.calMonth--;if(AppState.calMonth<0){AppState.calMonth=11;AppState.calYear--;}renderFeature('calendar',currentClient)">← Prev</button>
     <div class="cal-month-label">${months[AppState.calMonth]} ${AppState.calYear}</div>
     <button class="cal-nav-btn" onclick="AppState.calMonth++;if(AppState.calMonth>11){AppState.calMonth=0;AppState.calYear++;}renderFeature('calendar',currentClient)">Next →</button>
+    ${todayBtn}
   </div><div class="cal-grid">`;
   dowNames.forEach(d => { html += `<div class="cal-header-cell">${d}</div>`; });
   for (let i=0; i<startDow; i++) html += `<div class="cal-cell other-month"></div>`;
-  const today = new Date();
+
+  // Tally for stats
+  let sessionsThisMonth = 0;
+  let setsThisMonth = 0;
+  let scheduledTraining = 0;
+  let scheduledLogged = 0;
+  const muscleGroupCount = {};
+
   for (let day=1; day<=lastDay.getDate(); day++) {
     const date     = new Date(AppState.calYear, AppState.calMonth, day);
+    const dateKey  = date.toDateString();
     const dayLabel = dowNames[date.getDay()];
     const schedDay = sched.find(s => s.label === dayLabel);
-    const isToday  = date.toDateString() === today.toDateString();
-    const wasLogged= logs.some(l => new Date(l.date).toDateString() === date.toDateString());
+    const isToday  = dateKey === today.toDateString();
+    const isFuture = date > today && !isToday;
+    const wasLogged= loggedDateSet.has(dateKey);
     const dateISO  = date.toISOString().slice(0,10);
+    const setsHere = setsByDate[dateKey] || 0;
+
+    if (wasLogged) sessionsThisMonth++;
+    setsThisMonth += setsHere;
+    if (schedDay && schedDay.tag !== 'Rest') {
+      scheduledTraining++;
+      if (wasLogged) scheduledLogged++;
+      if (schedDay.title) muscleGroupCount[schedDay.title] = (muscleGroupCount[schedDay.title] || 0) + 1;
+    }
 
     // Resolve color from same logic as week overview cards
     const isStrength = schedDay && (schedDay.type === 'wk-a' || schedDay.type === 'wk-b' || schedDay.type === 'wk-c');
@@ -1229,17 +1409,25 @@ function renderCalendar(c) {
     const pillBg     = isRest ? null : hue !== null ? `hsla(${hue},68%,56%,.18)` : isCard ? 'rgba(255,179,71,.15)' : 'rgba(255,107,53,.15)';
     const barColor   = isRest ? 'transparent' : pillColor;
 
+    // Heatmap intensity: more sets = more saturated background
+    const intensity = wasLogged ? Math.min(1, 0.18 + (setsHere / 24)) : 0;
+    const heatStyle = intensity > 0 ? `background:rgba(46,204,113,${intensity.toFixed(2)});` : '';
+
+    // Missed = scheduled training day in the past with no log
+    const isMissed = !isFuture && !isToday && schedDay && schedDay.tag !== 'Rest' && !wasLogged;
+
     let pill = '';
     if (!isRest) {
       const tagLabel = (schedDay.tag || '').toUpperCase();
       const title    = (schedDay.title || '').slice(0, 12);
       pill = `<div class="cal-type-tag" style="background:${pillBg};color:${pillColor}">${tagLabel}</div>
               <div class="cal-workout-title" style="color:${pillColor}">${title}</div>`;
-      if (wasLogged) pill += `<div class="cal-done-label">Done</div>`;
+      if (wasLogged) pill += `<div class="cal-done-label">${setsHere ? setsHere + ' sets' : 'Done'}</div>`;
+      else if (isMissed) pill += `<div class="cal-done-label" style="color:#e74c3c;background:rgba(231,76,60,.15)">Missed</div>`;
     }
 
-    html += `<div class="cal-cell${isToday?' today':''}${wasLogged?' has-workout':''}"
-      style="${barColor && barColor !== 'transparent' ? `--cal-bar:${barColor}` : ''}"
+    html += `<div class="cal-cell${isToday?' today':''}${wasLogged?' has-workout':''}${isMissed?' is-missed':''}"
+      style="${barColor && barColor !== 'transparent' ? `--cal-bar:${barColor};` : ''}${heatStyle}"
       onclick="openCalDayDetail('${c.id}','${dateISO}')">
       <div class="cal-top-bar"></div>
       <div class="cal-date" style="color:${isToday ? pillColor || 'var(--accent)' : 'var(--muted)'}">${day}</div>
@@ -1248,22 +1436,33 @@ function renderCalendar(c) {
     </div>`;
   }
   html += `</div>`;
-  // Adherence this month
-  let sched2=0, logged2=0;
-  for (let d=1; d<=lastDay.getDate(); d++) {
-    const dt = new Date(AppState.calYear, AppState.calMonth, d);
-    const dl = dowNames[dt.getDay()];
-    const sd = sched.find(s => s.label === dl);
-    if (sd && sd.tag !== 'Rest') {
-      sched2++;
-      if (logs.some(l => new Date(l.date).toDateString() === dt.toDateString())) logged2++;
-    }
-  }
-  const adh = sched2 > 0 ? Math.round((logged2/sched2)*100) : 0;
-  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:12px">
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">ADHERENCE THIS MONTH</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:${adh>=80?'#2ecc71':adh>=50?'#f1c40f':'#e74c3c'}">${adh}%</div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${logged2} of ${sched2} sessions logged</div>
+
+  const adh = scheduledTraining > 0 ? Math.round((scheduledLogged/scheduledTraining)*100) : 0;
+  const adhColor = adh>=80?'#2ecc71':adh>=50?'#f1c40f':'#e74c3c';
+  const topMuscle = Object.entries(muscleGroupCount).sort((a,b)=>b[1]-a[1])[0];
+
+  // Stats row — multi-card grid
+  html += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">CURRENT STREAK</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:${streak>=3?'#ff6b35':'var(--text)'}">${streak}<span style="font-size:11px;color:var(--muted);margin-left:4px;letter-spacing:1px">DAY${streak===1?'':'S'}</span></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">Best: ${bestStreak}</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">ADHERENCE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:${adhColor}">${adh}%</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${scheduledLogged} of ${scheduledTraining} planned</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">SESSIONS</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--text)">${sessionsThisMonth}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">this month</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TOTAL SETS</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--text)">${setsThisMonth}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${topMuscle ? 'Top: ' + esc(topMuscle[0]) : 'this month'}</div>
+    </div>
   </div>`;
   return html;
 }
@@ -1281,8 +1480,40 @@ function openCalDayDetail(cid, dateISO) {
   const schedDay = sched.find(s => s.label === dayLabel || s.id === dayLabel.toLowerCase());
   const logs = getFitnessLogs(cid);
   const dayLogs = logs.filter(l => l.date && new Date(l.date).toDateString() === date.toDateString());
-  const wlData = getWlData(cid, schedDay?.id || dayLabel.toLowerCase());
-  const wlHist = getWlHistory(cid, schedDay?.id || dayLabel.toLowerCase());
+  // Collect every workout-logger session for this client that landed on this
+  // calendar date — scan ALL wl_<cid>_* and wl_hist_<cid>_* keys so we don't
+  // miss sessions logged under a different day-id than the one that matches
+  // today's schedule label.
+  const targetDateStr = date.toDateString();
+  const wlSessions = [];
+  try {
+    const livePrefix = 'wl_' + cid + '_';
+    const histPrefix = 'wl_hist_' + cid + '_';
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (k.startsWith(histPrefix)) {
+        const dayIdK = k.slice(histPrefix.length);
+        const arr = getLS(k, []);
+        if (Array.isArray(arr)) {
+          arr.forEach(h => {
+            const hDate = h?.date ? new Date(h.date).toDateString() : (h?._countedDate || '');
+            if (hDate === targetDateStr && h?.exercises) {
+              wlSessions.push({ exercises: h.exercises, sessionNotes: h.sessionNotes || '', _dayId: dayIdK });
+            }
+          });
+        }
+      } else if (k.startsWith(livePrefix) && !k.startsWith(histPrefix)) {
+        const dayIdK = k.slice(livePrefix.length);
+        const v = getLS(k, null);
+        if (v?._countedDate === targetDateStr && v?.exercises && Object.keys(v.exercises).length) {
+          // Avoid double-adding if this live entry was already archived into history
+          const dup = wlSessions.some(s => s._dayId === dayIdK);
+          if (!dup) wlSessions.push({ exercises: v.exercises, sessionNotes: v.sessionNotes || '', _dayId: dayIdK });
+        }
+      }
+    }
+  } catch (_) {}
 
   let body = `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:4px">${dayLabel} — ${date.toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
   <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:16px">${dateStr}</div>`;
@@ -1310,28 +1541,38 @@ function openCalDayDetail(cid, dateISO) {
     });
   }
 
-  // Workout logger sets for this day (today's current or matching history entry)
-  const histEntry = wlHist.find(h => h.date && new Date(h.date).toDateString() === date.toDateString());
-  const wlSource = (wlData?._countedDate === date.toDateString() ? wlData : histEntry) || null;
-  if (wlSource?.exercises && Object.keys(wlSource.exercises).length) {
+  // Render every workout-logger session that landed on this date
+  let renderedAnySets = false;
+  if (wlSessions.length) {
     body += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:10px 0 8px">Sets Logged</div>`;
-    Object.entries(wlSource.exercises).forEach(([, exData]) => {
-      if (!exData?.sets?.length) return;
-      const doneSets = exData.sets.filter(s => s.weight || s.reps);
-      if (!doneSets.length) return;
-      body += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px">
-        <div style="display:flex;flex-wrap:wrap;gap:8px">${doneSets.map((s,si) => `<span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--surface2);border-radius:4px;padding:3px 8px">S${si+1} ${[s.weight,s.reps].filter(Boolean).join(' × ')}</span>`).join('')}</div>
-      </div>`;
+    wlSessions.forEach(sess => {
+      const exRows = Object.entries(sess.exercises).map(([, exData]) => {
+        if (!exData?.sets?.length) return '';
+        const doneSets = exData.sets.filter(s => s && (s.weight || s.reps));
+        if (!doneSets.length) return '';
+        const nameHtml = exData.name ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text);font-weight:600;margin-bottom:6px">${esc(exData.name)}</div>` : '';
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px">
+          ${nameHtml}<div style="display:flex;flex-wrap:wrap;gap:8px">${doneSets.map((s,si) => `<span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--surface2);border-radius:4px;padding:3px 8px">S${si+1} ${[s.weight,s.reps].filter(Boolean).join(' × ')}</span>`).join('')}</div>
+        </div>`;
+      }).filter(Boolean).join('');
+      if (exRows) {
+        body += exRows;
+        if (sess.sessionNotes) {
+          body += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:6px 14px;margin-bottom:8px;border-left:2px solid var(--border)">${esc(sess.sessionNotes)}</div>`;
+        }
+        renderedAnySets = true;
+      }
     });
   }
 
-  if (!dayLogs.length && !wlSource) {
+  if (!dayLogs.length && !renderedAnySets) {
     body += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:24px 0;letter-spacing:1px">No activity logged this day</div>`;
   }
 
   const sheet = document.createElement('div');
   sheet.id = 'calDaySheet';
-  sheet.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center';
+  sheet.className = 'app-overlay app-overlay--dim';
+  sheet.style.zIndex = '2000';
   sheet.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;padding:20px 20px 32px">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
     ${body}
@@ -1475,7 +1716,8 @@ function saveCheckinReply(cid, idx) {
 }
 function viewCheckinPhoto(src) {
   const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;cursor:pointer';
+  overlay.className = 'app-overlay app-overlay--center app-overlay--dark';
+  overlay.style.cssText = 'z-index:9999;background:rgba(0,0,0,.95);cursor:pointer;padding:0';
   overlay.onclick = () => overlay.remove();
   const img = document.createElement('img');
   img.src = src;
@@ -1617,46 +1859,53 @@ function applyExSwapByIdx(idx) {
 
 function openAddExerciseModal(cid, dayId, blockIdx) {
   document.getElementById('addExModal')?.remove();
+  _addExMuscleFilter = 'All';
   const modal = document.createElement('div');
   modal.id = 'addExModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center';
-  // Build suggestions from EXERCISE_DB
-  const allNames = [...new Set(EXERCISE_DB.map(e => e.name))].sort();
-  const datalistHtml = allNames.map(n => `<option value="${esc(n)}">`).join('');
+  modal.className = 'app-overlay';
+  modal.style.zIndex = '4000';
+  const muscles = ['All','Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility'];
+  const chipHtml = muscles.map(m => `<button class="ex-swap-chip${m==='All'?' active':''}" onclick="filterAddExByMuscle('${m}',this)">${m}</button>`).join('');
   modal.innerHTML = `
-    <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px">Add Exercise</div>
-        <button onclick="document.getElementById('addExModal').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
-      </div>
-      <datalist id="addExNames">${datalistHtml}</datalist>
-      <div style="margin-bottom:12px">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">EXERCISE NAME</div>
-        <input class="fit-input" id="addExName" list="addExNames" placeholder="e.g. Barbell Squat" style="font-size:15px" oninput="fillAddExDefaults(this.value)">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-        <div>
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">SETS</div>
-          <input class="fit-input" id="addExSets" placeholder="3" style="font-size:15px">
+    <div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column">
+      <div style="padding:28px 24px 0;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px">Add Exercise</div>
+          <button onclick="document.getElementById('addExModal').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
         </div>
-        <div>
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REPS</div>
-          <input class="fit-input" id="addExReps" placeholder="10-12" style="font-size:15px">
-        </div>
-        <div>
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REST</div>
-          <input class="fit-input" id="addExRest" placeholder="90 sec" style="font-size:15px">
-        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch">${chipHtml}</div>
+        <input class="ex-swap-search" id="addExPickerSearch" type="text" placeholder="Search exercises…" oninput="filterAddExPickerList(this.value)">
       </div>
-      <div style="margin-bottom:18px">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">COACHING NOTE (optional)</div>
-        <input class="fit-input" id="addExNote" placeholder="e.g. Full ROM — control the eccentric" style="font-size:14px">
+      <div id="addExPickerList" style="flex:1;overflow-y:auto;min-height:0">${buildAddExPickerList('')}</div>
+      <div style="padding:16px 24px 40px;border-top:1px solid var(--border);flex-shrink:0">
+        <div style="margin-bottom:12px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">EXERCISE NAME</div>
+          <input class="fit-input" id="addExName" placeholder="e.g. Barbell Squat" style="font-size:15px" oninput="fillAddExDefaults(this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">SETS</div>
+            <input class="fit-input" id="addExSets" placeholder="3" style="font-size:15px">
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REPS</div>
+            <input class="fit-input" id="addExReps" placeholder="10-12" style="font-size:15px">
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REST</div>
+            <input class="fit-input" id="addExRest" placeholder="90 sec" style="font-size:15px">
+          </div>
+        </div>
+        <div style="margin-bottom:18px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">COACHING NOTE (optional)</div>
+          <input class="fit-input" id="addExNote" placeholder="e.g. Full ROM — control the eccentric" style="font-size:14px">
+        </div>
+        <button onclick="saveAddedExercise('${esc(cid)}','${esc(dayId)}',${blockIdx})" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:8px">Add to Workout</button>
       </div>
-      <button onclick="saveAddedExercise('${esc(cid)}','${esc(dayId)}',${blockIdx})" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:8px">Add to Workout</button>
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  setTimeout(() => document.getElementById('addExName')?.focus(), 100);
+  setTimeout(() => document.getElementById('addExPickerSearch')?.focus(), 100);
 }
 
 function fillAddExDefaults(name) {
@@ -1666,6 +1915,64 @@ function fillAddExDefaults(name) {
   const repsEl = document.getElementById('addExReps');
   if (setsEl && !setsEl.value) setsEl.value = match.sets || '';
   if (repsEl && !repsEl.value) repsEl.value = match.reps || '';
+}
+
+let _addExMuscleFilter = 'All';
+let _addExPickerItems = [];
+
+function buildAddExPickerList(query) {
+  const q = query.toLowerCase().trim();
+  _addExPickerItems = EXERCISE_DB.filter(e => {
+    const matchesMuscle = _addExMuscleFilter === 'All' || e.muscle === _addExMuscleFilter;
+    const matchesQuery  = !q || e.name.toLowerCase().includes(q) || e.muscle.toLowerCase().includes(q);
+    return matchesMuscle && matchesQuery;
+  });
+  if (!_addExPickerItems.length) return '<div style="padding:20px;text-align:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
+  const groups = {};
+  _addExPickerItems.forEach((e, idx) => {
+    if (!groups[e.muscle]) groups[e.muscle] = [];
+    groups[e.muscle].push({ e, idx });
+  });
+  let html = '';
+  Object.keys(groups).forEach(muscle => {
+    html += `<div class="ex-swap-group">${muscle}</div>`;
+    groups[muscle].forEach(({ e, idx }) => {
+      html += `<div class="ex-swap-item" onclick="selectFromAddExPicker(${idx})">
+        <div>
+          <div class="ex-swap-item-name">${esc(e.name)}</div>
+          <div class="ex-swap-item-meta">${esc(e.sets)} sets · ${esc(e.reps)}</div>
+        </div>
+        <div class="ex-swap-item-tag">${esc(muscle)}</div>
+      </div>`;
+    });
+  });
+  return html;
+}
+
+function filterAddExPickerList(query) {
+  const list = document.getElementById('addExPickerList');
+  if (list) list.innerHTML = buildAddExPickerList(query);
+}
+
+function filterAddExByMuscle(muscle, btn) {
+  _addExMuscleFilter = muscle;
+  document.querySelectorAll('#addExModal .ex-swap-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const q = document.getElementById('addExPickerSearch')?.value || '';
+  filterAddExPickerList(q);
+}
+
+function selectFromAddExPicker(idx) {
+  const e = _addExPickerItems[idx];
+  if (!e) return;
+  const nameEl = document.getElementById('addExName');
+  if (nameEl) nameEl.value = e.name;
+  const setsEl = document.getElementById('addExSets');
+  const repsEl = document.getElementById('addExReps');
+  if (setsEl) setsEl.value = e.sets || '';
+  if (repsEl) repsEl.value = e.reps || '';
+  const form = nameEl?.closest('div[style*="border-top"]') || nameEl?.closest('[style*="padding:16px"]');
+  if (form) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function saveAddedExercise(cid, dayId, blockIdx) {
@@ -1774,13 +2081,26 @@ function selectAlternateExercise(cid, exIdx, newName, sets, reps) {
         }
       }
     } else if (ctx === 'wl') {
-      // Workout logger: save alt name into wl_ storage and update DOM
+      // Workout logger: save alt name into wl_ storage, clear old set data, and update DOM
       const dayId = _exSwapState.dayId;
       const wlData = getWlData(cid, dayId);
       wlData['alt_' + exIdx] = newName;
+      // Clear logged sets for this exercise so old values don't carry over; tag with new name
+      if (wlData.exercises && wlData.exercises[exIdx]) {
+        wlData.exercises[exIdx] = { sets: [], name: newName };
+      }
       saveWlData(cid, dayId, wlData);
+      // Update exercise name in DOM
       const wlNameEl = document.getElementById('wl-ex-name-' + cid + '-' + dayId + '-' + exIdx);
       if (wlNameEl) wlNameEl.innerHTML = esc(newName) + '<span style="font-size:9px;color:var(--muted);margin-left:6px">(alt)</span>';
+      // Clear input values and check states in DOM
+      const grid = document.getElementById('wl-grid-' + cid + '-' + dayId + '-' + exIdx);
+      if (grid) {
+        grid.querySelectorAll('.wl-set-input, .wl-drop-input').forEach(inp => { inp.value = ''; inp.classList.remove('completed'); });
+        grid.querySelectorAll('.wl-set-check, .wl-drop-check').forEach(btn => { btn.classList.remove('done'); btn.textContent = ''; });
+        grid.querySelectorAll('.wl-drops-wrap').forEach(w => { w.innerHTML = ''; });
+      }
+      wlUpdateProgress(cid, dayId);
     } else {
       // Workout tab: update workouts.days blocks (the rendering source) + schedule.days for consistency
       const dayId = _exSwapState.dayId;
@@ -1849,7 +2169,8 @@ function openBroadcast() {
   const cur = localStorage.getItem('coach_broadcast') || '';
   const modal = document.createElement('div');
   modal.id = 'broadcastModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center';
+  modal.className = 'app-overlay app-overlay--dark';
+  modal.style.zIndex = '4000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px;color:#e8ff47">📢 Broadcast Message</div>
     <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">Sent to ALL clients on their home screen</div>
@@ -1922,5 +2243,381 @@ function baEnd() {
   document.removeEventListener('mouseup', baEnd);
   document.removeEventListener('touchmove', baMove);
   document.removeEventListener('touchend', baEnd);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MUSCLE MAP — body silhouette colored by training intensity
+   Mines wl_{cid}_{dayId} + wl_hist_{cid}_{dayId} + fit_logs_{cid}
+   for the chosen window (7 / 30 days), maps exercise names to
+   muscle groups, and shades a front+back SVG silhouette by load.
+══════════════════════════════════════════════════════════════ */
+
+// Muscle keys used by the silhouette + intensity model.
+// Each maps to one or more SVG region ids in the silhouette.
+const MUSCLE_GROUPS = [
+  'chest', 'shoulders', 'biceps', 'triceps', 'forearms',
+  'traps', 'lats', 'upperBack', 'lowerBack', 'abs', 'obliques',
+  'glutes', 'quads', 'hamstrings', 'calves',
+];
+
+// Exercise name → { muscle: weight } mapping. Weights are arbitrary
+// units representing "share of the working set load" — primary movers
+// get ~1.0, secondary movers ~0.4. We try the most-specific patterns
+// first; the first match wins (so 'incline bench' lands before 'bench').
+const MUSCLE_PATTERNS = [
+  // Chest
+  { rx: /incline\s+(bench|press|db|dumbbell)/i,        m: { chest: 1.0, shoulders: 0.4, triceps: 0.4 } },
+  { rx: /decline\s+(bench|press)/i,                    m: { chest: 1.0, triceps: 0.4 } },
+  { rx: /(bench\s+press|chest\s+press|push.?up|dip\b|dips\b)/i, m: { chest: 1.0, triceps: 0.5, shoulders: 0.3 } },
+  { rx: /(fly|flye|pec\s*deck|cable\s+cross)/i,        m: { chest: 1.0 } },
+  // Back / lats
+  { rx: /(pull.?up|chin.?up|lat\s+pulldown|pulldown)/i, m: { lats: 1.0, biceps: 0.5, upperBack: 0.4 } },
+  { rx: /(barbell\s+row|bent.?over\s+row|t.?bar\s+row|seated\s+row|cable\s+row|db\s+row|dumbbell\s+row|chest.?supported\s+row|inverted\s+row)/i,
+                                                       m: { lats: 0.7, upperBack: 1.0, biceps: 0.4 } },
+  { rx: /(face\s+pull|rear\s+delt|reverse\s+fly|band\s+pull.?apart)/i, m: { upperBack: 0.8, shoulders: 0.5 } },
+  { rx: /shrug/i,                                      m: { traps: 1.0 } },
+  // Deadlifts / hinge
+  { rx: /(deadlift|rdl|romanian\s+deadlift|good\s*morning)/i,
+                                                       m: { hamstrings: 1.0, glutes: 0.8, lowerBack: 0.6, traps: 0.3 } },
+  { rx: /(hip\s+thrust|glute\s+bridge)/i,              m: { glutes: 1.0, hamstrings: 0.4 } },
+  // Squat / legs
+  { rx: /(back\s+squat|front\s+squat|barbell\s+squat|squat)/i, m: { quads: 1.0, glutes: 0.7, lowerBack: 0.3 } },
+  { rx: /(lunge|split\s+squat|step.?up|bulgarian)/i,   m: { quads: 0.8, glutes: 0.8, hamstrings: 0.3 } },
+  { rx: /(leg\s+press|hack\s+squat)/i,                 m: { quads: 1.0, glutes: 0.5 } },
+  { rx: /leg\s+extension/i,                            m: { quads: 1.0 } },
+  { rx: /(leg\s+curl|hamstring\s+curl|nordic)/i,       m: { hamstrings: 1.0 } },
+  { rx: /calf\s+(raise|press)/i,                       m: { calves: 1.0 } },
+  // Press
+  { rx: /(overhead\s+press|ohp|military\s+press|strict\s+press|shoulder\s+press|pike\s+push)/i,
+                                                       m: { shoulders: 1.0, triceps: 0.5, upperBack: 0.2 } },
+  { rx: /(lateral\s+raise|side\s+raise|cable\s+lateral)/i, m: { shoulders: 1.0 } },
+  { rx: /(front\s+raise)/i,                            m: { shoulders: 1.0 } },
+  // Arms
+  { rx: /(bicep\s+curl|barbell\s+curl|hammer\s+curl|preacher\s+curl|incline\s+curl|cable\s+curl|curl)/i,
+                                                       m: { biceps: 1.0, forearms: 0.3 } },
+  { rx: /(tricep|skull|pushdown|overhead\s+extension|kickback|close.?grip\s+bench)/i,
+                                                       m: { triceps: 1.0 } },
+  { rx: /(wrist\s+curl|farmers?\s+(carry|walk)|forearm)/i, m: { forearms: 1.0 } },
+  // Core
+  { rx: /(plank|hollow|dead\s*bug|bird\s*dog|ab\s+wheel|rollout)/i, m: { abs: 1.0 } },
+  { rx: /(crunch|sit.?up|leg\s+raise|v.?up|bicycle)/i, m: { abs: 1.0 } },
+  { rx: /(russian\s+twist|side\s+plank|pallof|woodchop|oblique)/i, m: { obliques: 1.0, abs: 0.4 } },
+  { rx: /(hyperextension|back\s+extension)/i,          m: { lowerBack: 1.0, glutes: 0.4 } },
+  // Cardio fallbacks (treat as light full-body activity)
+  { rx: /(run|jog|sprint|treadmill|bike|cycling|row(ing)?\s*erg)/i,
+                                                       m: { quads: 0.5, hamstrings: 0.5, calves: 0.4 } },
+];
+
+// Map a single exercise name to a muscle-weight object. Returns null for
+// names we don't recognise (so we don't waste color on unknowns).
+function _mmExerciseMuscles(name) {
+  if (!name) return null;
+  const n = name.toLowerCase();
+  for (const p of MUSCLE_PATTERNS) {
+    if (p.rx.test(n)) return p.m;
+  }
+  return null;
+}
+
+// Aggregate per-muscle volume from logged sets over the last `days` days.
+// Volume = sets × reps × (weight if present, else 1) × muscle_weight.
+// Returns { muscleKey: rawVolume, ... } with values not yet normalized.
+function _mmComputeVolumes(cid, days) {
+  const since = Date.now() - days * 86400000;
+  const vols = {};
+  MUSCLE_GROUPS.forEach(m => { vols[m] = 0; });
+
+  // Walk every workout-logger key for this client. The wl_ key is the
+  // current-day buffer; wl_hist_ keys hold archived sessions.
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k) continue;
+    if (k.startsWith('wl_' + cid + '_')) {
+      const v = safeJSON(localStorage.getItem(k), null);
+      if (v && v.exercises) _mmAddSession(vols, v, since, v.savedAt || Date.now());
+    } else if (k.startsWith('wl_hist_' + cid + '_')) {
+      const arr = safeJSON(localStorage.getItem(k), []);
+      if (Array.isArray(arr)) {
+        arr.forEach(entry => {
+          const t = entry?.date ? new Date(entry.date).getTime() : 0;
+          if (t >= since) _mmAddSession(vols, entry, since, t);
+        });
+      }
+    }
+  }
+  return vols;
+}
+
+function _mmAddSession(vols, session, since, ts) {
+  if (ts < since) return;
+  const exMap = session.exercises || {};
+  Object.values(exMap).forEach(ex => {
+    if (!ex || !Array.isArray(ex.sets)) return;
+    const muscles = _mmExerciseMuscles(ex.name);
+    if (!muscles) return;
+    let workVol = 0;
+    ex.sets.forEach(s => {
+      if (!s) return;
+      const reps   = parseInt(s.reps)   || 0;
+      const weight = parseFloat(s.weight) || 0;
+      // Score by reps * (weight || 1) — keeps bodyweight work meaningful
+      workVol += Math.max(1, reps) * Math.max(1, weight);
+      if (Array.isArray(s.drops)) {
+        s.drops.forEach(d => {
+          const dReps = parseInt(d?.reps) || 0;
+          const dWt   = parseFloat(d?.weight) || 0;
+          workVol += Math.max(1, dReps) * Math.max(1, dWt) * 0.5;
+        });
+      }
+    });
+    if (workVol <= 0) return;
+    Object.entries(muscles).forEach(([muscle, weight]) => {
+      vols[muscle] = (vols[muscle] || 0) + workVol * weight;
+    });
+  });
+}
+
+// Convert raw volumes into 0-1 intensity scores. Highest-volume muscle
+// becomes 1.0; everything else scales proportionally. Returns
+// { muscleKey: 0..1 } so the SVG colorer is decoupled from the absolute
+// volume numbers.
+function _mmNormalize(vols) {
+  const max = Math.max(0, ...Object.values(vols));
+  const out = {};
+  MUSCLE_GROUPS.forEach(m => {
+    out[m] = max > 0 ? Math.min(1, vols[m] / max) : 0;
+  });
+  return out;
+}
+
+// Map a 0-1 intensity to a fill color. Steps for clarity instead of a
+// continuous gradient — easier to read at a glance on small screens.
+function _mmColor(intensity, accent) {
+  if (intensity <= 0)    return '#202024';            // untouched
+  if (intensity < 0.15)  return '#2c3a55';            // brushed — cool blue
+  if (intensity < 0.35)  return '#3a6ea8';            // light
+  if (intensity < 0.60)  return '#f1c40f';            // medium
+  if (intensity < 0.85)  return '#ff8c42';            // heavy
+  return accent || '#ff3e3e';                          // peak
+}
+
+// Build the front + back silhouette SVGs. Each muscle region is a path
+// with an id like `mm-{key}-{f|b}`; the renderer just sets `fill`.
+function _mmBuildSilhouette(side) {
+  // Coordinates are hand-tuned for a 200×420 viewBox. Regions overlap
+  // body outline slightly so fills look filled-in rather than outlined.
+  const F = side === 'front';
+  // Common outline path (silhouette body shape, same front/back)
+  const outline = `M100 6c-13 0-22 9-22 22 0 9 4 16 10 20-8 4-14 11-16 22l-5 24c-1 6-4 11-8 14L42 122c-6 4-10 11-10 19v8c0 6 2 11 6 15l4 4-2 32c-1 11-4 22-9 32l-10 22c-3 7-5 14-5 22v44c0 6 2 11 5 15l8 12c4 6 6 13 6 20v18c0 8 4 15 11 19 7 4 16 4 23-1l4-3c4-3 7-7 7-13v-18c1-8 4-16 8-23l11-20c4-7 6-15 6-23v-26h6v26c0 8 2 16 6 23l11 20c4 7 7 15 8 23v18c0 6 3 10 7 13l4 3c7 5 16 5 23 1 7-4 11-11 11-19v-18c0-7 2-14 6-20l8-12c3-4 5-9 5-15v-44c0-8-2-15-5-22l-10-22c-5-10-8-21-9-32l-2-32 4-4c4-4 6-9 6-15v-8c0-8-4-15-10-19l-17-14c-4-3-7-8-8-14l-5-24c-2-11-8-18-16-22 6-4 10-11 10-20 0-13-9-22-22-22z`;
+  const regions = F ? `
+    <path id="mm-chest-f"      d="M70 64 q30 -8 60 0 q-2 22 -30 24 q-28 -2 -30 -24 z"/>
+    <path id="mm-shoulders-f"  d="M55 56 q15 -10 30 -4 q-4 12 -16 18 q-10 -4 -14 -14 z M145 56 q-15 -10 -30 -4 q4 12 16 18 q10 -4 14 -14 z"/>
+    <path id="mm-biceps-f"     d="M44 96 q8 -2 14 6 q-2 18 -10 30 q-10 -4 -10 -18 q0 -10 6 -18 z M156 96 q-8 -2 -14 6 q2 18 10 30 q10 -4 10 -18 q0 -10 -6 -18 z"/>
+    <path id="mm-forearms-f"   d="M34 138 q8 -4 16 4 q-2 24 -10 38 q-10 -4 -12 -22 q-1 -12 6 -20 z M166 138 q-8 -4 -16 4 q2 24 10 38 q10 -4 12 -22 q1 -12 -6 -20 z"/>
+    <path id="mm-abs-f"        d="M82 96 q18 -2 36 0 q-1 60 -18 70 q-17 -10 -18 -70 z"/>
+    <path id="mm-obliques-f"   d="M64 100 q10 -2 16 4 q-2 50 -12 56 q-12 -4 -10 -30 q0 -18 6 -30 z M136 100 q-10 -2 -16 4 q2 50 12 56 q12 -4 10 -30 q0 -18 -6 -30 z"/>
+    <path id="mm-quads-f"      d="M70 188 q12 -4 22 0 q2 60 -8 90 q-18 -8 -22 -50 q-2 -22 8 -40 z M130 188 q-12 -4 -22 0 q-2 60 8 90 q18 -8 22 -50 q2 -22 -8 -40 z"/>
+    <path id="mm-calves-f"     d="M68 308 q14 -2 22 4 q2 38 -10 60 q-16 -10 -16 -36 q0 -16 4 -28 z M132 308 q-14 -2 -22 4 q-2 38 10 60 q16 -10 16 -36 q0 -16 -4 -28 z"/>
+  ` : `
+    <path id="mm-traps-b"      d="M76 44 q24 -6 48 0 q-4 20 -24 24 q-20 -4 -24 -24 z"/>
+    <path id="mm-upperBack-b"  d="M64 68 q36 -10 72 0 q-2 26 -16 36 q-20 6 -40 0 q-14 -10 -16 -36 z"/>
+    <path id="mm-lats-b"       d="M56 90 q14 -4 22 4 q4 40 -2 64 q-22 -8 -26 -36 q-2 -16 6 -32 z M144 90 q-14 -4 -22 4 q-4 40 2 64 q22 -8 26 -36 q2 -16 -6 -32 z"/>
+    <path id="mm-triceps-b"    d="M44 96 q8 -2 14 6 q-2 18 -10 30 q-10 -4 -10 -18 q0 -10 6 -18 z M156 96 q-8 -2 -14 6 q2 18 10 30 q10 -4 10 -18 q0 -10 -6 -18 z"/>
+    <path id="mm-forearms-b"   d="M34 138 q8 -4 16 4 q-2 24 -10 38 q-10 -4 -12 -22 q-1 -12 6 -20 z M166 138 q-8 -4 -16 4 q2 24 10 38 q10 -4 12 -22 q1 -12 -6 -20 z"/>
+    <path id="mm-lowerBack-b"  d="M78 156 q22 -4 44 0 q-2 22 -22 28 q-20 -6 -22 -28 z"/>
+    <path id="mm-glutes-b"     d="M70 184 q14 -6 30 -2 q14 -4 30 2 q4 22 -10 36 q-20 8 -40 0 q-14 -14 -10 -36 z"/>
+    <path id="mm-hamstrings-b" d="M70 220 q14 -4 24 2 q4 50 -6 80 q-22 -8 -26 -42 q-2 -22 8 -40 z M130 220 q-14 -4 -24 2 q-4 50 6 80 q22 -8 26 -42 q2 -22 -8 -40 z"/>
+    <path id="mm-calves-b"     d="M68 308 q14 -2 22 4 q2 38 -10 60 q-16 -10 -16 -36 q0 -16 4 -28 z M132 308 q-14 -2 -22 4 q-2 38 10 60 q16 -10 16 -36 q0 -16 -4 -28 z"/>
+  `;
+  return `<svg viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg" class="mm-svg" aria-hidden="true">
+    <path class="mm-outline" d="${outline}"/>
+    <g class="mm-regions">${regions}</g>
+  </svg>`;
+}
+
+function _mmApplyFills(rootEl, intensities, accent, side) {
+  const suffix = side === 'front' ? '-f' : '-b';
+  MUSCLE_GROUPS.forEach(m => {
+    const node = rootEl.querySelector('#mm-' + m + suffix);
+    if (!node) return;
+    const i = intensities[m] || 0;
+    node.setAttribute('fill', _mmColor(i, accent));
+    node.dataset.muscle = m;
+    node.dataset.intensity = i.toFixed(2);
+  });
+}
+
+function _mmTopMuscles(vols, n) {
+  return MUSCLE_GROUPS
+    .map(m => ({ m, v: vols[m] || 0 }))
+    .filter(x => x.v > 0)
+    .sort((a, b) => b.v - a.v)
+    .slice(0, n);
+}
+
+function _mmFormatMuscle(m) {
+  const labels = {
+    chest: 'Chest', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps',
+    forearms: 'Forearms', traps: 'Traps', lats: 'Lats', upperBack: 'Upper Back',
+    lowerBack: 'Lower Back', abs: 'Abs', obliques: 'Obliques',
+    glutes: 'Glutes', quads: 'Quads', hamstrings: 'Hamstrings', calves: 'Calves',
+  };
+  return labels[m] || m;
+}
+
+function renderMuscleMap(c) {
+  const days   = AppState._mmDays || 7;
+  const accent = c.accent || '#ff6b35';
+  const vols   = _mmComputeVolumes(c.id, days);
+  const intens = _mmNormalize(vols);
+  const top    = _mmTopMuscles(vols, 5);
+  const trained = MUSCLE_GROUPS.filter(m => vols[m] > 0).length;
+  const totalGroups = MUSCLE_GROUPS.length;
+
+  const winBtn = (n, lbl) =>
+    `<button class="mm-win-btn${days===n?' active':''}" data-act="mmSetDays" data-args="${n}">${lbl}</button>`;
+
+  const topRows = top.length
+    ? top.map(({m, v}) => {
+        const pct = Math.round((intens[m] || 0) * 100);
+        return `<div class="mm-top-row">
+          <span class="mm-top-name">${_mmFormatMuscle(m)}</span>
+          <div class="mm-top-bar"><div class="mm-top-fill" style="width:${pct}%;background:${_mmColor(intens[m], accent)}"></div></div>
+          <span class="mm-top-pct">${pct}%</span>
+        </div>`;
+      }).join('')
+    : `<div class="mm-empty">No logged sets in this window. Log a workout to light up your map.</div>`;
+
+  // Untouched-recently nudge (muscles with zero volume in selected window)
+  const untouched = MUSCLE_GROUPS.filter(m => vols[m] === 0).map(_mmFormatMuscle);
+  const untouchedChips = untouched.length && top.length
+    ? `<div class="mm-untouched">
+        <div class="mm-untouched-lbl">Not trained in last ${days} days</div>
+        <div class="mm-chip-row">${untouched.slice(0, 8).map(name => `<span class="mm-chip">${name}</span>`).join('')}${untouched.length > 8 ? `<span class="mm-chip mm-chip-more">+${untouched.length - 8}</span>` : ''}</div>
+      </div>`
+    : '';
+
+  return `
+    <div class="mm-wrap">
+      <div class="mm-header">
+        <div class="mm-title-row">
+          <div>
+            <div class="mm-eyebrow">Last ${days} days</div>
+            <div class="mm-title" style="color:${accent}">${trained}/${totalGroups} <span class="mm-title-sub">muscle groups hit</span></div>
+          </div>
+          <div class="mm-win-group" role="group" aria-label="Time window">
+            ${winBtn(7,  '7d')}
+            ${winBtn(30, '30d')}
+            ${winBtn(90, '90d')}
+          </div>
+        </div>
+      </div>
+
+      <div class="mm-body" id="mmBody">
+        <div class="mm-figure">
+          <div class="mm-figure-label">Front</div>
+          ${_mmBuildSilhouette('front')}
+        </div>
+        <div class="mm-figure">
+          <div class="mm-figure-label">Back</div>
+          ${_mmBuildSilhouette('back')}
+        </div>
+      </div>
+
+      <div class="mm-legend">
+        <span class="mm-legend-item"><span class="mm-legend-swatch" style="background:#202024"></span>Rest</span>
+        <span class="mm-legend-item"><span class="mm-legend-swatch" style="background:#3a6ea8"></span>Light</span>
+        <span class="mm-legend-item"><span class="mm-legend-swatch" style="background:#f1c40f"></span>Med</span>
+        <span class="mm-legend-item"><span class="mm-legend-swatch" style="background:#ff8c42"></span>Heavy</span>
+        <span class="mm-legend-item"><span class="mm-legend-swatch" style="background:${accent}"></span>Peak</span>
+      </div>
+
+      <div class="mm-top-section">
+        <div class="mm-section-title">Top muscles this window</div>
+        ${topRows}
+      </div>
+
+      ${untouchedChips}
+
+      <div class="mm-detail" id="mmDetail" style="display:none"></div>
+    </div>`;
+}
+
+// Called after the feature screen mounts to paint fills + wire taps
+function _mmAfterRender(c) {
+  const body = document.getElementById('feature-musclemap-body');
+  if (!body) return;
+  const days   = AppState._mmDays || 7;
+  const accent = c.accent || '#ff6b35';
+  const vols   = _mmComputeVolumes(c.id, days);
+  const intens = _mmNormalize(vols);
+  body.querySelectorAll('.mm-svg').forEach((svg, idx) => {
+    _mmApplyFills(svg, intens, accent, idx === 0 ? 'front' : 'back');
+  });
+  // Tap a muscle region → show detail
+  body.querySelectorAll('.mm-regions path').forEach(node => {
+    node.style.cursor = 'pointer';
+    node.addEventListener('click', () => {
+      const m = node.dataset.muscle;
+      _mmShowDetail(c.id, m, days);
+    });
+  });
+}
+
+function _mmShowDetail(cid, muscle, days) {
+  const detail = document.getElementById('mmDetail');
+  if (!detail) return;
+  const since = Date.now() - days * 86400000;
+  // Walk wl history for this client and surface exercises touching this muscle
+  const hits = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k) continue;
+    const isHist = k.startsWith('wl_hist_' + cid + '_');
+    const isCur  = k.startsWith('wl_' + cid + '_');
+    if (!isHist && !isCur) continue;
+    const v = safeJSON(localStorage.getItem(k), null);
+    const entries = isHist && Array.isArray(v) ? v : (v ? [v] : []);
+    entries.forEach(entry => {
+      const t = entry?.savedAt ? new Date(entry.savedAt).getTime() : (entry?.date ? new Date(entry.date).getTime() : 0);
+      if (t && t < since) return;
+      const exMap = entry?.exercises || {};
+      Object.values(exMap).forEach(ex => {
+        const m = _mmExerciseMuscles(ex?.name);
+        if (m && m[muscle] && Array.isArray(ex.sets)) {
+          const completed = ex.sets.filter(s => s && (s.done || s.weight || s.reps)).length;
+          if (completed > 0) hits.push({ name: ex.name, sets: completed, date: entry.savedAt || entry.date || null });
+        }
+      });
+    });
+  }
+  hits.sort((a, b) => (new Date(b.date || 0) - new Date(a.date || 0)));
+
+  const list = hits.length
+    ? hits.slice(0, 8).map(h => `<div class="mm-detail-row">
+        <span class="mm-detail-name">${esc(h.name)}</span>
+        <span class="mm-detail-meta">${h.sets} set${h.sets!==1?'s':''}${h.date ? ' · ' + new Date(h.date).toLocaleDateString('en',{month:'short',day:'numeric'}) : ''}</span>
+      </div>`).join('')
+    : `<div class="mm-empty">No ${_mmFormatMuscle(muscle).toLowerCase()} work in this window.</div>`;
+
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="mm-detail-header">
+      <div class="mm-detail-title">${_mmFormatMuscle(muscle)}</div>
+      <button class="mm-detail-close" data-act="mmCloseDetail" aria-label="Close">✕</button>
+    </div>
+    ${list}`;
+  haptic && haptic('light');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function mmCloseDetail() {
+  const d = document.getElementById('mmDetail');
+  if (d) { d.style.display = 'none'; d.innerHTML = ''; }
+}
+
+function mmSetDays(days) {
+  AppState._mmDays = parseInt(days, 10) || 7;
+  if (currentClient) renderFeature('musclemap', currentClient);
 }
 

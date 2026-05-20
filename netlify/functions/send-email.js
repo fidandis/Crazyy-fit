@@ -65,17 +65,28 @@ exports.handler = async (event) => {
       html,
     });
 
+    // Resend SDK v3 returns { data, error } instead of throwing on API errors
+    if (result.error) {
+      console.error('Resend API error:', result.error, '| from:', fromEmail, '| to:', to);
+      const msg = result.error.message || result.error.name || 'Resend rejected the request';
+      return {
+        statusCode: 502,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: msg, from: fromEmail, details: result.error }),
+      };
+    }
+
     return {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({ ok: true, id: result.data?.id }),
     };
   } catch (err) {
-    console.error('Resend error:', err);
+    console.error('Resend exception:', err, '| from:', fromEmail, '| to:', to);
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: err.message }),
+      body: JSON.stringify({ error: err.message, from: fromEmail }),
     };
   }
 };

@@ -213,6 +213,64 @@ document.addEventListener('visibilitychange', () => {
   }, true);
 })();
 
+/* ══════════════════════════════════════════════════════════════
+   DELEGATED EVENT DISPATCHER (CSP-friendly handler pattern)
+   New code should prefer `data-act="fnName"` (+ optional `data-args="a,b"`)
+   over inline `onclick="fnName('a','b')"`. The dispatcher below routes
+   matching clicks to the named global function — which removes the need
+   for `'unsafe-inline'` in script-src CSP, shrinks template strings, and
+   keeps handler attachment centralised.
+
+   Example:
+     // OLD:
+     `<button onclick="saveWeight('${cid}')">Save</button>`
+     // NEW:
+     `<button data-act="saveWeight" data-args="${esc(cid)}">Save</button>`
+
+   The dispatcher only fires when the element opts in via `data-act`, so
+   existing inline `onclick=` handlers continue to work side-by-side
+   during migration.
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('click', e => {
+  const t = e.target.closest?.('[data-act]');
+  if (!t) return;
+  // Backdrop / self-only handlers: only fire when the click landed on the
+  // element itself, not on a child. Used for modal-backdrop close.
+  if (t.dataset.actSelf === '1' && e.target !== t) return;
+  const fnName = t.dataset.act;
+  const fn = typeof window[fnName] === 'function' ? window[fnName] : null;
+  if (!fn) return;
+  const args = t.dataset.args ? t.dataset.args.split('|') : [];
+  try { fn.apply(t, [...args, e]); }
+  catch (err) { console.error('Delegated handler error (' + fnName + '):', err); }
+});
+
+// Mirror for `oninput` — needed for form fields like checkin notes and the
+// terminate-confirm input. Same `data-act` convention; element receives the
+// event as the only arg.
+document.addEventListener('input', e => {
+  const t = e.target.closest?.('[data-input-act]');
+  if (!t) return;
+  const fn = typeof window[t.dataset.inputAct] === 'function' ? window[t.dataset.inputAct] : null;
+  if (!fn) return;
+  try { fn.call(t, e); }
+  catch (err) { console.error('Delegated input handler error:', err); }
+});
+
+// Keyboard activation for `role="button"` / custom clickable elements with
+// data-act. Real <button> elements already fire click on Enter/Space, so
+// we only need to forward for non-button roles.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target.closest?.('[data-act]');
+  if (!t) return;
+  if (t.tagName === 'BUTTON') return; // native handling
+  // Only auto-activate elements that opt in via tabindex or button role
+  if (t.getAttribute('role') !== 'button' && !t.hasAttribute('tabindex')) return;
+  e.preventDefault();
+  t.click();
+});
+
 function showContextMenu(kind, args) {
   const items = (typeof getContextMenuItems === 'function') ? getContextMenuItems(kind, args) : [];
   if (!items || !items.length) return;
@@ -310,12 +368,43 @@ function getLS(key, fallback = null) {
    Bump LS_SCHEMA_VERSION whenever a localStorage key is renamed,
    restructured, or removed. Add a migration block below.
 ══════════════════════════════════════════════════════════════ */
-const LS_SCHEMA_VERSION = 1;
+const LS_SCHEMA_VERSION = 2;
 function migrateSchema() {
   const stored = parseInt(localStorage.getItem('ls_schema_v') || '0');
   if (stored >= LS_SCHEMA_VERSION) return;
   // ── v0 → v1: initial stamp, no structural changes needed ──
-  // Future migrations go here as: if (stored < 2) { ... }
+  // ── v1 → v2: compact sparse sets arrays in workout logger keys.
+  //   wlUpdate could assign data.exercises[i].sets[3] = {} on a length-1
+  //   array, creating holes that JSON serialised as nulls. Any later
+  //   reader doing sets.filter(s => s.weight) crashed on the null entry,
+  //   which was bringing down the WORK tab and the calendar render.
+  if (stored < 2) {
+    try {
+      const compactSets = (exercises) => {
+        if (!exercises || typeof exercises !== 'object') return;
+        Object.values(exercises).forEach(ex => {
+          if (!ex || !Array.isArray(ex.sets)) return;
+          ex.sets = ex.sets.filter(s => s != null);
+          ex.sets.forEach(s => {
+            if (s && Array.isArray(s.drops)) s.drops = s.drops.filter(d => d != null);
+          });
+        });
+      };
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !(k.startsWith('wl_') || k.startsWith('wl_hist_'))) continue;
+        const v = safeJSON(localStorage.getItem(k), null);
+        if (!v) continue;
+        if (k.startsWith('wl_hist_') && Array.isArray(v)) {
+          v.forEach(entry => compactSets(entry?.exercises));
+          localStorage.setItem(k, JSON.stringify(v));
+        } else if (v.exercises) {
+          compactSets(v.exercises);
+          localStorage.setItem(k, JSON.stringify(v));
+        }
+      }
+    } catch (e) { console.warn('v2 sets compaction skipped:', e); }
+  }
   localStorage.setItem('ls_schema_v', String(LS_SCHEMA_VERSION));
 }
 migrateSchema();
@@ -457,78 +546,136 @@ function handlePinSubmit() {
     console.error('Error processing PIN submit:', e);
   }
 }
+// Pull a single client's profile row from the cloud and store it locally.
+// Used on first login from a new device, where localStorage is empty but
+// the session token is now valid. Returns the client object or null.
+async function _hydrateClientFromCloud(cid) {
+  try {
+    if (typeof sbSelect !== 'function') return null;
+    const rows = await sbSelect('clients', `select=*&id=eq.${encodeURIComponent(cid)}`);
+    if (!Array.isArray(rows) || !rows.length) return null;
+    const row = rows[0];
+    const client = {
+      id:          row.id,
+      name:        row.name,
+      pin:         row.pin || '',
+      goal:        row.goal || '',
+      accent:      row.accent || '#ff6b35',
+      programType: row.program_type || '',
+      data:        safeJSON(row.data, {}),
+      _meta:       safeJSON(row.meta, {}),
+      weightLoss:  safeJSON(row.weight_loss, null),
+      _updated_at: row.updated_at,
+    };
+    const dyn = getDynamicClients();
+    const idx = dyn.findIndex(c => c.id === cid);
+    if (idx >= 0) dyn[idx] = client; else dyn.push(client);
+    localStorage.setItem('dynamic_clients', JSON.stringify(dyn));
+    if (row.mode) localStorage.setItem('client_mode_' + cid, row.mode);
+    // Pull the rest of their data (logs, checkins, etc.) in the background
+    if (typeof pullClientData === 'function') { try { await pullClientData(cid); } catch (_) {} }
+    return getAllClients().find(c => c.id === cid) || client;
+  } catch (e) {
+    console.error('Hydrate client failed:', e);
+    return null;
+  }
+}
+
 async function handlePinSubmitAsync(pin, lockData, lockKey) {
   try {
-    const pinHash = await hashPin(pin);
-    const coachMatch = COACH.pin.length === 64 ? COACH.pin === pinHash : COACH.pin === pin;
-    if (AppState.isCoachLogin && coachMatch) {
+    // PIN is verified server-side via /api/login. The function returns
+    // a signed session token used for every subsequent Supabase call.
+    const role = AppState.isCoachLogin ? 'coach' : 'client';
+    // Show a verifying state — the round-trip can take a beat on mobile
+    const _subEl = safeGetElement('pinSub');
+    const _subPrev = _subEl ? _subEl.textContent : '';
+    if (_subEl) _subEl.textContent = 'Verifying…';
+    const _dots = document.querySelectorAll('.pin-dot');
+    _dots.forEach(d => d.classList.add('verifying'));
+    const res  = await apiLogin(role, pin);
+    _dots.forEach(d => d.classList.remove('verifying'));
+    if (_subEl && _subEl.textContent === 'Verifying…') _subEl.textContent = _subPrev;
+
+    if (res.ok) {
       localStorage.setItem(lockKey, JSON.stringify({ count: 0, until: 0 }));
-      AppState.isCoachLogin = false;
-      haptic('success');
-      fireTransition(() => launchCoach(), 'Coach', 'COACH ACCESS');
-    } else if (!AppState.isCoachLogin) {
-      const matched = getAllClients().find(c => {
-        if (!c.pin) return false;
-        return c.pin.length === 64 ? c.pin === pinHash : c.pin === pin;
-      });
-      if (matched) {
-        if (isClientPaused(matched.id)) {
-          const pinError = safeGetElement('pinError');
-          if (pinError) pinError.textContent = 'Access paused — contact your coach';
-          setTimeout(() => {
-            AppState.pinBuffer = '';
-            updatePinDots('');
-            const el = safeGetElement('pinError');
-            if (el) el.textContent = '';
-          }, 1800);
-        } else {
-          AppState.currentClient = matched;
-          const pinName = safeGetElement('pinName');
-          if (pinName) {
-            pinName.textContent = matched.name;
-            pinName.style.color = matched.accent;
-          }
-          const subEl = safeGetElement('pinSub');
-          if (subEl) subEl.textContent = 'Welcome back!';
-          haptic('success');
-          fireTransition(() => launchApp(), AppState.currentClient?.name, 'IDENTITY CONFIRMED');
-        }
-      } else {
-        // wrong PIN — increment lockout counter with exponential backoff
-        lockData.count = (lockData.count || 0) + 1;
-        if (lockData.count >= 5) {
-          lockData.lockouts = (lockData.lockouts || 0) + 1;
-          const backoff = Math.min(30 * Math.pow(2, lockData.lockouts - 1), 600); // 30s,60s,120s…max 10min
-          lockData.until = Date.now() + backoff * 1000;
-          lockData.count = 0;
-        }
-        localStorage.setItem(lockKey, JSON.stringify(lockData));
-        const attemptsLeft = 5 - lockData.count;
-        const pinError = safeGetElement('pinError');
-        if (pinError) {
-          if (lockData.until > Date.now()) {
-            const secs = Math.ceil((lockData.until - Date.now()) / 1000);
-            pinError.textContent = secs >= 60 ? `Too many attempts — locked ${Math.ceil(secs/60)}m` : `Too many attempts — locked ${secs}s`;
-          } else {
-            pinError.textContent = `Incorrect PIN${attemptsLeft <= 2 ? ` · ${attemptsLeft} attempt${attemptsLeft!==1?'s':''} left` : ''}`;
-          }
-        }
-        haptic('error');
-        const dots = document.querySelectorAll('.pin-dot');
-        dots.forEach(d => { d.style.borderColor = '#e74c3c'; d.style.background = '#e74c3c'; });
-        setTimeout(() => {
-          AppState.pinBuffer = '';
-          updatePinDots('');
-          const el = safeGetElement('pinError');
-          if (el) el.textContent = '';
-        }, 900);
+
+      if (role === 'coach') {
+        AppState.isCoachLogin = false;
+        haptic('success');
+        fireTransition(() => launchCoach(), 'Coach', 'COACH ACCESS');
+        return;
       }
-    } else {
-      // coach wrong PIN — same lockout
-      lockData.count = (lockData.count || 0) + 1;
-      if (lockData.count >= 5) { lockData.lockouts=(lockData.lockouts||0)+1; lockData.until = Date.now() + Math.min(30*Math.pow(2,lockData.lockouts-1),600)*1000; lockData.count = 0; }
-      localStorage.setItem(lockKey, JSON.stringify(lockData));
+
+      // Client login: server returned the client_id; resolve to a local row.
+      // On a fresh device the client won't be in localStorage yet — now that
+      // we hold a valid token, pull their profile from the cloud first.
+      let matched = getAllClients().find(c => c.id === res.clientId);
+      if (!matched) {
+        const subEl = safeGetElement('pinSub');
+        if (subEl) subEl.textContent = 'Loading your profile…';
+        matched = await _hydrateClientFromCloud(res.clientId);
+      }
+      if (!matched) {
+        const pinError = safeGetElement('pinError');
+        if (pinError) pinError.textContent = 'Could not load your profile — check connection';
+        setTimeout(() => { AppState.pinBuffer = ''; updatePinDots(''); }, 1800);
+        return;
+      }
+      if (isClientPaused(matched.id)) {
+        const pinError = safeGetElement('pinError');
+        if (pinError) pinError.textContent = 'Access paused — contact your coach';
+        setTimeout(() => { AppState.pinBuffer = ''; updatePinDots(''); }, 1800);
+        return;
+      }
+      AppState.currentClient = matched;
+      const pinName = safeGetElement('pinName');
+      if (pinName) { pinName.textContent = matched.name; pinName.style.color = matched.accent; }
+      const subEl = safeGetElement('pinSub');
+      if (subEl) subEl.textContent = 'Welcome back!';
+      haptic('success');
+      fireTransition(() => launchApp(), matched.name, 'IDENTITY CONFIRMED');
+      return;
     }
+
+    // ── Login failed ──────────────────────────────────────────────
+    // Server enforces its own rate-limit (429) — if we hit it, surface it.
+    if (res.status === 429) {
+      const pinError = safeGetElement('pinError');
+      if (pinError) pinError.textContent = 'Too many attempts — wait a few minutes';
+      haptic('error');
+      AppState.pinBuffer = '';
+      setTimeout(() => updatePinDots(''), 600);
+      return;
+    }
+
+    // Otherwise: count locally and back off with the existing UX
+    lockData.count = (lockData.count || 0) + 1;
+    if (lockData.count >= 5) {
+      lockData.lockouts = (lockData.lockouts || 0) + 1;
+      const backoff = Math.min(30 * Math.pow(2, lockData.lockouts - 1), 600);
+      lockData.until = Date.now() + backoff * 1000;
+      lockData.count = 0;
+    }
+    localStorage.setItem(lockKey, JSON.stringify(lockData));
+    const attemptsLeft = 5 - lockData.count;
+    const pinError = safeGetElement('pinError');
+    if (pinError) {
+      if (lockData.until > Date.now()) {
+        const secs = Math.ceil((lockData.until - Date.now()) / 1000);
+        pinError.textContent = secs >= 60 ? `Too many attempts — locked ${Math.ceil(secs/60)}m` : `Too many attempts — locked ${secs}s`;
+      } else {
+        pinError.textContent = res.error || `Incorrect PIN${attemptsLeft <= 2 ? ` · ${attemptsLeft} attempt${attemptsLeft!==1?'s':''} left` : ''}`;
+      }
+    }
+    haptic('error');
+    const dots = document.querySelectorAll('.pin-dot');
+    dots.forEach(d => { d.style.borderColor = '#e74c3c'; d.style.background = '#e74c3c'; });
+    setTimeout(() => {
+      AppState.pinBuffer = '';
+      updatePinDots('');
+      const el = safeGetElement('pinError');
+      if (el) el.textContent = '';
+    }, 900);
   } catch (e) {
     console.error('Error handling PIN submission:', e);
   }
@@ -674,11 +821,12 @@ const _TAB_LBL = {home:'HOME',schedule:'PLAN',workouts:'WORK',endurance:'ENDU',n
 const _TAB_MORE_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="5" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.25" fill="currentColor" stroke="none"/></svg>`;
 
 function buildTabBarHTML(tabs) {
-  return tabs.map((t, i) => {
+  return (tabs || []).filter(t => t.id !== 'macros').map((t, i) => {
     const svg = _TAB_SVG[t.id] || _TAB_SVG.fitness;
     const lbl = _TAB_LBL[t.id] || t.label.slice(0, 4).toUpperCase();
-    return `<button class="tab-item${i===0?' active':''}" data-tid="${esc(t.id)}" onclick="switchTab(this.dataset.tid,this)"><span class="tab-icon">${svg}</span><span class="tab-label">${lbl}</span></button>`;
-  }).join('') + `<button class="tab-item" onclick="openMoreMenu()"><span class="tab-icon">${_TAB_MORE_SVG}</span><span class="tab-label">MORE</span></button>`;
+    const isFirst = i === 0;
+    return `<button class="tab-item${isFirst?' active':''}" data-tid="${esc(t.id)}" onclick="switchTab(this.dataset.tid,this)" aria-label="${esc(lbl)} tab"${isFirst ? ' aria-current="page"' : ''}><span class="tab-icon" aria-hidden="true">${svg}</span><span class="tab-label">${lbl}</span></button>`;
+  }).join('') + `<button class="tab-item" onclick="openMoreMenu()" aria-label="More menu"><span class="tab-icon" aria-hidden="true">${_TAB_MORE_SVG}</span><span class="tab-label">MORE</span></button>`;
 }
 
 function launchApp() {
@@ -710,6 +858,16 @@ function launchApp() {
     if (c.data?.tabs && !c.data.tabs.some(t => t.id === 'home')) {
       c.data.tabs.unshift({ id: 'home', label: 'Home' });
     }
+    // Drop legacy 'macros' tab — the Nutrition tab owns macro tracking now
+    if (c.data?.tabs?.some(t => t.id === 'macros')) {
+      c.data.tabs = c.data.tabs.filter(t => t.id !== 'macros');
+      try {
+        const _dyn = getDynamicClients();
+        const _i = _dyn.findIndex(cl => cl.id === c.id);
+        if (_i >= 0) { _dyn[_i].data = c.data; localStorage.setItem('dynamic_clients', JSON.stringify(_dyn)); }
+        if (typeof sbAutoSync === 'function') sbAutoSync(c.id);
+      } catch (_) {}
+    }
     const tabBar = safeGetElement('tabBar');
     if (tabBar && c.data?.tabs) {
       tabBar.innerHTML = buildTabBarHTML(c.data.tabs);
@@ -728,29 +886,45 @@ function launchApp() {
         localStorage.setItem('dynamic_clients', JSON.stringify(_dynC));
       }
     } catch (_e) {}
-    // Check milestones on login
-    setTimeout(() => { if (AppState.currentClient && AppState.currentClient.id === c.id) checkMilestones(c); }, 800);
-    // First-time tutorial — show after content has rendered
-    setTimeout(() => showTutorial(c.id), 1200);
     // Show skeleton first, then build content (gives browser 1 paint to show skeleton)
     const _acSkel = document.getElementById('appContent');
     if (_acSkel) _acSkel.innerHTML = buildSkeleton();
-    setTimeout(() => renderContent(c), 20);
-    // Auto-push local data to Supabase (catches devices with pre-existing localStorage)
+    // Render content after one frame so the skeleton actually paints first
+    requestAnimationFrame(() => renderContent(c));
+
+    // Chain post-render work so timers don't fire in parallel. Each step is
+    // wrapped so a failure doesn't cancel the chain. Total budget ~3s.
+    const _stillCurrent = () => AppState.currentClient && AppState.currentClient.id === c.id;
+    const _safe = fn => { try { fn(); } catch (e) { console.error(e); } };
+
+    // Kick off the cloud pull immediately, but only re-render once data has
+    // actually changed (compare _updated_at) — avoids the gratuitous second
+    // renderContent that runs even when nothing changed.
+    const _localUpdatedAt = (() => {
+      const d = getDynamicClients().find(cl => cl.id === c.id);
+      return d?._updated_at || null;
+    })();
     sbAutoSync(c.id);
-    // Auto-pull latest data from Supabase (coach edits, messages, etc.)
     pullClientData(c.id).then(() => {
       const fresh = getAllClients().find(cl => cl.id === c.id);
-      if (AppState.currentClient?.id === c.id && fresh) {
-        AppState.currentClient = fresh;
-        currentClient = fresh;
-        renderContent(fresh);
-      }
+      if (!_stillCurrent() || !fresh) return;
+      AppState.currentClient = fresh;
+      currentClient = fresh;
+      if (fresh._updated_at !== _localUpdatedAt) renderContent(fresh);
     }).catch(() => {});
-    // Subscribe to push notifications (silently — only asks if not yet decided)
-    if (VAPID_PUBLIC_KEY) setTimeout(() => requestPushPermission(c.id), 3000);
-    // If user shared a photo from another app, save it to this client's gallery
-    setTimeout(() => processSharedPhoto(c.id), 400);
+
+    setTimeout(() => {
+      _safe(() => processSharedPhoto(c.id));
+      setTimeout(() => {
+        if (_stillCurrent()) _safe(() => checkMilestones(c));
+        setTimeout(() => {
+          _safe(() => showTutorial(c.id));
+          if (VAPID_PUBLIC_KEY) {
+            setTimeout(() => _safe(() => requestPushPermission(c.id)), 1800);
+          }
+        }, 400);
+      }, 400);
+    }, 400);
   } catch (e) {
     console.error('Error launching app:', e);
   }
@@ -1125,22 +1299,52 @@ function deleteGoal(cid, goalId) {
   openGoalsModal(cid);
 }
 
+function _safeTabRender(tid, fn) {
+  try { return fn(); }
+  catch (e) {
+    console.error('Tab render error (' + tid + '):', e);
+    return `<div style="padding:20px;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace">Failed to load — check console.</div>`;
+  }
+}
+
+function _renderTabBody(tid, c) {
+  const d = c.data;
+  if (tid === 'home')        return _safeTabRender(tid, () => renderHome(c));
+  if (tid === 'schedule')    return _safeTabRender(tid, () => renderSchedule(d.schedule, c));
+  if (tid === 'workouts')    return _safeTabRender(tid, () => renderWorkouts(d.workouts, c));
+  if (tid === 'endurance')   return _safeTabRender(tid, () => renderEndurance(d.endurance, c));
+  if (tid === 'nutrition')   return _safeTabRender(tid, () => renderNutrition(d.nutrition, c));
+  if (tid === 'fitness')     return _safeTabRender(tid, () => renderFitnessLog(c));
+  if (tid === 'milestones')  return _safeTabRender(tid, () => renderMilestones(c));
+  if (tid === 'progression') return _safeTabRender(tid, () => renderProgression(d.progression, d.hero, c));
+  return '';
+}
+
 function switchTab(id, el) {
   if (!el.classList.contains('active')) haptic('tap');
   const appContent = document.getElementById('appContent');
   // Save scroll position of outgoing tab
-  if (appContent) {
-    const prevActive = document.querySelector('#appContent .tab-panel.active');
-    if (prevActive) {
-      AppState._tabScrollY = AppState._tabScrollY || {};
-      AppState._tabScrollY[prevActive.id] = appContent.scrollTop;
-    }
+  const prevId = AppState._activeTab;
+  if (appContent && prevId) {
+    AppState._tabScrollY = AppState._tabScrollY || {};
+    AppState._tabScrollY['panel-' + prevId] = appContent.scrollTop;
+    const prevPanel = document.getElementById('panel-' + prevId);
+    if (prevPanel) prevPanel.classList.remove('active');
+    const prevBtn = document.querySelector('.tab-item.active');
+    if (prevBtn) { prevBtn.classList.remove('active'); prevBtn.removeAttribute('aria-current'); }
   }
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  const panel = document.getElementById('panel-' + id);
+  let panel = document.getElementById('panel-' + id);
+  // Lazy-render: first time this tab is opened, build its body now
+  if (panel && !panel.dataset.rendered && AppState.currentClient) {
+    panel.innerHTML = _renderTabBody(id, AppState.currentClient);
+    panel.dataset.rendered = '1';
+    // Endurance HR zones calc has to run after its DOM is in
+    if (id === 'endurance') setTimeout(() => { try { updateHRZones(AppState.currentClient.id); } catch {} }, 0);
+  }
   if (panel) panel.classList.add('active');
   el.classList.add('active');
+  el.setAttribute('aria-current', 'page');
+  AppState._activeTab = id;
   // Restore scroll for incoming tab
   if (appContent) {
     const saved = AppState._tabScrollY?.['panel-' + id] || 0;
@@ -1149,35 +1353,57 @@ function switchTab(id, el) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RENDER CONTENT
+   RENDER CONTENT — only renders the active tab eagerly; other tabs
+   are stub shells that render lazily on first switchTab. The active
+   tab defaults to Home but is preserved across renderContent calls
+   (e.g. cloud pull / pull-to-refresh shouldn't dump the user back
+   to Home if they're mid-workout-log).
 ══════════════════════════════════════════════════════════════ */
 function renderContent(c) {
   const d = c.data;
-  let html = '';
 
   // Always render home panel first (inject if not in tabs)
   const hasHome = d.tabs.some(t => t.id === 'home');
   if (!hasHome) d.tabs.unshift({ id: 'home', label: 'Home' });
+  // Drop legacy 'macros' tab — the Nutrition tab owns macro tracking now
+  if (d.tabs.some(t => t.id === 'macros')) d.tabs = d.tabs.filter(t => t.id !== 'macros');
 
-  d.tabs.forEach((t, idx) => {
-    html += `<div class="tab-panel${idx===0?' active':''}" id="panel-${t.id}">`;
-    if (t.id === 'home')       { try { html += renderHome(c); } catch(e) { console.error('renderHome error:', e); html += `<div style="padding:20px;color:var(--muted);font-size:12px">Home failed to load — check console.</div>`; } }
-    const _safeRender = (fn) => { try { return fn(); } catch(e) { console.error('Tab render error ('+t.id+'):', e); return `<div style="padding:20px;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace">Failed to load — check console.</div>`; } };
-    if (t.id === 'schedule')   html += _safeRender(() => renderSchedule(d.schedule, c));
-    if (t.id === 'workouts')   html += _safeRender(() => renderWorkouts(d.workouts, c));
-    if (t.id === 'endurance')  html += _safeRender(() => renderEndurance(d.endurance, c));
-    if (t.id === 'nutrition')  html += _safeRender(() => renderNutrition(d.nutrition, c));
-    if (t.id === 'fitness')    html += _safeRender(() => renderFitnessLog(c));
-    if (t.id === 'milestones') html += _safeRender(() => renderMilestones(c));
-    if (t.id === 'progression')html += _safeRender(() => renderProgression(d.progression, d.hero, c));
-    html += '</div>';
+  // Preserve the active tab across re-renders (e.g. cloud pull, PTR).
+  const preservedTab = AppState._activeTab && d.tabs.some(t => t.id === AppState._activeTab)
+    ? AppState._activeTab
+    : d.tabs[0]?.id;
+
+  // Preserve scroll position too
+  const appContent = document.getElementById('appContent');
+  const prevScroll = appContent?.scrollTop || 0;
+
+  // Build all panel shells, render only the active one
+  let html = '';
+  d.tabs.forEach(t => {
+    const isActive = t.id === preservedTab;
+    const body = isActive ? _renderTabBody(t.id, c) : '';
+    const rendered = isActive ? ' data-rendered="1"' : '';
+    html += `<div class="tab-panel${isActive ? ' active' : ''}" id="panel-${t.id}"${rendered}>${body}</div>`;
   });
 
   document.getElementById('appContent').innerHTML = html;
+  AppState._activeTab = preservedTab;
+
+  // Sync the tab-bar active state in case it drifted
+  document.querySelectorAll('.tab-item').forEach(btn => {
+    const isActive = btn.dataset.tid === preservedTab;
+    btn.classList.toggle('active', isActive);
+    if (isActive) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
+  });
+
+  // Restore scroll
+  if (appContent) appContent.scrollTop = prevScroll;
+
   // Kick off async weather check after DOM is ready
   if (c._meta?.address) setTimeout(() => checkWeatherAlert(c), 0);
-  // Compute HR zones now that the calculator card is in the DOM
-  if (d.tabs.some(t => t.id === 'endurance')) setTimeout(() => { try { updateHRZones(c.id); } catch {} }, 0);
+  // Endurance tab HR zones need DOM in place
+  if (preservedTab === 'endurance') setTimeout(() => { try { updateHRZones(c.id); } catch {} }, 0);
 }
 
 // Stable hash → hue so each workout title gets its own consistent color
@@ -1349,10 +1575,12 @@ function renderWorkouts(w, c) {
       </div>
     </div>` : '';
   const _suggestions = buildProgressionSuggestionsHtml(c);
+  const _aiBuildBtn = `<button onclick="openAIBuildWorkout('${esc(c.id)}')" style="display:block;width:100%;margin:0 0 14px;padding:12px;background:var(--surface2);border:1px dashed ${esc(c.accent || '#e8ff47')};border-radius:10px;color:${esc(c.accent || '#e8ff47')};font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">+ AI Build Workout</button>`;
   return `
     <div class="panel-title">Workout Breakdown</div>
     <p class="panel-desc">Select a training day to see the full session.</p>
     ${_phaseBanner}
+    ${_aiBuildBtn}
     ${_suggestions}
     <div class="sel-grid">${btns}</div>
     ${panels}`;
@@ -1362,9 +1590,37 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   const storageKey = 'wl_' + cid + '_' + dayId;
   const saved = getLS(storageKey, null);
 
-  // Determine if the saved data is from a previous session (not today)
+  // Determine if the saved data is from a previous session (not today).
+  // Only treat it as a previous session when _countedDate is explicitly set to
+  // a different day — in-progress data that hasn't been formally saved yet has
+  // no _countedDate and must NOT be discarded as if it were old.
   const todayStr = new Date().toDateString();
-  const isNewSession = !saved || saved._countedDate !== todayStr;
+  const isNewSession = !!(saved?._countedDate && saved._countedDate !== todayStr);
+
+  // Stale-session cleanup: if a prior session is sitting in the live key,
+  // archive it once to history and reset the live entry. Without this the
+  // old `done: true` flags linger in localStorage — the UI renders blank
+  // (correct) but tapping a check toggles the stale `true` -> `false`,
+  // making the check appear to do nothing.
+  if (isNewSession && saved?.exercises && Object.keys(saved.exercises).length) {
+    try {
+      const hist = getWlHistory(cid, dayId);
+      const stamp = saved.savedAt || saved._countedDate || '';
+      const already = hist.some(h => (h?.date && h.date === saved.savedAt) || (h?._countedDate && h._countedDate === saved._countedDate));
+      if (!already) {
+        hist.unshift({
+          date: saved.savedAt || new Date(saved._countedDate).toISOString(),
+          _countedDate: saved._countedDate,
+          exercises: saved.exercises,
+          sessionNotes: saved.sessionNotes || '',
+        });
+        if (hist.length > 12) hist.length = 12;
+        saveWlHistory(cid, dayId, hist);
+      }
+      saveWlData(cid, dayId, { exercises: {} });
+    } catch (_) {}
+  }
+
   // For a new session, inputs are blank; use previous session data only as reference
   const activeData  = isNewSession ? null : saved;
   // Previous session: hist[0] if new session and saved exists, otherwise hist[0] from history
@@ -1383,20 +1639,31 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
     const numSets = setMatch ? parseInt(setMatch[0]) : 3;
     const savedSets = savedEx?.sets || [];
 
-    // Build "last time" reference hint per set from previous session
-    const prevSets = (prevSession?.exercises?.[ei]?.sets || []).filter(s => s.weight || s.reps);
+    // Backfill exercise name into today's saved data if missing (old entries)
+    if (savedEx && !savedEx.name) savedEx.name = e.name;
+
+    // Build "last time" hints: match by exercise name first, fall back to position index
+    let prevSets = [];
+    if (prevSession?.exercises) {
+      const prevExByName = Object.values(prevSession.exercises).find(ex => ex?.name === e.name);
+      const prevExByIdx  = prevSession.exercises[ei];
+      const prevEx = prevExByName || prevExByIdx;
+      // Guard against null/undefined entries — sparse arrays from wlUpdate
+      // serialise as JSON nulls and would throw when we read s.weight.
+      prevSets = (prevEx?.sets || []).filter(s => s && (s.weight || s.reps));
+    }
 
     const setRows = Array.from({length: Math.max(numSets, savedSets.length)}, (_, si) => {
       const s = savedSets[si] || {};
       const prev = prevSets[si];
-      const prevHint = (isNewSession && prev && (prev.weight || prev.reps))
-        ? `<div class="wl-prev-hint">${[prev.weight, prev.reps].filter(Boolean).join(' × ')}</div>`
+      const prevHint = (prev && (prev.weight || prev.reps))
+        ? `<div class="wl-prev-hint">Last: ${[prev.weight, prev.reps].filter(Boolean).join(' × ')}${prevDateStr ? ' · ' + prevDateStr : ''}</div>`
         : '';
       // Build any saved drop rows
       const drops = s.drops || [];
       const dropRowsHtml = drops.map((d, di) => `
         <div class="wl-drop-row" id="wl-drop-${cid}-${dayId}-${ei}-${si}-${di}">
-          <div class="wl-drop-num">↓${di+1}</div>
+          <div class="wl-drop-num">&darr;${di+1}</div>
           <input class="wl-drop-input ${d.weight?'completed':''}" type="text" inputmode="decimal"
             placeholder="lbs/kg" value="${d.weight||''}"
             oninput="wlUpdateDrop('${cid}','${dayId}',${ei},${si},${di},'weight',this.value)">
@@ -1405,18 +1672,22 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
             oninput="wlUpdateDrop('${cid}','${dayId}',${ei},${si},${di},'reps',this.value)">
           <button class="wl-drop-check ${d.done?'done':''}"
             onclick="wlToggleDropDone('${cid}','${dayId}',${ei},${si},${di})">${d.done?'✓':''}</button>
+          <button class="wl-mini-btn wl-del-mini" onclick="wlDeleteDrop('${cid}','${dayId}',${ei},${si},${di})" title="Remove drop set">&times;</button>
         </div>`).join('');
       return `<div class="wl-set-row" id="wl-set-${cid}-${dayId}-${ei}-${si}">
         <div class="wl-set-num">S${si+1}</div>
         <input class="wl-set-input ${s.weight?'completed':''}" type="text" inputmode="decimal"
-          placeholder="${(isNewSession && prev?.weight) ? prev.weight : 'lbs / kg'}" value="${s.weight||''}"
+          placeholder="${prev?.weight ? prev.weight : 'lbs / kg'}" value="${s.weight||''}"
           oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'weight',this.value)">
         <input class="wl-set-input ${s.reps?'completed':''}" type="text" inputmode="numeric"
-          placeholder="${(isNewSession && prev?.reps) ? prev.reps : 'reps'}" value="${s.reps||''}"
+          placeholder="${prev?.reps ? prev.reps : 'reps'}" value="${s.reps||''}"
           oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'reps',this.value)">
         <button class="wl-set-check ${s.done?'done':''}"
           onclick="wlToggleDone('${cid}','${dayId}',${ei},${si})">${s.done?'✓':''}</button>
-        <button class="wl-drop-set-btn" onclick="wlAddDrop('${cid}','${dayId}',${ei},${si})" title="Add drop set">↓</button>
+        <div class="wl-row-actions">
+          <button class="wl-mini-btn wl-drop-mini" onclick="wlAddDrop('${cid}','${dayId}',${ei},${si})" title="Add drop set">&darr;</button>
+          <button class="wl-mini-btn wl-del-mini" onclick="wlDeleteSet('${cid}','${dayId}',${ei},${si})" title="Remove set">&times;</button>
+        </div>
       </div>${prevHint}<div class="wl-drops-wrap" id="wl-drops-${cid}-${dayId}-${ei}-${si}">${dropRowsHtml}</div>`;
     }).join('');
 
@@ -1714,12 +1985,12 @@ function renderProgression(p, hero, c) {
   const phases = p.phases.map(ph => `
     <div class="phase-card" data-n="${ph.n}">
       <div class="ph-num">// Phase ${ph.n}</div>
-      <div class="ph-title">${ph.title}</div>
-      <div class="ph-weeks">${ph.weeks}</div>
-      <div class="ph-body">${ph.body}</div>
+      <div class="ph-title">${esc(ph.title)}</div>
+      <div class="ph-weeks">${esc(ph.weeks)}</div>
+      <div class="ph-body">${esc(ph.body)}</div>
     </div>`).join('');
 
-  const rules = p.rules.map(r => `<li>${r}</li>`).join('');
+  const rules = p.rules.map(r => `<li>${esc(r)}</li>`).join('');
   const stats = Object.entries(hero).map(([k,v]) => `
     <div class="macro-card" style="text-align:center">
       <div class="macro-val" style="color:var(--accent)">${v}</div>
@@ -1741,7 +2012,12 @@ function renderProgression(p, hero, c) {
 ══════════════════════════════════════════════════════════════ */
 function logout() {
   try {
+    // Flush any debounced cloud-sync writes before we tear down state, so we
+    // don't drop the last second of work the user just did.
+    if (typeof sbAutoSyncFlushAll === 'function') sbAutoSyncFlushAll();
     stopCoachPolling();
+    // Drop the session token so the next login must re-authenticate
+    if (typeof clearAuth === 'function') clearAuth();
     AppState.currentClient = null;
     currentClient = null;
     AppState.isCoachLogin = false;

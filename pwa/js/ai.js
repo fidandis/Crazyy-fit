@@ -514,6 +514,7 @@ function buildAnalyticsPanel(clients) {
 
 /* ── ACHIEVEMENT BADGES ──────────────────────────────────────── */
 function renderBadgesScreen(c) {
+  try { checkMilestones(c); } catch(_) {}
   const unlocked = getUnlockedMilestones(c.id);
   const earned = MILESTONES.filter(m => unlocked.includes(m.id));
   const locked = MILESTONES.filter(m => !unlocked.includes(m.id) && m.type !== 'weight_pct' && !(m.type === 'weight' && !c.weightLoss));
@@ -937,8 +938,8 @@ function checkProgressionRules(cid) {
       if (!exerciseName || existingNames.has(exerciseName)) return;
 
       // Keep only sets that have both weight and reps logged
-      const sets1 = (ex1.sets || []).filter(s => s.weight && s.reps);
-      const sets2 = (ex2.sets || []).filter(s => s.weight && s.reps);
+      const sets1 = (ex1.sets || []).filter(s => s && s.weight && s.reps);
+      const sets2 = (ex2.sets || []).filter(s => s && s.weight && s.reps);
       if (sets1.length < 1 || sets2.length < 1) return;
 
       // Count how many corresponding sets matched on weight AND reps
@@ -1148,9 +1149,10 @@ async function sendWelcomeEmailToNewClient() {
     if (status) status.innerHTML = 'Email: <span style="color:var(--accent)">Sent to ' + email + '</span>';
   } catch (e) {
     console.error('sendWelcomeEmail:', e);
-    showFitToast('Email failed — check Resend config in Netlify env vars');
+    const msg = (e && e.message) ? e.message : 'Email send failed';
+    showFitToast('Email failed: ' + msg);
     if (btn) { btn.disabled = false; btn.textContent = 'Retry'; }
-    if (status) status.innerHTML = 'Email: <span style="color:#e74c3c">Failed — tap Retry below</span>';
+    if (status) status.innerHTML = 'Email: <span style="color:#e74c3c">Failed — ' + msg.replace(/</g,'&lt;') + '</span>';
   }
 }
 
@@ -1170,6 +1172,7 @@ async function emailClientCredentials(cid) {
     dynamic[idx].pin = hashed;
     localStorage.setItem('dynamic_clients', JSON.stringify(dynamic));
   }
+  try { localStorage.setItem('pin_plain_' + cid, newPin); } catch (_) {}
   try { await sbUpsert('clients', { id: cid, pin: hashed, updated_at: new Date().toISOString() }); } catch (e) {}
   const appUrl = window.location.href.split('?')[0];
   const plan = c._meta?.plan || c.programType || c.program_type || 'blueprint';
@@ -1220,102 +1223,185 @@ const EXERCISE_DB = [
   {name:'Incline Dumbbell Press',muscle:'Chest',sets:'3',reps:'10–12'},
   {name:'Decline Bench Press',muscle:'Chest',sets:'3',reps:'10–12'},
   {name:'Dumbbell Flyes',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Incline Dumbbell Fly',muscle:'Chest',sets:'3',reps:'12–15'},
   {name:'Cable Crossover',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Hi-Lo Cable Fly',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Lo-Hi Cable Fly',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Mid-Cable Chest Fly',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Hi-Lo Cable Fly',muscle:'Chest',sets:'3',reps:'12–15 each'},
+  {name:'Single-Arm Lo-Hi Cable Fly',muscle:'Chest',sets:'3',reps:'12–15 each'},
+  {name:'Single-Arm Mid-Cable Fly',muscle:'Chest',sets:'3',reps:'12–15 each'},
+  {name:'Cable Chest Press',muscle:'Chest',sets:'3',reps:'10–12'},
   {name:'Pec Deck Machine',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Machine Chest Press',muscle:'Chest',sets:'3',reps:'10–12'},
+  {name:'Machine Incline Press',muscle:'Chest',sets:'3',reps:'10–12'},
   {name:'Push-Up',muscle:'Chest',sets:'4',reps:'15–20'},
   {name:'Incline Push-Up',muscle:'Chest',sets:'3',reps:'15–20'},
   {name:'Decline Push-Up',muscle:'Chest',sets:'3',reps:'15–20'},
   {name:'Diamond Push-Up',muscle:'Chest',sets:'3',reps:'10–15'},
+  {name:'Archer Push-Up',muscle:'Chest',sets:'3',reps:'8–10 each'},
   {name:'Dumbbell Pullover',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Cable Pullover',muscle:'Chest',sets:'3',reps:'12–15'},
   {name:'Landmine Press',muscle:'Chest',sets:'3',reps:'10–12'},
   {name:'Smith Machine Bench Press',muscle:'Chest',sets:'4',reps:'8–10'},
+  {name:'Chest Dip',muscle:'Chest',sets:'3',reps:'10–15'},
   // BACK
   {name:'Pull-Up',muscle:'Back',sets:'4',reps:'6–10'},
   {name:'Chin-Up',muscle:'Back',sets:'4',reps:'6–10'},
+  {name:'Neutral-Grip Pull-Up',muscle:'Back',sets:'4',reps:'6–10'},
+  {name:'Band-Assisted Pull-Up',muscle:'Back',sets:'4',reps:'8–10'},
   {name:'Lat Pulldown',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Wide-Grip Lat Pulldown',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Neutral-Grip Lat Pulldown',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Reverse-Grip Lat Pulldown',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Single-Arm Lat Pulldown',muscle:'Back',sets:'3',reps:'10–12 each'},
   {name:'Seated Cable Row',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Wide-Grip Cable Row',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Close-Grip Cable Row',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Single-Arm Cable Row',muscle:'Back',sets:'3',reps:'10–12 each'},
+  {name:'Kneeling Single-Arm Cable Row',muscle:'Back',sets:'3',reps:'12–15 each'},
+  {name:'High-Cable Row',muscle:'Back',sets:'3',reps:'12–15'},
+  {name:'Straight-Arm Pulldown',muscle:'Back',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Straight-Arm Pulldown',muscle:'Back',sets:'3',reps:'12–15 each'},
+  {name:'Face Pull',muscle:'Back',sets:'3',reps:'15–20'},
+  {name:'Rope Face Pull',muscle:'Back',sets:'3',reps:'15–20'},
   {name:'Barbell Row',muscle:'Back',sets:'4',reps:'8–10'},
+  {name:'Pendlay Row',muscle:'Back',sets:'4',reps:'6–8'},
   {name:'Dumbbell Row',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Kroc Row',muscle:'Back',sets:'3',reps:'15–20'},
+  {name:'Meadows Row',muscle:'Back',sets:'3',reps:'10–12'},
   {name:'T-Bar Row',muscle:'Back',sets:'4',reps:'8–10'},
   {name:'Chest-Supported Row',muscle:'Back',sets:'3',reps:'10–12'},
-  {name:'Meadows Row',muscle:'Back',sets:'3',reps:'10–12'},
-  {name:'Straight-Arm Pulldown',muscle:'Back',sets:'3',reps:'12–15'},
-  {name:'Face Pull',muscle:'Back',sets:'3',reps:'15–20'},
+  {name:'Renegade Row',muscle:'Back',sets:'3',reps:'8–10 each'},
   {name:'Hyperextension',muscle:'Back',sets:'3',reps:'12–15'},
   {name:'Good Morning',muscle:'Back',sets:'3',reps:'10–12'},
   {name:'Deadlift',muscle:'Back',sets:'4',reps:'4–6'},
   {name:'Rack Pull',muscle:'Back',sets:'4',reps:'4–6'},
   {name:'Superman',muscle:'Back',sets:'3',reps:'15–20'},
+  {name:'Cable Pull-Through',muscle:'Back',sets:'3',reps:'12–15'},
   // SHOULDERS
   {name:'Overhead Press (Barbell)',muscle:'Shoulders',sets:'4',reps:'6–8'},
   {name:'Dumbbell Shoulder Press',muscle:'Shoulders',sets:'4',reps:'10–12'},
   {name:'Arnold Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
+  {name:'Bradford Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
+  {name:'Push Press',muscle:'Shoulders',sets:'4',reps:'6–8'},
+  {name:'Machine Shoulder Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
   {name:'Lateral Raise',muscle:'Shoulders',sets:'4',reps:'15–20'},
   {name:'Cable Lateral Raise',muscle:'Shoulders',sets:'3',reps:'15–20'},
+  {name:'Single-Arm Cable Lateral Raise',muscle:'Shoulders',sets:'3',reps:'15–20 each'},
+  {name:'Lean-Away Cable Lateral Raise',muscle:'Shoulders',sets:'3',reps:'15–20 each'},
+  {name:'Landmine Lateral Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
   {name:'Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Cable Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Cable Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15 each'},
+  {name:'Plate Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
   {name:'Rear Delt Fly',muscle:'Shoulders',sets:'4',reps:'15–20'},
+  {name:'Cable Rear Delt Fly',muscle:'Shoulders',sets:'3',reps:'15–20'},
+  {name:'Single-Arm Cable Rear Delt Fly',muscle:'Shoulders',sets:'3',reps:'15–20 each'},
+  {name:'Kneeling Cable Rear Delt Fly',muscle:'Shoulders',sets:'3',reps:'15–20'},
   {name:'Reverse Pec Deck',muscle:'Shoulders',sets:'3',reps:'15–20'},
   {name:'Upright Row',muscle:'Shoulders',sets:'3',reps:'10–12'},
-  {name:'Push Press',muscle:'Shoulders',sets:'4',reps:'6–8'},
-  {name:'Landmine Lateral Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
-  {name:'Machine Shoulder Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
-  {name:'Cable Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
-  {name:'Plate Front Raise',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Cable Upright Row',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Cable Y-Raise',muscle:'Shoulders',sets:'3',reps:'15–20'},
+  {name:'Cable W-Raise',muscle:'Shoulders',sets:'3',reps:'15–20'},
+  {name:'Band Pull-Apart',muscle:'Shoulders',sets:'3',reps:'20–25'},
   // BICEPS
   {name:'Barbell Curl',muscle:'Biceps',sets:'4',reps:'10–12'},
+  {name:'EZ-Bar Curl',muscle:'Biceps',sets:'4',reps:'10–12'},
   {name:'Dumbbell Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
-  {name:'Hammer Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Alternating Dumbbell Curl',muscle:'Biceps',sets:'3',reps:'10–12 each'},
+  {name:'Seated Alternating Dumbbell Curl',muscle:'Biceps',sets:'3',reps:'10–12 each'},
   {name:'Incline Dumbbell Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Hammer Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Cross-Body Hammer Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Low-Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'High-Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15 each'},
+  {name:'Rope Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Bayesian Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Cable Drag Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Preacher Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'EZ-Bar Preacher Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Cable Preacher Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Concentration Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Reverse Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Reverse Cable Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Spider Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
-  {name:'Rope Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
-  {name:'Cross-Body Hammer Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
-  {name:'EZ-Bar Curl',muscle:'Biceps',sets:'4',reps:'10–12'},
+  {name:'Machine Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
   {name:'Zottman Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
   {name:'21s',muscle:'Biceps',sets:'3',reps:'21'},
   // TRICEPS
   {name:'Close-Grip Bench Press',muscle:'Triceps',sets:'4',reps:'8–10'},
   {name:'Skull Crusher',muscle:'Triceps',sets:'4',reps:'10–12'},
+  {name:'EZ-Bar Skull Crusher',muscle:'Triceps',sets:'4',reps:'10–12'},
+  {name:'Dumbbell Skull Crusher',muscle:'Triceps',sets:'3',reps:'10–12'},
   {name:'Tricep Pushdown (Cable)',muscle:'Triceps',sets:'4',reps:'12–15'},
+  {name:'Rope Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Straight-Bar Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'V-Bar Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Cable Pushdown',muscle:'Triceps',sets:'3',reps:'12–15 each'},
+  {name:'Reverse-Grip Cable Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
   {name:'Overhead Tricep Extension',muscle:'Triceps',sets:'3',reps:'10–12'},
+  {name:'Cable Overhead Tricep Extension',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Single-Arm Cable Overhead Extension',muscle:'Triceps',sets:'3',reps:'12–15 each'},
+  {name:'Rope Overhead Extension',muscle:'Triceps',sets:'3',reps:'12–15'},
   {name:'Dumbbell Kickback',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Cable Kickback',muscle:'Triceps',sets:'3',reps:'12–15 each'},
+  {name:'Single-Arm Cable Kickback',muscle:'Triceps',sets:'3',reps:'12–15 each'},
   {name:'Dips',muscle:'Triceps',sets:'3',reps:'10–15'},
   {name:'Bench Dip',muscle:'Triceps',sets:'3',reps:'12–15'},
-  {name:'Rope Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
-  {name:'Single-Arm Cable Pushdown',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Machine Tricep Dip',muscle:'Triceps',sets:'3',reps:'10–12'},
+  {name:'Rolling Tricep Extension',muscle:'Triceps',sets:'3',reps:'10–12'},
   {name:'JM Press',muscle:'Triceps',sets:'3',reps:'10–12'},
-  {name:'Board Press',muscle:'Triceps',sets:'4',reps:'6–8'},
   {name:'Tate Press',muscle:'Triceps',sets:'3',reps:'10–12'},
   // LEGS - QUADS
   {name:'Barbell Back Squat',muscle:'Quads',sets:'4',reps:'6–8'},
   {name:'Front Squat',muscle:'Quads',sets:'4',reps:'6–8'},
   {name:'Goblet Squat',muscle:'Quads',sets:'3',reps:'12–15'},
+  {name:'Smith Machine Squat',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Landmine Squat',muscle:'Quads',sets:'3',reps:'12–15'},
+  {name:'Hack Squat',muscle:'Quads',sets:'4',reps:'10–12'},
   {name:'Bulgarian Split Squat',muscle:'Quads',sets:'3',reps:'10–12'},
   {name:'Leg Press',muscle:'Quads',sets:'4',reps:'12–15'},
-  {name:'Hack Squat',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Single-Leg Press',muscle:'Quads',sets:'3',reps:'12–15 each'},
   {name:'Leg Extension',muscle:'Quads',sets:'4',reps:'12–15'},
+  {name:'Single-Leg Extension',muscle:'Quads',sets:'3',reps:'12–15 each'},
   {name:'Sissy Squat',muscle:'Quads',sets:'3',reps:'12–15'},
-  {name:'Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
-  {name:'Walking Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
-  {name:'Step-Up',muscle:'Quads',sets:'3',reps:'12 each'},
   {name:'Box Squat',muscle:'Quads',sets:'4',reps:'6–8'},
   {name:'Sumo Squat',muscle:'Quads',sets:'3',reps:'12–15'},
+  {name:'Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
+  {name:'Reverse Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
+  {name:'Walking Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
+  {name:'Curtsy Lunge',muscle:'Quads',sets:'3',reps:'12 each'},
+  {name:'Lateral Lunge',muscle:'Quads',sets:'3',reps:'10 each'},
+  {name:'Step-Up',muscle:'Quads',sets:'3',reps:'12 each'},
+  {name:'Cable Squat',muscle:'Quads',sets:'3',reps:'12–15'},
   // LEGS - HAMSTRINGS
   {name:'Romanian Deadlift',muscle:'Hamstrings',sets:'4',reps:'10–12'},
   {name:'Stiff-Leg Deadlift',muscle:'Hamstrings',sets:'4',reps:'10–12'},
+  {name:'Single-Leg RDL',muscle:'Hamstrings',sets:'3',reps:'10 each'},
   {name:'Lying Leg Curl',muscle:'Hamstrings',sets:'4',reps:'10–12'},
   {name:'Seated Leg Curl',muscle:'Hamstrings',sets:'4',reps:'10–12'},
+  {name:'Standing Leg Curl',muscle:'Hamstrings',sets:'3',reps:'12–15 each'},
+  {name:'Single-Leg Lying Curl',muscle:'Hamstrings',sets:'3',reps:'10–12 each'},
   {name:'Nordic Curl',muscle:'Hamstrings',sets:'3',reps:'6–8'},
   {name:'Good Morning',muscle:'Hamstrings',sets:'3',reps:'10–12'},
-  {name:'Single-Leg RDL',muscle:'Hamstrings',sets:'3',reps:'10 each'},
+  {name:'Cable Romanian Deadlift',muscle:'Hamstrings',sets:'3',reps:'10–12'},
+  {name:'Cable Pull-Through',muscle:'Hamstrings',sets:'3',reps:'12–15'},
   {name:'Swiss Ball Leg Curl',muscle:'Hamstrings',sets:'3',reps:'10–12'},
   // LEGS - GLUTES
   {name:'Hip Thrust',muscle:'Glutes',sets:'4',reps:'10–12'},
+  {name:'Smith Machine Hip Thrust',muscle:'Glutes',sets:'4',reps:'10–12'},
+  {name:'Single-Leg Hip Thrust',muscle:'Glutes',sets:'3',reps:'10–12 each'},
   {name:'Barbell Glute Bridge',muscle:'Glutes',sets:'4',reps:'12–15'},
-  {name:'Cable Kickback',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Frog Pump',muscle:'Glutes',sets:'3',reps:'20–25'},
+  {name:'Cable Glute Kickback',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Kneeling Cable Glute Kickback',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Cable Hip Extension',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Cable Hip Abduction',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Cable Hip Adduction',muscle:'Glutes',sets:'3',reps:'15 each'},
+  {name:'Seated Hip Abduction',muscle:'Glutes',sets:'3',reps:'15–20'},
   {name:'Donkey Kick',muscle:'Glutes',sets:'3',reps:'15 each'},
   {name:'Sumo Deadlift',muscle:'Glutes',sets:'4',reps:'6–8'},
   {name:'Clamshell',muscle:'Glutes',sets:'3',reps:'20 each'},
@@ -1324,15 +1410,28 @@ const EXERCISE_DB = [
   // CALVES
   {name:'Standing Calf Raise',muscle:'Calves',sets:'4',reps:'15–20'},
   {name:'Seated Calf Raise',muscle:'Calves',sets:'4',reps:'15–20'},
+  {name:'Smith Machine Calf Raise',muscle:'Calves',sets:'4',reps:'15–20'},
   {name:'Leg Press Calf Raise',muscle:'Calves',sets:'3',reps:'15–20'},
   {name:'Single-Leg Calf Raise',muscle:'Calves',sets:'3',reps:'15 each'},
   {name:'Donkey Calf Raise',muscle:'Calves',sets:'4',reps:'15–20'},
+  {name:'Tibialis Raise',muscle:'Calves',sets:'3',reps:'15–20'},
   // CORE
   {name:'Plank',muscle:'Core',sets:'3',reps:'60 sec'},
   {name:'Side Plank',muscle:'Core',sets:'3',reps:'45 sec each'},
+  {name:'Copenhagen Plank',muscle:'Core',sets:'3',reps:'30 sec each'},
   {name:'Ab Wheel Rollout',muscle:'Core',sets:'3',reps:'10–12'},
   {name:'Cable Crunch',muscle:'Core',sets:'4',reps:'12–15'},
+  {name:'Kneeling Cable Crunch',muscle:'Core',sets:'3',reps:'15–20'},
+  {name:'Standing Cable Crunch',muscle:'Core',sets:'3',reps:'12–15'},
+  {name:'Hi-Lo Cable Woodchop',muscle:'Core',sets:'3',reps:'12 each'},
+  {name:'Lo-Hi Cable Woodchop',muscle:'Core',sets:'3',reps:'12 each'},
+  {name:'Cable Pallof Press',muscle:'Core',sets:'3',reps:'12 each'},
+  {name:'Kneeling Cable Pallof Press',muscle:'Core',sets:'3',reps:'12 each'},
+  {name:'Cable Oblique Crunch',muscle:'Core',sets:'3',reps:'12–15 each'},
+  {name:'Cable Twist',muscle:'Core',sets:'3',reps:'12 each'},
+  {name:'Tall Kneeling Cable Chop',muscle:'Core',sets:'3',reps:'12 each'},
   {name:'Hanging Leg Raise',muscle:'Core',sets:'3',reps:'12–15'},
+  {name:'Hanging Knee Raise',muscle:'Core',sets:'3',reps:'15–20'},
   {name:'Decline Sit-Up',muscle:'Core',sets:'3',reps:'15–20'},
   {name:'Dragon Flag',muscle:'Core',sets:'3',reps:'6–8'},
   {name:'L-Sit Hold',muscle:'Core',sets:'3',reps:'20–30 sec'},
@@ -1343,19 +1442,29 @@ const EXERCISE_DB = [
   {name:'Pallof Press',muscle:'Core',sets:'3',reps:'12 each'},
   {name:'V-Up',muscle:'Core',sets:'3',reps:'12–15'},
   {name:'Hollow Body Hold',muscle:'Core',sets:'3',reps:'30–45 sec'},
+  {name:'Stir the Pot',muscle:'Core',sets:'3',reps:'10 each'},
+  {name:'Landmine Rotation',muscle:'Core',sets:'3',reps:'10 each'},
+  {name:'Suitcase Carry',muscle:'Core',sets:'3',reps:'20 m each'},
   {name:'Woodchop',muscle:'Core',sets:'3',reps:'12 each'},
   {name:'Toe Touch Crunch',muscle:'Core',sets:'3',reps:'15–20'},
   {name:'Mountain Climber',muscle:'Core',sets:'3',reps:'20 each'},
   // CARDIO / CONDITIONING
   {name:'Treadmill Run',muscle:'Cardio',sets:'1',reps:'20–30 min'},
+  {name:'Incline Treadmill Walk',muscle:'Cardio',sets:'1',reps:'20–30 min'},
   {name:'Stationary Bike',muscle:'Cardio',sets:'1',reps:'20–30 min'},
+  {name:'Elliptical',muscle:'Cardio',sets:'1',reps:'20–30 min'},
   {name:'Rowing Machine',muscle:'Cardio',sets:'1',reps:'15–20 min'},
+  {name:'Ski Erg',muscle:'Cardio',sets:'5',reps:'30 sec on/30 off'},
   {name:'Stairmaster',muscle:'Cardio',sets:'1',reps:'20 min'},
+  {name:'Jacob\'s Ladder',muscle:'Cardio',sets:'1',reps:'15 min'},
   {name:'Jump Rope',muscle:'Cardio',sets:'5',reps:'2 min'},
   {name:'Burpee',muscle:'Cardio',sets:'4',reps:'10–15'},
   {name:'Box Jump',muscle:'Cardio',sets:'4',reps:'8–10'},
+  {name:'Broad Jump',muscle:'Cardio',sets:'4',reps:'6–8'},
   {name:'Assault Bike',muscle:'Cardio',sets:'5',reps:'30 sec on/30 off'},
   {name:'Sled Push',muscle:'Cardio',sets:'4',reps:'20 m'},
+  {name:'Sled Pull',muscle:'Cardio',sets:'4',reps:'20 m'},
+  {name:'Farmer\'s Carry',muscle:'Cardio',sets:'4',reps:'30 m'},
   {name:'Battle Ropes',muscle:'Cardio',sets:'4',reps:'30 sec'},
   {name:'Kettlebell Swing',muscle:'Cardio',sets:'4',reps:'15–20'},
   {name:'Sprint Interval',muscle:'Cardio',sets:'8',reps:'20 sec on/40 off'},
@@ -1372,18 +1481,236 @@ const EXERCISE_DB = [
   {name:'Turkish Get-Up',muscle:'Full Body',sets:'3',reps:'5 each'},
   {name:'Man Maker',muscle:'Full Body',sets:'3',reps:'8–10'},
   {name:'Devil Press',muscle:'Full Body',sets:'4',reps:'8–10'},
+  {name:'Dumbbell Snatch',muscle:'Full Body',sets:'4',reps:'6 each'},
+  {name:'Kettlebell Clean and Press',muscle:'Full Body',sets:'3',reps:'6–8 each'},
   {name:'Sandbag Clean',muscle:'Full Body',sets:'3',reps:'8–10'},
-  // STRETCH / MOBILITY
-  {name:'Hip Flexor Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Barbell Complex',muscle:'Full Body',sets:'3',reps:'6 each'},
+  // MOBILITY — DYNAMIC WARM-UP
+  {name:'Leg Swing (Front-Back)',muscle:'Mobility',sets:'2',reps:'15 each'},
+  {name:'Leg Swing (Lateral)',muscle:'Mobility',sets:'2',reps:'15 each'},
+  {name:'Hip Circle',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Arm Circle',muscle:'Mobility',sets:'2',reps:'15 each direction'},
+  {name:'Shoulder Roll',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Neck Roll',muscle:'Mobility',sets:'2',reps:'5 each direction'},
+  {name:'Inchworm',muscle:'Mobility',sets:'2',reps:'8–10'},
+  {name:'Walkout',muscle:'Mobility',sets:'2',reps:'8–10'},
   {name:'World\'s Greatest Stretch',muscle:'Mobility',sets:'2',reps:'5 each side'},
+  {name:'Spiderman Lunge',muscle:'Mobility',sets:'2',reps:'8 each'},
+  {name:'Spiderman Lunge with Rotation',muscle:'Mobility',sets:'2',reps:'6 each'},
+  {name:'Lateral Lunge Reach',muscle:'Mobility',sets:'2',reps:'8 each'},
+  {name:'Reverse Lunge with Reach',muscle:'Mobility',sets:'2',reps:'8 each'},
+  {name:'Hip Hinge Drill',muscle:'Mobility',sets:'3',reps:'10'},
+  {name:'Squat to Stand',muscle:'Mobility',sets:'2',reps:'10'},
+  {name:'Knee Hug Walk',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Ankle Walk',muscle:'Mobility',sets:'2',reps:'10 m'},
+  // MOBILITY — STATIC STRETCHES
+  {name:'Hip Flexor Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Couch Stretch',muscle:'Mobility',sets:'2',reps:'60 sec each'},
+  {name:'Standing Quad Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Seated Hamstring Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Standing Hamstring Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Standing IT Band Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Butterfly Groin Stretch',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Straddle Stretch',muscle:'Mobility',sets:'2',reps:'60 sec'},
   {name:'Pigeon Pose',muscle:'Mobility',sets:'2',reps:'60 sec each'},
+  {name:'Half Pigeon',muscle:'Mobility',sets:'2',reps:'60 sec each'},
+  {name:'Figure-4 Hip Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'90/90 Hip Stretch',muscle:'Mobility',sets:'2',reps:'60 sec each'},
+  {name:'90/90 Hip Rotation',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Supine Piriformis Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Lying Glute Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Calf Stretch (Wall)',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Soleus Stretch',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Ankle Circles',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Ankle Dorsiflexion Drill',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Cross-Body Shoulder Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Overhead Tricep Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Sleeper Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Doorway Chest Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Pec Minor Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Lat Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Child\'s Pose',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Extended Child\'s Pose',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Seated Spinal Twist',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Supine Spinal Twist',muscle:'Mobility',sets:'2',reps:'45 sec each'},
   {name:'Cat-Cow',muscle:'Mobility',sets:'2',reps:'10'},
+  {name:'Cobra Stretch',muscle:'Mobility',sets:'2',reps:'30–45 sec'},
+  {name:'Downward Dog',muscle:'Mobility',sets:'2',reps:'45–60 sec'},
+  {name:'Upward Dog',muscle:'Mobility',sets:'2',reps:'30 sec'},
+  {name:'Lizard Pose',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Low Lunge (Crescent Pose)',muscle:'Mobility',sets:'2',reps:'45 sec each'},
   {name:'Thoracic Rotation',muscle:'Mobility',sets:'2',reps:'10 each'},
-  {name:'Band Pull-Apart',muscle:'Mobility',sets:'3',reps:'15–20'},
+  {name:'Thread the Needle',muscle:'Mobility',sets:'2',reps:'8 each'},
+  {name:'Thoracic Extension over Roller',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Wall Slide',muscle:'Mobility',sets:'3',reps:'10–12'},
+  {name:'Wrist Circles',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Wrist Flexor Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Wrist Extensor Stretch',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  // MOBILITY — YOGA
+  {name:'Warrior I',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Warrior II',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Warrior III',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Reverse Warrior',muscle:'Mobility',sets:'2',reps:'30 sec each'},
+  {name:'Triangle Pose',muscle:'Mobility',sets:'2',reps:'45 sec each'},
+  {name:'Seated Forward Fold',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Standing Forward Fold',muscle:'Mobility',sets:'2',reps:'45 sec'},
+  {name:'Happy Baby',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Frog Stretch',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Reclined Butterfly',muscle:'Mobility',sets:'2',reps:'60 sec'},
+  {name:'Bridge Pose',muscle:'Mobility',sets:'2',reps:'45 sec'},
+  {name:'Puppy Pose',muscle:'Mobility',sets:'2',reps:'45 sec'},
+  // MOBILITY — FOAM ROLLING
   {name:'Foam Roll Quads',muscle:'Mobility',sets:'1',reps:'60 sec each'},
   {name:'Foam Roll IT Band',muscle:'Mobility',sets:'1',reps:'60 sec each'},
-  {name:'90/90 Hip Stretch',muscle:'Mobility',sets:'2',reps:'60 sec each'},
-  {name:'Ankle Circles',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Foam Roll Hamstrings',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Foam Roll Glutes',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Foam Roll Calves',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Foam Roll Thoracic',muscle:'Mobility',sets:'1',reps:'60 sec'},
+  {name:'Foam Roll Upper Back',muscle:'Mobility',sets:'1',reps:'60 sec'},
+  {name:'Foam Roll Lats',muscle:'Mobility',sets:'1',reps:'45 sec each'},
+  {name:'Foam Roll Adductors',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Foam Roll TFL',muscle:'Mobility',sets:'1',reps:'45 sec each'},
+  {name:'Lacrosse Ball Pec Release',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Lacrosse Ball Glute Release',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Lacrosse Ball Foot Roll',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  {name:'Lacrosse Ball Shoulder Release',muscle:'Mobility',sets:'1',reps:'60 sec each'},
+  // MOBILITY — ACTIVATION DRILLS
+  {name:'Bird Dog',muscle:'Mobility',sets:'3',reps:'10 each'},
+  {name:'Dead Bug (Activation)',muscle:'Mobility',sets:'3',reps:'8 each'},
+  {name:'Glute Bridge Hold',muscle:'Mobility',sets:'3',reps:'30 sec'},
+  {name:'Clamshell (Activation)',muscle:'Mobility',sets:'2',reps:'15 each'},
+  {name:'Banded Clamshell',muscle:'Mobility',sets:'2',reps:'15 each'},
+  {name:'Banded Hip Abduction',muscle:'Mobility',sets:'2',reps:'15 each'},
+  {name:'Banded Monster Walk',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Banded Lateral Walk',muscle:'Mobility',sets:'2',reps:'10 each direction'},
+  {name:'Band Pull-Apart',muscle:'Mobility',sets:'3',reps:'15–20'},
+  {name:'Banded Shoulder Distraction',muscle:'Mobility',sets:'2',reps:'60 sec each'},
+  {name:'Wall Hip Flexor Mobilization',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Half-Kneeling Hip Flexor Rock',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Deep Squat Hold',muscle:'Mobility',sets:'3',reps:'30–60 sec'},
+  {name:'Tall Kneeling Hip Flexion',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Prone Hip Extension',muscle:'Mobility',sets:'2',reps:'10 each'},
+  {name:'Side-Lying Hip Rotation',muscle:'Mobility',sets:'2',reps:'10 each'},
+  // HOIST — CHEST
+  {name:'Hoist ROC-IT Chest Press (RS-1301)',muscle:'Chest',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Incline Chest Press (RS-1303)',muscle:'Chest',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Decline Chest Press (RS-1302)',muscle:'Chest',sets:'3',reps:'10–12'},
+  {name:'Hoist ROC-IT Pec Fly (RS-1502)',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Hoist HD Iso-Lateral Chest Press (HD-3000)',muscle:'Chest',sets:'4',reps:'8–12'},
+  {name:'Hoist HD Iso-Lateral Incline Press (HD-3100)',muscle:'Chest',sets:'4',reps:'8–12'},
+  {name:'Hoist HD Iso-Lateral Decline Press (HD-3200)',muscle:'Chest',sets:'3',reps:'10–12'},
+  {name:'Hoist CL Pec Fly (CL-3601)',muscle:'Chest',sets:'3',reps:'12–15'},
+  // HOIST — BACK
+  {name:'Hoist ROC-IT Lat Pulldown (RS-1401)',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Mid Row (RS-1403)',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Low Row (RS-1402)',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Hoist ROC-IT High Row (RS-1404)',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Hoist ROC-IT Pullover (RS-1405)',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Hoist HD Iso-Lateral Front Pulldown (HD-3200)',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Hoist HD Iso-Lateral Mid Row (HD-3300)',muscle:'Back',sets:'4',reps:'10–12'},
+  {name:'Hoist HD Iso-Lateral Low Row (HD-3400)',muscle:'Back',sets:'3',reps:'10–12'},
+  // HOIST — SHOULDERS
+  {name:'Hoist ROC-IT Shoulder Press (RS-1501)',muscle:'Shoulders',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Lateral Raise (RS-1502)',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Hoist ROC-IT Rear Delt Fly (RS-1503)',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  {name:'Hoist HD Iso-Lateral Shoulder Press (HD-3500)',muscle:'Shoulders',sets:'4',reps:'8–10'},
+  // HOIST — ARMS
+  {name:'Hoist ROC-IT Bicep Curl (RS-1601)',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Hoist ROC-IT Tricep Extension (RS-1602)',muscle:'Triceps',sets:'3',reps:'12–15'},
+  {name:'Hoist HD Iso-Lateral Bicep Curl (HD-3700)',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Hoist HD Iso-Lateral Tricep Extension (HD-3800)',muscle:'Triceps',sets:'3',reps:'10–12'},
+  // HOIST — LEGS
+  {name:'Hoist ROC-IT Leg Extension (RS-1402)',muscle:'Quads',sets:'4',reps:'12–15'},
+  {name:'Hoist ROC-IT Prone Leg Curl (RS-1408)',muscle:'Hamstrings',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Seated Leg Curl (RS-1407)',muscle:'Hamstrings',sets:'4',reps:'10–12'},
+  {name:'Hoist ROC-IT Leg Press (RS-1403)',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Hoist HD Iso-Lateral Leg Press (HD-3600)',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Hoist CL Leg Press (CL-3401)',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Hoist CL 45° Leg Press (CL-3403)',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Hoist CL Hack Squat (CL-3402)',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Hoist CL Calf Raise (CL-3501)',muscle:'Calves',sets:'4',reps:'15–20'},
+  {name:'Hoist CL Seated Calf Raise (CL-3502)',muscle:'Calves',sets:'4',reps:'15–20'},
+  // HOIST — GLUTES / HIPS
+  {name:'Hoist ROC-IT Glute Master (RS-1412)',muscle:'Glutes',sets:'4',reps:'10–12 each'},
+  {name:'Hoist ROC-IT Hip Abductor (RS-1409)',muscle:'Glutes',sets:'3',reps:'15–20'},
+  {name:'Hoist ROC-IT Hip Adductor (RS-1410)',muscle:'Glutes',sets:'3',reps:'15–20'},
+  {name:'Hoist HD Iso-Lateral Glute Drive (HD-3900)',muscle:'Glutes',sets:'4',reps:'10–12 each'},
+  // HOIST — CORE
+  {name:'Hoist ROC-IT Abdominal Crunch (RS-1601)',muscle:'Core',sets:'3',reps:'15–20'},
+  {name:'Hoist ROC-IT Rotary Torso (RS-1602)',muscle:'Core',sets:'3',reps:'12–15 each'},
+  // HOIST — CABLES / FUNCTIONAL
+  {name:'Hoist CF-3461 Functional Trainer Cable Row',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Hoist CF-3461 Functional Trainer Cable Press',muscle:'Chest',sets:'3',reps:'10–12'},
+  {name:'Hoist CF-3461 Functional Trainer Cable Fly',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Hoist CF-3461 Functional Trainer Single-Arm Row',muscle:'Back',sets:'3',reps:'10–12 each'},
+  {name:'Hoist Mi6 Cable Crossover',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Hoist Mi6 Single-Arm Cable Press',muscle:'Chest',sets:'3',reps:'10–12 each'},
+  {name:'Hoist Mi7 Smith Squat',muscle:'Quads',sets:'4',reps:'8–10'},
+  {name:'Hoist Mi7 Smith Bench Press',muscle:'Chest',sets:'4',reps:'8–10'},
+  {name:'Hoist Mi7 Smith Shoulder Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
+  // ADDITIONAL — CHEST
+  {name:'Svend Press',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Floor Press',muscle:'Chest',sets:'4',reps:'8–10'},
+  {name:'Spoto Press',muscle:'Chest',sets:'4',reps:'6–8'},
+  {name:'Larsen Press',muscle:'Chest',sets:'3',reps:'8–10'},
+  {name:'Plate Pinch Press',muscle:'Chest',sets:'3',reps:'12–15'},
+  {name:'Dumbbell Squeeze Press',muscle:'Chest',sets:'3',reps:'12–15'},
+  // ADDITIONAL — BACK
+  {name:'Trap Bar Deadlift',muscle:'Back',sets:'4',reps:'5–8'},
+  {name:'Trap Bar Row',muscle:'Back',sets:'3',reps:'8–10'},
+  {name:'Seal Row',muscle:'Back',sets:'3',reps:'8–10'},
+  {name:'Helms Row',muscle:'Back',sets:'3',reps:'10–12'},
+  {name:'Yates Row',muscle:'Back',sets:'4',reps:'8–10'},
+  {name:'Inverted Row',muscle:'Back',sets:'3',reps:'10–15'},
+  {name:'Snatch-Grip Deadlift',muscle:'Back',sets:'4',reps:'5'},
+  {name:'Deficit Deadlift',muscle:'Back',sets:'4',reps:'5'},
+  // ADDITIONAL — SHOULDERS
+  {name:'Seated Dumbbell Press',muscle:'Shoulders',sets:'4',reps:'8–10'},
+  {name:'Z Press',muscle:'Shoulders',sets:'3',reps:'8–10'},
+  {name:'Viking Press',muscle:'Shoulders',sets:'4',reps:'8–10'},
+  {name:'Bottoms-Up Kettlebell Press',muscle:'Shoulders',sets:'3',reps:'6–8 each'},
+  {name:'Half-Kneeling Landmine Press',muscle:'Shoulders',sets:'3',reps:'8–10 each'},
+  {name:'Cuban Press',muscle:'Shoulders',sets:'3',reps:'10–12'},
+  {name:'Bus Driver',muscle:'Shoulders',sets:'3',reps:'12–15'},
+  // ADDITIONAL — ARMS
+  {name:'Drag Curl',muscle:'Biceps',sets:'3',reps:'10–12'},
+  {name:'Waiter Curl',muscle:'Biceps',sets:'3',reps:'12–15'},
+  {name:'Pinwheel Curl',muscle:'Biceps',sets:'3',reps:'10–12 each'},
+  {name:'Concentration Hammer Curl',muscle:'Biceps',sets:'3',reps:'12–15 each'},
+  {name:'California Press',muscle:'Triceps',sets:'3',reps:'10–12'},
+  {name:'Diamond Push-Up (Triceps)',muscle:'Triceps',sets:'3',reps:'10–15'},
+  // ADDITIONAL — LEGS
+  {name:'Pause Squat',muscle:'Quads',sets:'4',reps:'5–6'},
+  {name:'Tempo Squat',muscle:'Quads',sets:'3',reps:'8'},
+  {name:'1.5 Rep Squat',muscle:'Quads',sets:'3',reps:'8'},
+  {name:'Belt Squat',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Pendulum Squat',muscle:'Quads',sets:'4',reps:'10–12'},
+  {name:'Cyclist Squat',muscle:'Quads',sets:'3',reps:'12–15'},
+  {name:'ATG Split Squat',muscle:'Quads',sets:'3',reps:'10 each'},
+  {name:'Heels-Elevated Goblet Squat',muscle:'Quads',sets:'3',reps:'12–15'},
+  {name:'Reverse Nordic Curl',muscle:'Quads',sets:'3',reps:'8–10'},
+  {name:'Razor Curl',muscle:'Hamstrings',sets:'3',reps:'8–10'},
+  {name:'Glute-Ham Raise',muscle:'Hamstrings',sets:'3',reps:'8–10'},
+  {name:'Stiff-Leg Single-Leg RDL',muscle:'Hamstrings',sets:'3',reps:'10 each'},
+  {name:'B-Stance RDL',muscle:'Hamstrings',sets:'3',reps:'10 each'},
+  {name:'B-Stance Hip Thrust',muscle:'Glutes',sets:'3',reps:'10 each'},
+  {name:'Pendulum Kickback',muscle:'Glutes',sets:'3',reps:'12–15 each'},
+  {name:'45° Hip Extension',muscle:'Glutes',sets:'3',reps:'12–15'},
+  // ADDITIONAL — CARDIO / ATHLETIC
+  {name:'Air Bike Sprint',muscle:'Cardio',sets:'8',reps:'15 sec on/45 off'},
+  {name:'Tabata Squats',muscle:'Cardio',sets:'8',reps:'20 sec on/10 off'},
+  {name:'Tabata Push-Ups',muscle:'Cardio',sets:'8',reps:'20 sec on/10 off'},
+  {name:'Shuttle Run',muscle:'Cardio',sets:'5',reps:'30 m'},
+  {name:'Lateral Bound',muscle:'Cardio',sets:'3',reps:'10 each'},
+  {name:'Depth Jump',muscle:'Cardio',sets:'4',reps:'5'},
+  {name:'Medicine Ball Slam',muscle:'Cardio',sets:'4',reps:'10–12'},
+  {name:'Medicine Ball Throw',muscle:'Cardio',sets:'4',reps:'8–10'},
+  // ADDITIONAL — CORE
+  {name:'Hollow Rock',muscle:'Core',sets:'3',reps:'15–20'},
+  {name:'GHD Sit-Up',muscle:'Core',sets:'3',reps:'10–12'},
+  {name:'Toes-to-Bar',muscle:'Core',sets:'3',reps:'8–12'},
+  {name:'Windshield Wiper',muscle:'Core',sets:'3',reps:'8 each'},
+  {name:'Ab Wheel Standing Rollout',muscle:'Core',sets:'3',reps:'5–8'},
 ];
 
 /* ── EXERCISE FORM TIPS ──────────────────────────────────────── */
@@ -1778,7 +2105,7 @@ function openScheduleDayDetail(cid, dayLabel) {
   } else {
     exercisesHtml = allExercises.map((ex, ei) => {
       const exData = lastSession?.exercises?.[ei];
-      const doneSets = exData?.sets?.filter(s => s.done || s.weight || s.reps) || [];
+      const doneSets = exData?.sets?.filter(s => s && (s.done || s.weight || s.reps)) || [];
       const setsHtml = doneSets.length ? doneSets.map((s, si) =>
         `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--faint)">
           <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);min-width:20px">S${si+1}</div>
@@ -1802,6 +2129,11 @@ function openScheduleDayDetail(cid, dayLabel) {
     }).join('');
   }
 
+  const canEdit = !!AppState.isCoachLogin;
+  const editBtn = canEdit
+    ? `<button onclick="renameScheduleDayTitle('${esc(cid)}','${esc(dayLabel)}')" title="Rename workout" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 8px;border-radius:6px;cursor:pointer;margin-top:6px">EDIT</button>`
+    : '';
+
   const modal = document.createElement('div');
   modal.id = 'schedDayModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center';
@@ -1812,6 +2144,7 @@ function openScheduleDayDetail(cid, dayLabel) {
           <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">${esc(dayLabel)}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:${isRest ? 'var(--muted)' : c.accent};line-height:1.1;margin-top:2px">${esc(schedDay.title)}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${esc(schedDay.sub || '')}</div>
+          ${editBtn}
         </div>
         <button onclick="document.getElementById('schedDayModal').remove()" style="background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;margin-top:4px">×</button>
       </div>
@@ -1823,14 +2156,143 @@ function openScheduleDayDetail(cid, dayLabel) {
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
+// Coach-only: rename a schedule day's title and propagate to the matching
+// workout day so future name-based lookups still resolve. Persists to
+// dynamic_clients + cloud, then re-renders the active screens.
+function renameScheduleDayTitle(cid, dayLabel) {
+  if (!AppState.isCoachLogin) return;
+  const dyn = getDynamicClients();
+  const idx = dyn.findIndex(cl => cl.id === cid);
+  if (idx < 0) { showFitToast('Client not found'); return; }
+  const c = dyn[idx];
+  const schedDay = c.data?.schedule?.days?.find(d => d.label === dayLabel);
+  if (!schedDay) { showFitToast('Day not found'); return; }
+
+  const current = schedDay.title || '';
+  const next = (window.prompt('Workout name for ' + dayLabel + ':', current) || '').trim();
+  if (!next || next === current) return;
+
+  // Find the matching workout day by the old title BEFORE we mutate the schedule
+  const oldKey = current.trim().toLowerCase();
+  let wDay = null;
+  if (c.data?.workouts?.days?.length) {
+    wDay = c.data.workouts.days.find(wd => {
+      const lbl = (wd.label || wd.title || '').toLowerCase();
+      const sep = lbl.indexOf(' — ');
+      const wName = (sep >= 0 ? lbl.slice(sep + 3) : lbl).trim();
+      return wName === oldKey;
+    });
+  }
+
+  schedDay.title = next;
+  if (wDay) {
+    // Preserve the "Short — Name" / "Long — Name" label shape that renderWorkouts builds
+    const lbl = wDay.label || '';
+    const sep = lbl.indexOf(' — ');
+    if (sep >= 0) wDay.label = lbl.slice(0, sep + 3) + next;
+    const ttl = wDay.title || '';
+    const sep2 = ttl.indexOf(' — ');
+    if (sep2 >= 0) wDay.title = ttl.slice(0, sep2 + 3) + next;
+    else wDay.title = next;
+  }
+
+  saveDynamicClients(dyn);
+  if (AppState.currentClient && AppState.currentClient.id === cid) {
+    AppState.currentClient = c;
+    try { if (typeof currentClient !== 'undefined') currentClient = c; } catch (_) {}
+  }
+  if (typeof sbAutoSync === 'function') sbAutoSync(cid);
+
+  // Re-render the screens that show the title
+  try { renderContent(c); } catch (_) {}
+  document.getElementById('schedDayModal')?.remove();
+  showFitToast('Renamed to "' + next + '"');
+}
+
 /* ── SUPABASE SYNC ──────────────────────────────────────────── */
 // Web Push — replace with your key after running: npx web-push generate-vapid-keys
-// Then set VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY in Netlify env vars.
+// VAPID public key is safe in the bundle — by design only the public
+// half is sent to the browser; the private half stays in Netlify env.
 const VAPID_PUBLIC_KEY = 'BG96mHmP4m4VEkYxqLg5gnj4gXnqlf6pqixS3inIsVEAkrxiWANFRo6lQ3i57zaVU-B1S0JR2C5IukZxMU8IkOU';
-const SB_URL = 'https://gfmvxfofsttuulwbvipy.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmbXZ4Zm9mc3R0dXVsd2J2aXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NTMxODIsImV4cCI6MjA5MDQyOTE4Mn0.xiHcs79GVrs1loeygLgW7aNHN7CmwRCLDFnlG4hLIXk';
+
+/* ══════════════════════════════════════════════════════════════
+   SUPABASE PROXY CLIENT
+   All Supabase reads/writes go through /api/sb (Netlify Function)
+   which validates an HMAC-signed session token and uses the service
+   role key server-side. The anon key + Supabase URL are no longer
+   shipped in the bundle, so a scraper can't read any data.
+
+   Auth flow:
+     POST /api/login  { role, pin } → { token }
+     token kept in localStorage as 'auth_token'
+     sent on every /api/sb request as `Authorization: Bearer …`
+══════════════════════════════════════════════════════════════ */
+const AUTH_TOKEN_KEY = 'auth_token';
+const AUTH_ROLE_KEY  = 'auth_role';
+
+function getAuthToken() { return localStorage.getItem(AUTH_TOKEN_KEY) || ''; }
+function getAuthRole()  { return localStorage.getItem(AUTH_ROLE_KEY)  || ''; }
+function setAuth(token, role) {
+  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  if (role)  localStorage.setItem(AUTH_ROLE_KEY,  role);
+}
+function clearAuth() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_ROLE_KEY);
+}
+
+// sbInit returns truthy when we have a valid-looking token. Existing
+// callers only check truthiness ("is Supabase available"), so we keep
+// the boolean contract.
 function sbInit() {
-  return { url: SB_URL, key: SB_KEY };
+  return getAuthToken() ? { ok: true } : null;
+}
+
+// Low-level proxy call. Internal helper; the public surface is
+// sbSelect / sbUpsert / sbPatch below.
+async function _sbProxy(body) {
+  const token = getAuthToken();
+  if (!token) return { ok: false, status: 401, data: null };
+  try {
+    const r = await fetch('/api/sb', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify(body),
+    });
+    if (r.status === 401) {
+      // Token expired or invalid — drop it so the next login screen catches the user
+      clearAuth();
+      if (typeof showFitToast === 'function') showFitToast('Session expired — please log in');
+      return { ok: false, status: 401, data: null };
+    }
+    let data = null;
+    try { data = await r.json(); } catch { data = null; }
+    return { ok: r.ok, status: r.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: null, error: e };
+  }
+}
+
+// /api/login wrapper. Returns { ok, token?, role?, clientId?, error? }
+async function apiLogin(role, pin) {
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, pin }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok && data.token) {
+      setAuth(data.token, data.role || role);
+      return { ok: true, ...data };
+    }
+    return { ok: false, status: r.status, error: data.error || 'Login failed' };
+  } catch (e) {
+    return { ok: false, status: 0, error: 'Network error — try again' };
+  }
 }
 
 /* ── Offline write queue ─────────────────────────────────────────
@@ -1881,14 +2343,22 @@ function _sbQueuePush(op) {
 let _draining = false;
 async function drainSbQueue() {
   if (_draining || !navigator.onLine) return;
+  if (!sbInit()) return; // Supabase not configured
   _draining = true;
   try {
     const q = _sbQueueRead();
     if (!q.length) return;
+    // Drain in small parallel batches — many flaky-network clients accumulate
+    // dozens of queued ops, and serial sending takes O(n × RTT). Keep batch
+    // size low so we don't overwhelm a weak connection.
     const sentIds = new Set();
-    for (const op of q) {
-      const ok = await _sbSend(op).catch(() => false);
-      if (ok && op._qid) sentIds.add(op._qid);
+    const BATCH = 4;
+    for (let i = 0; i < q.length; i += BATCH) {
+      const slice = q.slice(i, i + BATCH);
+      const results = await Promise.all(slice.map(op => _sbSend(op).catch(() => false)));
+      results.forEach((ok, idx) => {
+        if (ok && slice[idx]._qid) sentIds.add(slice[idx]._qid);
+      });
     }
     // Re-read latest queue (may have grown during drain) and drop only sent ops
     const latest = _sbQueueRead();
@@ -1900,13 +2370,12 @@ async function drainSbQueue() {
   } finally { _draining = false; updateOfflinePill(); }
 }
 async function _sbSend(op) {
-  const sb = sbInit();
-  const url = sb.url + '/rest/v1/' + op.table + (op.filter ? '?' + op.filter : '');
-  const headers = { 'apikey': sb.key, 'Authorization': 'Bearer ' + sb.key, 'Content-Type': 'application/json' };
-  if (op.kind === 'upsert') headers['Prefer'] = 'resolution=merge-duplicates';
-  const r = await fetch(url, {
-    method: op.kind === 'upsert' ? 'POST' : 'PATCH',
-    headers, body: JSON.stringify(op.data)
+  // Queue replay uses the same proxy as live writes. _sbProxy handles auth.
+  const r = await _sbProxy({
+    op:     op.kind, // 'upsert' | 'patch'
+    table:  op.table,
+    data:   op.data,
+    filter: op.filter,
   });
   return r.ok;
 }
@@ -1914,58 +2383,38 @@ window.addEventListener('online', () => drainSbQueue());
 document.addEventListener('DOMContentLoaded', () => setTimeout(drainSbQueue, 1500));
 
 async function sbUpsert(table, data) {
-  const sb = sbInit(); if (!sb) return null;
-  try {
-    const r = await fetch(sb.url + '/rest/v1/' + table, {
-      method: 'POST',
-      headers: { 'apikey': sb.key, 'Authorization': 'Bearer '+sb.key, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) _sbQueuePush({ kind: 'upsert', table, data });
-    return r.ok;
-  } catch {
-    _sbQueuePush({ kind: 'upsert', table, data });
-    return null;
-  }
+  if (!sbInit()) return null;
+  const r = await _sbProxy({ op: 'upsert', table, data });
+  if (!r.ok) _sbQueuePush({ kind: 'upsert', table, data });
+  return r.ok;
 }
-async function sbSelect(table, filter) {
-  const sb = sbInit(); if (!sb) return null;
-  try {
-    const r = await fetch(sb.url + '/rest/v1/' + table + '?' + filter, {
-      headers: { 'apikey': sb.key, 'Authorization': 'Bearer '+sb.key }
-    });
-    return r.ok ? await r.json() : null;
-  } catch { return null; }
+async function sbSelect(table, query) {
+  if (!sbInit()) return null;
+  // `query` is the legacy raw query string (e.g. "select=*&order=foo.desc").
+  // The proxy strips/forwards it and force-injects client scope when needed.
+  const r = await _sbProxy({ op: 'select', table, query });
+  return r.ok ? r.data : null;
 }
 async function sbPatch(table, filter, data) {
-  const sb = sbInit(); if (!sb) return null;
-  try {
-    const r = await fetch(sb.url + '/rest/v1/' + table + '?' + filter, {
-      method: 'PATCH',
-      headers: { 'apikey': sb.key, 'Authorization': 'Bearer '+sb.key, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) _sbQueuePush({ kind: 'patch', table, filter, data });
-    return r.ok;
-  } catch {
-    _sbQueuePush({ kind: 'patch', table, filter, data });
-    return null;
-  }
+  if (!sbInit()) return null;
+  const r = await _sbProxy({ op: 'patch', table, data, filter });
+  if (!r.ok) _sbQueuePush({ kind: 'patch', table, filter, data });
+  return r.ok;
 }
 async function sbUploadPhoto(cid, date, dataUrl) {
-  const sb = sbInit(); if (!sb) return null;
+  // Photo upload still needs direct Storage access. Route through a
+  // dedicated function so the service role key stays server-side.
+  if (!sbInit()) return null;
   try {
-    // Convert base64 data URL to Blob
-    const res  = await fetch(dataUrl);
-    const blob = await res.blob();
-    const filename = `checkins/${cid}/${Date.now()}.jpg`;
-    const r = await fetch(`${sb.url}/storage/v1/object/photos/${filename}`, {
+    const token = getAuthToken();
+    const r = await fetch('/api/upload-photo', {
       method: 'POST',
-      headers: { 'apikey': sb.key, 'Authorization': 'Bearer ' + sb.key, 'Content-Type': blob.type },
-      body: blob
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ cid, dataUrl }),
     });
     if (!r.ok) return null;
-    return `${sb.url}/storage/v1/object/public/photos/${filename}`;
+    const data = await r.json().catch(() => ({}));
+    return data.url || null;
   } catch { return null; }
 }
 function _collectNutritionBlob(cid) {
@@ -1984,7 +2433,31 @@ function _collectNutritionBlob(cid) {
     custom: safeJSON(localStorage.getItem('custom_foods_' + cid), []),
   };
 }
+// Coalesce rapid sbAutoSync calls per client. Each call rebuilds the entire
+// data blob (every workout history + nutrition diary + fitness log) and
+// uploads it; without debouncing, logging 5 sets in a workout triggers 5
+// full uploads in ~30s. 1.2s debounce collapses the burst into one upload.
+const _sbAutoSyncTimers = {};
 function sbAutoSync(cid) {
+  if (!cid) return;
+  if (_sbAutoSyncTimers[cid]) clearTimeout(_sbAutoSyncTimers[cid]);
+  _sbAutoSyncTimers[cid] = setTimeout(() => {
+    delete _sbAutoSyncTimers[cid];
+    _sbAutoSyncFlush(cid);
+  }, 1200);
+}
+// Force-flush any pending sync (used on logout / before leaving page so we
+// don't drop the last write of a session).
+function sbAutoSyncFlushAll() {
+  Object.keys(_sbAutoSyncTimers).forEach(cid => {
+    clearTimeout(_sbAutoSyncTimers[cid]);
+    delete _sbAutoSyncTimers[cid];
+    _sbAutoSyncFlush(cid);
+  });
+}
+window.addEventListener('pagehide', sbAutoSyncFlushAll);
+
+function _sbAutoSyncFlush(cid) {
   const sb = sbInit(); if (!sb) return;
   // Push core client profile row — critical for clients onboarded before Supabase was added
   const allC = getAllClients();
@@ -2334,11 +2807,16 @@ async function pullClientData(cid) {
       }
     });
   }
-  // XP + milestones
+  // XP + milestones — milestones are append-only (can't un-earn), so union
+  // local + cloud rather than overwrite. Prevents the modal from re-firing
+  // on every app open when cloud has a stale/empty list.
   const xpRows = await sbSelect('client_xp', `client_id=eq.${cid}`);
   if (xpRows && xpRows[0]) {
     localStorage.setItem('xp_' + cid, String(xpRows[0].total_xp || 0));
-    saveUnlockedMilestones(cid, xpRows[0].unlocked_milestones || []);
+    const cloudMs = Array.isArray(xpRows[0].unlocked_milestones) ? xpRows[0].unlocked_milestones : [];
+    const localMs = getUnlockedMilestones(cid);
+    const merged  = Array.from(new Set([...localMs, ...cloudMs]));
+    saveUnlockedMilestones(cid, merged);
   }
   // Coach notes
   const noteRows = await sbSelect('coach_notes', `client_id=eq.${cid}`);
@@ -2405,25 +2883,28 @@ async function pullFromCloud() {
   renderCoachDashboard();
 }
 function openSBSettings() {
+  // Supabase credentials now live in Netlify env vars on the server side.
+  // Coaches no longer paste a project URL / anon key into the app — all
+  // sync goes through /api/sb with their authenticated session token.
   const existing = document.getElementById('sbSettingsModal');
   if (existing) existing.remove();
   const modal = document.createElement('div');
   modal.id = 'sbSettingsModal';
   modal.className = 'terminate-backdrop open';
+  const tokenOk = !!getAuthToken();
   modal.innerHTML = `<div class="terminate-modal">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Supabase Sync</div>
-    <div class="ob-field"><label class="ob-label">Project URL</label><input class="ob-input" id="sbUrlInput" placeholder="https://xxx.supabase.co" value="${SB_URL}"></div>
-    <div class="ob-field" style="margin-top:10px"><label class="ob-label">Anon Key</label><input class="ob-input" id="sbKeyInput" placeholder="eyJ..." value="${SB_KEY}"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="ob-next-btn" style="flex:1" onclick="saveSBSettings()">Save</button>
-      <button class="ob-back-btn" onclick="document.getElementById('sbSettingsModal').remove()">Cancel</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Cloud Sync</div>
+    <div style="background:var(--surface2);border:1px solid ${tokenOk ? '#2ecc71' : '#e74c3c'}55;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">STATUS</div>
+      <div style="color:${tokenOk ? '#2ecc71' : '#e74c3c'};font-weight:600">${tokenOk ? '● Authenticated — sync active' : '○ Not authenticated — log in again'}</div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="fit-log-btn" style="flex:1;font-size:12px;padding:10px" onclick="syncAllClients()">↑ Push All</button>
-      <button class="fit-log-btn" style="flex:1;font-size:12px;padding:10px;background:var(--surface);color:var(--text);border:1px solid var(--border)" onclick="pullFromCloud()">↓ Pull Cloud</button>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="fit-log-btn" style="flex:1;font-size:12px;padding:10px" onclick="syncAllClients()" ${tokenOk?'':'disabled'}>↑ Push All</button>
+      <button class="fit-log-btn" style="flex:1;font-size:12px;padding:10px;background:var(--surface);color:var(--text);border:1px solid var(--border)" onclick="pullFromCloud()" ${tokenOk?'':'disabled'}>↓ Pull Cloud</button>
     </div>
-    <button class="fit-log-btn" style="width:100%;margin-top:8px;font-size:12px;padding:10px;background:rgba(52,152,219,.1);color:#3498db;border:1px solid #3498db" onclick="testSBConnection()">⚡ Test Connection</button>
+    <button class="fit-log-btn" style="width:100%;margin-top:8px;font-size:12px;padding:10px;background:rgba(52,152,219,.1);color:#3498db;border:1px solid #3498db" onclick="testSBConnection()" ${tokenOk?'':'disabled'}>⚡ Test Connection</button>
     <div id="sbTestResult" style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;line-height:1.6;color:var(--muted);word-break:break-all"></div>
+    <button class="ob-back-btn" style="width:100%;margin-top:14px" onclick="document.getElementById('sbSettingsModal').remove()">Close</button>
   </div>`;
   document.body.appendChild(modal);
 }
@@ -2440,28 +2921,24 @@ function showSyncOverlay(msg) {
   document.getElementById('syncOverlayMsg').textContent = msg || 'Syncing…';
 }
 function hideSyncOverlay() { document.getElementById('syncOverlay')?.remove(); }
+// Legacy saveSBSettings — coach paste-the-keys flow is deprecated, but
+// keep a no-op stub so the More menu / Sync settings modal don't crash
+// if some old code path still calls it.
 function saveSBSettings() {
-  const url = document.getElementById('sbUrlInput')?.value?.trim();
-  const key = document.getElementById('sbKeyInput')?.value?.trim();
-  if (url) localStorage.setItem('sb_url', url);
-  if (key) localStorage.setItem('sb_key', key);
   document.getElementById('sbSettingsModal')?.remove();
-  showFitToast('Supabase settings saved');
+  showFitToast('Cloud sync is managed server-side now');
 }
 async function testSBConnection() {
   const out = document.getElementById('sbTestResult');
   if (out) out.textContent = 'Testing…';
-  const sb = sbInit();
-  if (!sb) { if (out) out.textContent = '✗ No credentials'; return; }
+  if (!sbInit()) { if (out) out.textContent = '✗ Not authenticated'; return; }
   try {
-    const r = await fetch(sb.url + '/rest/v1/clients?limit=1', {
-      headers: { 'apikey': sb.key, 'Authorization': 'Bearer ' + sb.key }
-    });
-    const body = await r.text();
+    // Round-trip a tiny select through the proxy
+    const r = await _sbProxy({ op: 'select', table: 'clients', query: 'select=id&limit=1' });
     if (r.ok) {
       if (out) out.innerHTML = `<span style="color:#2ecc71">✓ Connected (HTTP ${r.status})</span>`;
     } else {
-      if (out) out.innerHTML = `<span style="color:#e74c3c">✗ HTTP ${r.status}</span><br>${body.slice(0,300)}`;
+      if (out) out.innerHTML = `<span style="color:#e74c3c">✗ HTTP ${r.status}</span><br>${(r.data && r.data.error) || 'Unknown error'}`;
     }
   } catch(e) {
     if (out) out.innerHTML = `<span style="color:#e74c3c">✗ Network error: ${e.message}</span>`;
@@ -2589,6 +3066,251 @@ function quickLogWorkout(cid) {
   if (homePanel && currentClient && currentClient.id === cid) homePanel.innerHTML = renderHome(currentClient);
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   AI WORKOUT BUILDER — describe a session, AI generates one
+   biased toward exercises the client has already logged.
+══════════════════════════════════════════════════════════════ */
+
+// Walk all wl_hist_<cid>_* and wl_<cid>_* keys, dedupe by exercise name,
+// and capture last logged weight/reps + total times logged.
+function _collectLoggedExercises(cid) {
+  const map = {}; // name -> { name, lastWeight, lastReps, lastDate, timesLogged }
+  const ingest = (sessionDate, exercisesObj) => {
+    if (!exercisesObj) return;
+    Object.values(exercisesObj).forEach(ex => {
+      if (!ex || !ex.name) return;
+      const name = String(ex.name).trim();
+      if (!name) return;
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      const lastSet = [...sets].reverse().find(s => s && (s.weight || s.reps));
+      const entry = map[name] || { name, lastWeight: '', lastReps: '', lastDate: '', timesLogged: 0 };
+      entry.timesLogged += sets.filter(s => s && (s.done || s.weight || s.reps)).length || 1;
+      if (lastSet && (!entry.lastDate || sessionDate > entry.lastDate)) {
+        entry.lastWeight = lastSet.weight || entry.lastWeight;
+        entry.lastReps   = lastSet.reps   || entry.lastReps;
+        entry.lastDate   = sessionDate || entry.lastDate;
+      }
+      map[name] = entry;
+    });
+  };
+
+  try {
+    const histPrefix = 'wl_hist_' + cid + '_';
+    const livePrefix = 'wl_' + cid + '_';
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (k.startsWith(histPrefix)) {
+        const arr = safeJSON(localStorage.getItem(k), []);
+        if (Array.isArray(arr)) arr.forEach(entry => ingest(entry?.date || '', entry?.exercises));
+      } else if (k.startsWith(livePrefix) && !k.startsWith(histPrefix)) {
+        const obj = safeJSON(localStorage.getItem(k), null);
+        if (obj && obj.exercises) ingest(obj.savedAt || obj._countedDate || '', obj.exercises);
+      }
+    }
+  } catch (_) {}
+
+  // Sort: most-frequent first, then most-recent
+  return Object.values(map)
+    .sort((a, b) => (b.timesLogged - a.timesLogged) || String(b.lastDate).localeCompare(String(a.lastDate)))
+    .slice(0, 80); // cap for prompt size
+}
+
+function openAIBuildWorkout(cid) {
+  const c = getAllClients().find(cl => cl.id === cid);
+  if (!c) { showFitToast('Client not found'); return; }
+
+  const existing = document.getElementById('aiBuildOverlay');
+  if (existing) existing.remove();
+
+  const accent = c.accent || 'var(--accent)';
+  const ov = document.createElement('div');
+  ov.id = 'aiBuildOverlay';
+  ov.className = 'ai-review-overlay';
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  ov.innerHTML = `
+    <div class="ai-review-sheet">
+      <div class="ai-review-header">
+        <div class="ai-review-title">
+          <span>AI Workout Builder</span>
+          <button onclick="document.getElementById('aiBuildOverlay')?.remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">&times;</button>
+        </div>
+        <div class="ai-review-sub">${esc(c.name)} &middot; describe what you want, AI builds it from movements you've logged before</div>
+      </div>
+      <div class="ai-review-body" id="aiBuildBody">
+        <label style="display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">What do you want to train?</label>
+        <textarea id="aiBuildPrompt" maxlength="1000" rows="4"
+          placeholder="e.g. 45 min upper body push, focus on shoulders, no bench access today"
+          style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          ${['30 min full-body','45 min upper push','60 min legs','30 min conditioning','45 min pull day','recovery / mobility']
+            .map(p => `<button onclick="document.getElementById('aiBuildPrompt').value='${esc(p)}';document.getElementById('aiBuildPrompt').focus()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;padding:6px 10px;border-radius:6px;cursor:pointer;letter-spacing:.5px">${esc(p)}</button>`).join('')}
+        </div>
+        <button id="aiBuildGo" onclick="runAIBuildWorkout('${esc(cid)}')"
+          style="width:100%;margin-top:16px;background:${esc(accent)};border:none;color:#000;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:14px;border-radius:8px;cursor:pointer">GENERATE WORKOUT</button>
+        <div id="aiBuildResult" style="margin-top:18px"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  setTimeout(() => document.getElementById('aiBuildPrompt')?.focus(), 100);
+}
+
+async function runAIBuildWorkout(cid) {
+  const promptEl = document.getElementById('aiBuildPrompt');
+  const btn      = document.getElementById('aiBuildGo');
+  const resEl    = document.getElementById('aiBuildResult');
+  const description = (promptEl?.value || '').trim();
+  if (!description) { showFitToast('Describe what you want to train'); return; }
+  if (!resEl || !btn) return;
+
+  const c = getAllClients().find(cl => cl.id === cid);
+  if (!c) return;
+  const logged = _collectLoggedExercises(cid);
+
+  btn.disabled = true;
+  btn.textContent = 'GENERATING...';
+  resEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:20px">Building your session...</div>`;
+
+  try {
+    const r = await fetch('/api/ai-build-workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description,
+        clientName:  c.name || '',
+        goal:        c.goal || '',
+        programType: c.programType || c.program_type || '',
+        loggedExercises: logged,
+      }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'AI request failed');
+    resEl.innerHTML = _renderAiWorkoutResult(data.workout, cid, logged);
+  } catch (e) {
+    console.error('AI build workout:', e);
+    resEl.innerHTML = `<div style="color:#e74c3c;font-family:'DM Mono',monospace;font-size:11px;padding:12px;border:1px solid rgba(231,76,60,.3);border-radius:6px;background:rgba(231,76,60,.05)">Error: ${esc(e.message || 'Could not generate workout')}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE WORKOUT';
+  }
+}
+
+// Stash for the action buttons so we don't have to escape JSON into HTML attributes
+window._aiBuildLast = null;
+function _renderAiWorkoutResult(w, cid, logged) {
+  window._aiBuildLast = { workout: w, cid };
+  const loggedNames = new Set((logged || []).map(x => x.name.toLowerCase()));
+  const blocksHtml = (w.blocks || []).map(b => {
+    const exHtml = (b.exercises || []).map(e => {
+      const isNew = !!e.isNew || !loggedNames.has(String(e.name || '').toLowerCase());
+      const newBadge = isNew
+        ? `<span style="display:inline-block;font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:4px;background:rgba(241,196,15,.15);color:#f1c40f;letter-spacing:1px;margin-left:6px">NEW</span>`
+        : '';
+      const meta = [e.sets, e.reps, e.rest && ('rest ' + e.rest)].filter(Boolean).join(' &middot; ');
+      return `<div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="font-weight:600;font-size:14px">${esc(e.name || '')}${newBadge}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">${meta}</div>
+        </div>
+        ${e.note ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">${esc(e.note)}</div>` : ''}
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:14px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">${esc(b.label || 'Block')}</div>
+      ${exHtml}
+    </div>`;
+  }).join('');
+
+  return `
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px">${esc(w.title || 'Today\'s Session')}</div>
+      ${w.summary ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px">${esc(w.summary)}</div>` : ''}
+      ${blocksHtml}
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button onclick="aiBuildAddToProgram()"
+          style="flex:1;min-width:140px;background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">ADD TO PROGRAM</button>
+        <button onclick="aiBuildCopyText()"
+          style="flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">COPY TEXT</button>
+      </div>
+    </div>`;
+}
+
+function aiBuildCopyText() {
+  const w = window._aiBuildLast?.workout;
+  if (!w) return;
+  const lines = [w.title || 'Workout'];
+  if (w.summary) lines.push(w.summary);
+  lines.push('');
+  (w.blocks || []).forEach(b => {
+    lines.push((b.label || 'Block').toUpperCase());
+    (b.exercises || []).forEach(e => {
+      const meta = [e.sets, e.reps, e.rest && ('rest ' + e.rest)].filter(Boolean).join(' / ');
+      lines.push('  - ' + (e.name || '') + (meta ? '  [' + meta + ']' : '') + (e.isNew ? '  (NEW)' : ''));
+      if (e.note) lines.push('      ' + e.note);
+    });
+    lines.push('');
+  });
+  const text = lines.join('\n');
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => showFitToast('Copied to clipboard')).catch(() => showFitToast('Copy failed'));
+  } else {
+    showFitToast('Clipboard unavailable');
+  }
+}
+
+function aiBuildAddToProgram() {
+  const stash = window._aiBuildLast;
+  if (!stash) return;
+  const cid = stash.cid;
+  const w   = stash.workout;
+  const list = getDynamicClients();
+  const idx  = list.findIndex(c => c.id === cid);
+  if (idx < 0) {
+    // Built-in client — fall back to in-memory currentClient and warn that it won't persist on a new device
+    if (!(AppState.currentClient && AppState.currentClient.id === cid)) {
+      showFitToast('Cannot add to a built-in client program');
+      return;
+    }
+  }
+  const target = idx >= 0 ? list[idx] : AppState.currentClient;
+  target.data = target.data || {};
+  target.data.workouts = target.data.workouts || { days: [] };
+
+  const id = 'ai-' + Date.now().toString(36);
+  const day = {
+    id,
+    label: 'AI - ' + (w.title || 'Custom Day'),
+    title: w.title || 'AI Custom Day',
+    sub:   w.summary || '',
+    blocks: (w.blocks || []).map(b => ({
+      label: b.label || 'Block',
+      exercises: (b.exercises || []).map(e => ({
+        name:  e.name  || '',
+        sets:  e.sets  || '',
+        reps:  e.reps  || '',
+        rest:  e.rest  || '',
+        note:  (e.note || '') + (e.isNew ? (e.note ? ' ' : '') + '(new movement)' : ''),
+      })),
+    })),
+  };
+  target.data.workouts.days.push(day);
+
+  if (idx >= 0) saveDynamicClients(list);
+  if (AppState.currentClient && AppState.currentClient.id === cid) {
+    AppState.currentClient = target;
+    currentClient = target;
+  }
+  sbAutoSync(cid);
+  showFitToast('Added "' + day.label + '" to program');
+
+  // Re-render workouts tab if currently visible
+  const wPanel = document.getElementById('panel-workouts');
+  if (wPanel && AppState.currentClient && AppState.currentClient.id === cid) {
+    try { wPanel.innerHTML = renderWorkouts(target.data.workouts, target); } catch (_) {}
+  }
+  document.getElementById('aiBuildOverlay')?.remove();
+}
 
 function buildModeBadge(mode) {
   var styles = {

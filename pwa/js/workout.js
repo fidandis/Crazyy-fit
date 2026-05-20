@@ -16,13 +16,19 @@ function saveWlData(cid, dayId, data) {
   localStorage.setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
 }
 
+function _wlExName(cid, dayId, exIdx) {
+  const el = document.getElementById('wl-ex-name-' + cid + '-' + dayId + '-' + exIdx);
+  return (el?.firstChild?.textContent || el?.textContent || '').replace(/\(alt\)/g,'').trim();
+}
+
 function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
   const data = getWlData(cid, dayId);
   if (exIdx === -1) {
     // Top-level session field (e.g. sessionNotes)
     data[field] = value;
   } else {
-    if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [] };
+    if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
+    if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
     if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
     data.exercises[exIdx].sets[setIdx][field] = value;
   }
@@ -35,11 +41,13 @@ function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
 
 function wlToggleDone(cid, dayId, exIdx, setIdx) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [] };
+  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
+  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
   if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
   const current = data.exercises[exIdx].sets[setIdx].done;
   const nowDone = !current;
   data.exercises[exIdx].sets[setIdx].done = nowDone;
+  if (nowDone) _wlAutoLog(cid, dayId, data);
   saveWlData(cid, dayId, data);
   const btn = document.querySelector(`#wl-set-${cid}-${dayId}-${exIdx}-${setIdx} .wl-set-check`);
   if (btn) { btn.classList.toggle('done', nowDone); btn.textContent = nowDone ? '✓' : ''; }
@@ -54,14 +62,18 @@ function wlToggleDone(cid, dayId, exIdx, setIdx) {
     const inputs = rowEl?.querySelectorAll('input');
     const weightVal = parseFloat(inputs?.[0]?.value);
 
-    // PR detection
+    // PR detection — only celebrate if there is a genuine previous best to beat
     if (exName && weightVal > 0) {
       const prs = getPRs(cid);
-      const prevBest = prs[exName]?.weight || 0;
-      if (weightVal > prevBest) {
+      const prevEntry = prs[exName];
+      if (prevEntry && prevEntry.weight && weightVal > prevEntry.weight) {
         prs[exName] = { weight: weightVal, date: new Date().toISOString() };
         savePRs(cid, prs);
         setTimeout(() => showPRCelebration(exName, weightVal), 150);
+      } else if (!prevEntry) {
+        // First time logging this exercise — record it silently, no celebration
+        prs[exName] = { weight: weightVal, date: new Date().toISOString() };
+        savePRs(cid, prs);
       }
     }
 
@@ -80,7 +92,8 @@ function wlToggleDone(cid, dayId, exIdx, setIdx) {
 /* ── DROP SET FUNCTIONS ── */
 function wlAddDrop(cid, dayId, exIdx, setIdx) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [] };
+  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
+  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
   if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
   if (!data.exercises[exIdx].sets[setIdx].drops) data.exercises[exIdx].sets[setIdx].drops = [];
   const dropIdx = data.exercises[exIdx].sets[setIdx].drops.length;
@@ -93,13 +106,14 @@ function wlAddDrop(cid, dayId, exIdx, setIdx) {
   row.className = 'wl-drop-row';
   row.id = 'wl-drop-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx + '-' + dropIdx;
   row.innerHTML = `
-    <div class="wl-drop-num">↓${dropIdx+1}</div>
+    <div class="wl-drop-num">&darr;${dropIdx+1}</div>
     <input class="wl-drop-input" type="text" inputmode="decimal" placeholder="lbs/kg"
       oninput="wlUpdateDrop('${cid}','${dayId}',${exIdx},${setIdx},${dropIdx},'weight',this.value)">
     <input class="wl-drop-input" type="text" inputmode="numeric" placeholder="reps"
       oninput="wlUpdateDrop('${cid}','${dayId}',${exIdx},${setIdx},${dropIdx},'reps',this.value)">
     <button class="wl-drop-check"
-      onclick="wlToggleDropDone('${cid}','${dayId}',${exIdx},${setIdx},${dropIdx})"></button>`;
+      onclick="wlToggleDropDone('${cid}','${dayId}',${exIdx},${setIdx},${dropIdx})"></button>
+    <button class="wl-mini-btn wl-del-mini" onclick="wlDeleteDrop('${cid}','${dayId}',${exIdx},${setIdx},${dropIdx})" title="Remove drop set">&times;</button>`;
   container.appendChild(row);
   row.querySelector('input')?.focus();
   showFitToast('Drop set added');
@@ -107,7 +121,8 @@ function wlAddDrop(cid, dayId, exIdx, setIdx) {
 
 function wlUpdateDrop(cid, dayId, exIdx, setIdx, dropIdx, field, value) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [] };
+  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
+  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
   if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
   if (!data.exercises[exIdx].sets[setIdx].drops) data.exercises[exIdx].sets[setIdx].drops = [];
   if (!data.exercises[exIdx].sets[setIdx].drops[dropIdx]) data.exercises[exIdx].sets[setIdx].drops[dropIdx] = {};
@@ -128,9 +143,62 @@ function wlToggleDropDone(cid, dayId, exIdx, setIdx, dropIdx) {
   wlUpdateProgress(cid, dayId);
 }
 
+function wlDeleteSet(cid, dayId, exIdx, setIdx) {
+  const data = getWlData(cid, dayId);
+  const ex = data.exercises?.[exIdx];
+  if (!ex || !ex.sets || !ex.sets[setIdx]) return;
+  ex.sets.splice(setIdx, 1);
+  saveWlData(cid, dayId, data);
+  sbAutoSync(cid);
+  // Remove the row + its drop-wrap from the DOM and renumber subsequent set rows.
+  const row     = document.getElementById('wl-set-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx);
+  const dropsEl = document.getElementById('wl-drops-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx);
+  const prevHint = row?.nextElementSibling?.classList?.contains('wl-prev-hint') ? row.nextElementSibling : null;
+  prevHint?.remove();
+  dropsEl?.remove();
+  row?.remove();
+  // Renumber remaining set rows so their ids and S<n> labels match new indexes.
+  const grid = document.getElementById('wl-grid-' + cid + '-' + dayId + '-' + exIdx);
+  if (grid) {
+    const rows = grid.querySelectorAll('.wl-set-row');
+    rows.forEach((r, newIdx) => {
+      r.id = 'wl-set-' + cid + '-' + dayId + '-' + exIdx + '-' + newIdx;
+      const numEl = r.querySelector('.wl-set-num');
+      if (numEl) numEl.textContent = 'S' + (newIdx + 1);
+      // Rewire inline handlers that captured the old setIdx
+      r.querySelectorAll('[data-setidx]').forEach(el => el.setAttribute('data-setidx', String(newIdx)));
+    });
+  }
+  wlUpdateProgress(cid, dayId);
+  showFitToast('Set removed');
+}
+
+function wlDeleteDrop(cid, dayId, exIdx, setIdx, dropIdx) {
+  const data = getWlData(cid, dayId);
+  const drops = data.exercises?.[exIdx]?.sets?.[setIdx]?.drops;
+  if (!drops || !drops[dropIdx]) return;
+  drops.splice(dropIdx, 1);
+  saveWlData(cid, dayId, data);
+  sbAutoSync(cid);
+  const container = document.getElementById('wl-drops-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx);
+  const row = document.getElementById('wl-drop-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx + '-' + dropIdx);
+  row?.remove();
+  // Renumber remaining drop rows
+  if (container) {
+    const rows = container.querySelectorAll('.wl-drop-row');
+    rows.forEach((r, newIdx) => {
+      r.id = 'wl-drop-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx + '-' + newIdx;
+      const numEl = r.querySelector('.wl-drop-num');
+      if (numEl) numEl.textContent = '↓' + (newIdx + 1);
+    });
+  }
+  wlUpdateProgress(cid, dayId);
+}
+
 function wlAddSet(cid, dayId, exIdx, totalEx) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [] };
+  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
+  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
   const setIdx = data.exercises[exIdx].sets.length;
   data.exercises[exIdx].sets.push({ weight: '', reps: '', done: false });
   saveWlData(cid, dayId, data);
@@ -147,7 +215,10 @@ function wlAddSet(cid, dayId, exIdx, totalEx) {
     <input class="wl-set-input" type="text" inputmode="numeric" placeholder="reps"
       oninput="wlUpdate('${cid}','${dayId}',${exIdx},${setIdx},'reps',this.value)">
     <button class="wl-set-check" onclick="wlToggleDone('${cid}','${dayId}',${exIdx},${setIdx})"></button>
-    <button class="wl-drop-set-btn" onclick="wlAddDrop('${cid}','${dayId}',${exIdx},${setIdx})" title="Add drop set">↓</button>`;
+    <div class="wl-row-actions">
+      <button class="wl-mini-btn wl-drop-mini" onclick="wlAddDrop('${cid}','${dayId}',${exIdx},${setIdx})" title="Add drop set">&darr;</button>
+      <button class="wl-mini-btn wl-del-mini" onclick="wlDeleteSet('${cid}','${dayId}',${exIdx},${setIdx})" title="Remove set">&times;</button>
+    </div>`;
   const dropsEl = document.createElement('div');
   dropsEl.className = 'wl-drops-wrap';
   dropsEl.id = 'wl-drops-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx;
@@ -160,8 +231,11 @@ function getWlHistory(cid, dayId) { return getLS('wl_hist_' + cid + '_' + dayId,
 function saveWlHistory(cid, dayId, hist) { localStorage.setItem('wl_hist_' + cid + '_' + dayId, JSON.stringify(hist)); }
 
 function wlUpdateProgress(cid, dayId) {
-  const setChecks  = document.querySelectorAll(`[id^="wl-set-${cid}-${dayId}-"] .wl-set-check`);
-  const dropChecks = document.querySelectorAll(`[id^="wl-drop-${cid}-${dayId}-"] .wl-drop-check`);
+  // Scope the query to this workout's logger container so the attribute-
+  // prefix selectors don't scan the entire document.
+  const root = document.getElementById('wl-' + cid + '-' + dayId);
+  const setChecks  = root ? root.querySelectorAll('.wl-set-check')  : [];
+  const dropChecks = root ? root.querySelectorAll('.wl-drop-check') : [];
   const total = setChecks.length + dropChecks.length;
   let done = 0;
   setChecks.forEach(b  => { if (b.classList.contains('done')) done++; });
@@ -175,24 +249,40 @@ function wlUpdateProgress(cid, dayId) {
   if (fillEl) fillEl.style.width = pct + '%';
 }
 
+// Idempotently stamps _countedDate=today and adds a fitness-log calendar entry.
+// Mutates data in place; caller must saveWlData afterwards.
+function _wlAutoLog(cid, dayId, data) {
+  const todayStr = new Date().toDateString();
+  if (data._countedDate === todayStr) return;
+  data._countedDate = todayStr;
+  const logs = getFitnessLogs(cid);
+  if (!logs.some(l => new Date(l.date).toDateString() === todayStr)) {
+    logs.push({ date: new Date().toISOString(), calories: 0, duration: 0, avgHR: null, maxHR: null, type: 'Workout', zone: '', _fromLogger: true });
+    saveFitnessLogs(cid, logs);
+  }
+}
+
 function wlSaveWorkout(cid, dayId, totalEx) {
   const data = getWlData(cid, dayId);
   data.savedAt = new Date().toISOString();
-
-  // Archive previous session to history when starting a new day
   const todayStr = new Date().toDateString();
-  if (data._countedDate !== todayStr) {
-    // Archive the previous session before overwriting
+
+  // Archive previous explicitly-saved session before starting today's
+  if (data._countedDate && data._countedDate !== todayStr) {
     if (data.exercises && Object.keys(data.exercises).length) {
       const hist = getWlHistory(cid, dayId);
-      hist.unshift({ date: data.savedAt || new Date().toISOString(), exercises: data.exercises, sessionNotes: data.sessionNotes || '' });
+      hist.unshift({ date: data.savedAt, exercises: data.exercises, sessionNotes: data.sessionNotes || '' });
       if (hist.length > 12) hist.length = 12;
       saveWlHistory(cid, dayId, hist);
     }
-    data._countedDate = todayStr;
-    const logs = getFitnessLogs(cid);
-    logs.push({ date: new Date().toISOString(), calories: 0, duration: 0, avgHR: null, maxHR: null, type: 'Workout', zone: '', _fromLogger: true });
-    saveFitnessLogs(cid, logs);
+  }
+
+  // Ensure calendar entry exists for today (idempotent)
+  _wlAutoLog(cid, dayId, data);
+
+  // Award XP once per calendar day (separate from _countedDate so auto-log doesn't block it)
+  if (data._xpAwardedDate !== todayStr) {
+    data._xpAwardedDate = todayStr;
     if (AppState.currentClient) checkMilestones(AppState.currentClient);
     awardXP(cid, 'workout');
   }
@@ -224,13 +314,14 @@ function buildWlHistoryHtml(cid, dayId, skipFirst) {
     const dateStr = new Date(entry.date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
     const exRows = Object.entries(entry.exercises || {}).map(([exIdx, exData]) => {
       if (!exData?.sets?.length) return '';
-      const doneSets = exData.sets.filter(s => s.done || s.weight || s.reps);
+      const doneSets = exData.sets.filter(s => s && (s.done || s.weight || s.reps));
       if (!doneSets.length) return '';
       const setsStr = doneSets.map(s => [s.weight, s.reps].filter(Boolean).join(' × ')).filter(Boolean).join(' · ');
-      return setsStr ? `<div class="wl-hist-row">${setsStr}</div>` : '';
+      const label = exData.name ? `<span class="wl-hist-ex-name">${esc(exData.name)}</span> ` : '';
+      return setsStr ? `<div class="wl-hist-row">${label}${setsStr}</div>` : '';
     }).filter(Boolean).join('');
     if (!exRows) return '';
-    const totalSets = Object.values(entry.exercises || {}).reduce((n, ex) => n + (ex?.sets?.filter(s => s.done || s.weight)?.length || 0), 0);
+    const totalSets = Object.values(entry.exercises || {}).reduce((n, ex) => n + (ex?.sets?.filter(s => s && (s.done || s.weight))?.length || 0), 0);
     return `<div class="wl-hist-entry">
       <div class="wl-hist-entry-header">
         <div class="wl-hist-date">${dateStr}</div>

@@ -1367,6 +1367,9 @@ async function obSaveClient(btn) {
   } else {
     addDynamicClient(clientToSave);
   }
+  // Stash plaintext PIN coach-locally so View PIN can show it later.
+  // Stored under a separate key so it's never pushed to Supabase or pulled to other devices.
+  try { localStorage.setItem('pin_plain_' + id, plainPin); } catch (_) {}
 
   // Auto-infer goals from onboarding data
   setupInitialGoals(newClient.id, AppState.obState);
@@ -1448,29 +1451,44 @@ function coachViewPin(cid) {
   const list = getDynamicClients();
   const idx = list.findIndex(c => c.id === cid);
   const name = idx >= 0 ? list[idx].name : 'Client';
-  if (!confirm(name + "'s PIN is hashed for security and cannot be displayed.\n\nGenerate a new PIN for " + name + '?')) return;
+  const stored = (() => { try { return localStorage.getItem('pin_plain_' + cid) || ''; } catch { return ''; } })();
+  if (stored && /^\d{4}$/.test(stored)) {
+    _showPinOverlay(name, stored, false);
+    return;
+  }
+  // No stored plaintext — older client. Offer to regenerate.
+  if (!confirm(name + "'s PIN was set before view-PIN was supported, so it can't be displayed (stored as a one-way hash).\n\nGenerate a new PIN for " + name + '?')) return;
   const newPin = generatePIN();
-  hashPin(newPin).then(hashed => {
+  hashPin(newPin).then(async hashed => {
     if (idx < 0) { showFitToast('Client not found — please refresh the dashboard.'); return; }
     list[idx].pin = hashed;
     saveDynamicClients(list);
+    try { localStorage.setItem('pin_plain_' + cid, newPin); } catch (_) {}
+    // Push the new PIN to Supabase so it survives the silent page-load pull
+    // and propagates to the client's device.
+    try { await sbUpsert('clients', { id: cid, pin: hashed, updated_at: new Date().toISOString() }); } catch (_) {}
     renderCoachDashboard();
-    // Show PIN in a dismissible overlay with copy button
-    const ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
-    ov.innerHTML = `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 24px;max-width:320px;width:90%;text-align:center">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">New PIN for ${esc(name)}</div>
-        <div id="_pinDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(newPin)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:20px">Share this with your client — it won't be shown again</div>
-        <div style="display:flex;gap:10px;justify-content:center">
-          <button onclick="navigator.clipboard?.writeText('${esc(newPin)}').then(()=>showFitToast('PIN copied!')).catch(()=>showFitToast('${esc(newPin)}'))" style="background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;letter-spacing:1px">Copy PIN</button>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:10px 20px;border-radius:6px;cursor:pointer">Done</button>
-        </div>
-      </div>`;
-    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-    document.body.appendChild(ov);
+    _showPinOverlay(name, newPin, true);
   });
+}
+
+function _showPinOverlay(name, pin, isNew) {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+  const label = isNew ? 'New PIN for ' + name : 'PIN for ' + name;
+  const sub = isNew ? "Share this with your client — it won't be shown again" : 'Coach-only · stored locally on this device';
+  ov.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 24px;max-width:320px;width:90%;text-align:center">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">${esc(label)}</div>
+      <div id="_pinDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(pin)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:20px">${esc(sub)}</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="navigator.clipboard?.writeText('${esc(pin)}').then(()=>showFitToast('PIN copied!')).catch(()=>showFitToast('${esc(pin)}'))" style="background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;letter-spacing:1px">Copy PIN</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:10px 20px;border-radius:6px;cursor:pointer">Done</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 function coachEditClient(cid) {

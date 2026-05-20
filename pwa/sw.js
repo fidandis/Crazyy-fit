@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v27';
+const CACHE = 'crazyy-fit-v56';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
@@ -111,15 +111,18 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Network-first for HTML navigations — always try latest, fall back to cache then offline page
+  // Network-first for HTML navigations — always try latest, fall back to cache then offline page.
+  // Cache the bare URL (no query string) so transient params like ?share=photo and Apple Shortcut
+  // ingestion URLs (?client=&cal=&dur=...) don't pollute the cache.
   if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    const cacheKey = new Request(url.origin + url.pathname, { method: 'GET' });
     e.respondWith(
       fetch(e.request).then(response => {
         const clone = response.clone();
-        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        caches.open(CACHE).then(cache => cache.put(cacheKey, clone));
         return response;
       }).catch(() =>
-        caches.match(e.request)
+        caches.match(cacheKey)
           .then(cached => cached || caches.match('./index.html'))
           .then(cached => cached || caches.match(OFFLINE_FALLBACK))
       )

@@ -18,8 +18,11 @@
 <link rel="preconnect" href="https://gfmvxfofsttuulwbvipy.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="css/app.css" as="style">
+<link rel="preload" href="js/core.js" as="script">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"></noscript>
 </head>
 
 <body>
@@ -28,13 +31,13 @@
 <div class="screen active" id="screen-login">
   <div class="login-logo">CRAZYY<span> FIT</span></div>
   <div class="login-tagline">// Your personal training hub</div>
-  <button class="login-enter-btn" onclick="startPinLogin()">Enter PIN</button>
-  <button class="coach-login-btn" onclick="selectCoach()">Coach Login</button>
+  <button class="login-enter-btn" data-act="startPinLogin">Enter PIN</button>
+  <button class="coach-login-btn" data-act="selectCoach">Coach Login</button>
 </div>
 
 <!-- ══ PIN SCREEN ════════════════════════════════════════════ -->
 <div class="screen" id="screen-pin">
-  <button class="pin-back" onclick="goBack()">← Back</button>
+  <button class="pin-back" data-act="goBack">← Back</button>
   <div class="pin-name" id="pinName">Enter PIN</div>
   <div class="pin-sub" id="pinSub">4-digit PIN to access your profile</div>
   <div class="pin-dots" id="pinDots">
@@ -42,45 +45,45 @@
     <div class="pin-dot"></div><div class="pin-dot"></div>
   </div>
   <div class="pin-error" id="pinError"></div>
-  <div class="pin-keypad">
-    <button class="pin-key" onclick="pinKey('1')">1</button>
-    <button class="pin-key" onclick="pinKey('2')">2</button>
-    <button class="pin-key" onclick="pinKey('3')">3</button>
-    <button class="pin-key" onclick="pinKey('4')">4</button>
-    <button class="pin-key" onclick="pinKey('5')">5</button>
-    <button class="pin-key" onclick="pinKey('6')">6</button>
-    <button class="pin-key" onclick="pinKey('7')">7</button>
-    <button class="pin-key" onclick="pinKey('8')">8</button>
-    <button class="pin-key" onclick="pinKey('9')">9</button>
-    <button class="pin-key" style="visibility:hidden"></button>
-    <button class="pin-key" onclick="pinKey('0')">0</button>
-    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  <div class="pin-keypad" role="group" aria-label="PIN entry keypad">
+    <button class="pin-key" data-act="pinKey" data-args="1" aria-label="1">1</button>
+    <button class="pin-key" data-act="pinKey" data-args="2" aria-label="2">2</button>
+    <button class="pin-key" data-act="pinKey" data-args="3" aria-label="3">3</button>
+    <button class="pin-key" data-act="pinKey" data-args="4" aria-label="4">4</button>
+    <button class="pin-key" data-act="pinKey" data-args="5" aria-label="5">5</button>
+    <button class="pin-key" data-act="pinKey" data-args="6" aria-label="6">6</button>
+    <button class="pin-key" data-act="pinKey" data-args="7" aria-label="7">7</button>
+    <button class="pin-key" data-act="pinKey" data-args="8" aria-label="8">8</button>
+    <button class="pin-key" data-act="pinKey" data-args="9" aria-label="9">9</button>
+    <button class="pin-key" style="visibility:hidden" aria-hidden="true" tabindex="-1"></button>
+    <button class="pin-key" data-act="pinKey" data-args="0" aria-label="0">0</button>
+    <button class="pin-key del" data-act="pinDel" aria-label="Delete">⌫</button>
   </div>
 </div>
 
 <!-- ══ APP SCREEN ════════════════════════════════════════════ -->
 <div class="screen" id="screen-app">
-  <div class="coach-preview-bar" id="coachPreviewBar" style="display:none;background:rgba(255,107,53,.08);border-bottom:2px solid var(--accent);padding:8px 20px;display:none;align-items:center;justify-content:space-between;flex-shrink:0">
+  <div class="coach-preview-bar" id="coachPreviewBar" style="display:none;background:rgba(255,107,53,.08);border-bottom:2px solid var(--accent);padding:8px 20px;align-items:center;justify-content:space-between;flex-shrink:0">
     <div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:2px">👁 Coach Preview Mode</div>
       <div style="font-size:14px;font-weight:600;color:var(--accent);margin-top:2px" id="coachPreviewName"></div>
     </div>
-    <button onclick="exitClientView()" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;background:var(--accent);color:#000;border:none;cursor:pointer;border-radius:4px;font-weight:600">Exit Preview</button>
+    <button data-act="exitClientView" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;background:var(--accent);color:#000;border:none;cursor:pointer;border-radius:4px;font-weight:600">Exit Preview</button>
   </div>
-  <div class="app-header" id="appHeader">
+  <header class="app-header" id="appHeader">
     <div class="app-header-top">
       <div>
         <div class="app-client-name" id="appClientName"></div>
         <div class="app-client-goal" id="appClientGoal"></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="app-logout" onclick="openTabataScreen()" style="color:var(--accent);border-color:var(--accent)">Tabata</button>
-        <button class="app-logout" onclick="logout()">Log Out</button>
+        <button class="app-logout" data-act="openTabataScreen" style="color:var(--accent);border-color:var(--accent)">Tabata</button>
+        <button class="app-logout" data-act="logout">Log Out</button>
       </div>
     </div>
-  </div>
-  <div class="app-content" id="appContent"></div>
-  <nav class="tab-bar" id="tabBar"></nav>
+  </header>
+  <main class="app-content" id="appContent"></main>
+  <nav class="tab-bar" id="tabBar" aria-label="Main navigation"></nav>
 </div>
 
 <!-- ══ COACH SCREEN ══════════════════════════════════════════ -->
@@ -90,9 +93,9 @@
       <div class="coach-title">Coach Dashboard</div>
       <div class="coach-sub" id="coachSub">// All clients</div>
     </div>
-    <button class="app-logout" style="color:var(--accent)" onclick="openCompare()">⚖ Compare</button>
-        <button class="app-logout" style="color:var(--accent)" onclick="openSBSettings()">☁ Sync</button>
-        <button class="app-logout" onclick="logout()">Log Out</button>
+    <button class="app-logout" style="color:var(--accent)" data-act="openCompare">⚖ Compare</button>
+        <button class="app-logout" style="color:var(--accent)" data-act="openSBSettings">☁ Sync</button>
+        <button class="app-logout" data-act="logout">Log Out</button>
   </div>
   <div class="coach-content" id="coachContent"></div>
 </div>
@@ -100,7 +103,7 @@
 <!-- ══ ONBOARDING WIZARD ══════════════════════════════════════ -->
 <div class="screen" id="screen-onboard">
   <div class="onboard-header">
-    <button class="onboard-back" onclick="onboardBack()">← Back</button>
+    <button class="onboard-back" data-act="onboardBack">← Back</button>
     <div class="onboard-title" id="onboardHeaderTitle">New Client</div>
     <div class="onboard-step-indicator">
       <div class="onboard-step-dot active" id="sdot-0"></div>
@@ -118,7 +121,7 @@
       <div class="coach-title">Tabata Workouts</div>
       <div class="coach-sub">// Push · Pull · Legs · Core · 3 cycles · ~13 min</div>
     </div>
-    <button class="app-logout" onclick="closeTabataScreen()">← Back</button>
+    <button class="app-logout" data-act="closeTabataScreen">← Back</button>
   </div>
   <div class="tabata-screen-content" id="tabataScreenContent"></div>
 </div>
@@ -141,8 +144,8 @@
     <div class="tabata-progress-dots" id="tabataDots"></div>
     <div class="tabata-round-indicator" id="tabataRoundInd">Round 1 of 8</div>
     <div class="tabata-timer-controls">
-      <button class="tabata-ctrl-btn tabata-pause-btn" id="tabataPauseBtn" onclick="tabataTogglePause()">Pause</button>
-      <button class="tabata-ctrl-btn tabata-stop-btn" onclick="tabataStop()">End</button>
+      <button class="tabata-ctrl-btn tabata-pause-btn" id="tabataPauseBtn" data-act="tabataTogglePause">Pause</button>
+      <button class="tabata-ctrl-btn tabata-stop-btn" data-act="tabataStop">End</button>
     </div>
   </div>
   <!-- Complete view -->
@@ -150,7 +153,7 @@
     <div class="tabata-complete-emoji">🏆</div>
     <div class="tabata-complete-title">Done!</div>
     <div class="tabata-complete-sub" id="tabataCompleteMsg">Tabata complete. Excellent work.</div>
-    <button class="tabata-complete-btn" onclick="tabataClose()">Finish</button>
+    <button class="tabata-complete-btn" data-act="tabataClose">Finish</button>
   </div>
 </div>
 
@@ -172,11 +175,11 @@
     <div class="terminate-confirm-row">
       <div class="terminate-confirm-label">Type client name to confirm</div>
       <input class="terminate-confirm-input" id="terminateInput" type="text"
-        placeholder="Type name here..." oninput="checkTerminateConfirm()">
+        placeholder="Type name here..." data-input-act="checkTerminateConfirm">
     </div>
     <div class="terminate-actions">
-      <button class="terminate-cancel-btn" onclick="closeTerminateModal()">Cancel</button>
-      <button class="terminate-confirm-btn" id="terminateConfirmBtn" onclick="executeTerminate()">Archive Client</button>
+      <button class="terminate-cancel-btn" data-act="closeTerminateModal">Cancel</button>
+      <button class="terminate-confirm-btn" id="terminateConfirmBtn" data-act="executeTerminate">Archive Client</button>
     </div>
   </div>
 </div>
@@ -188,9 +191,9 @@
   <div class="milestone-label" id="msLabel">Milestone Unlocked</div>
   <div class="milestone-title" id="msTitle">Achievement!</div>
   <div class="milestone-msg" id="msMsg"></div>
-  <button class="milestone-dismiss" onclick="closeMilestone()">Let's Go! 💪</button>
-  <button class="milestone-share" onclick="shareMilestone()">Share Achievement</button>
-  <div class="milestone-prev" onclick="closeMilestone()">Tap anywhere to continue</div>
+  <button class="milestone-dismiss" data-act="closeMilestone">Let's Go! 💪</button>
+  <button class="milestone-share" data-act="shareMilestone">Share Achievement</button>
+  <div class="milestone-prev" data-act="closeMilestone">Tap anywhere to continue</div>
 </div>
 
 <!-- Fire Transition -->
@@ -206,7 +209,7 @@
 <div class="xp-toast" id="xpToast"></div>
 
 <!-- Offline / Sync Pill (global) -->
-<div class="offline-pill" id="offlinePill" style="display:none" onclick="if(typeof drainSbQueue==='function')drainSbQueue()"><span class="offline-dot"></span><span id="offlinePillText">Offline</span></div>
+<div class="offline-pill" id="offlinePill" style="display:none" data-act="drainSbQueue"><span class="offline-dot"></span><span id="offlinePillText">Offline</span></div>
 
 <!-- Update Banner -->
 <div class="update-banner" id="updateBanner">
@@ -214,46 +217,50 @@
     <div class="update-banner-text">✦ New version available</div>
     <div class="update-banner-sub">Refresh to get the latest features</div>
   </div>
-  <button class="update-btn" onclick="applyUpdate()">Update</button>
-  <button class="update-dismiss" onclick="dismissUpdate()">✕</button>
+  <button class="update-btn" data-act="applyUpdate">Update</button>
+  <button class="update-dismiss" data-act="dismissUpdate" aria-label="Dismiss update notice">✕</button>
 </div>
 
 <!-- Metrics Menu -->
-<div class="more-menu-backdrop" id="moreMenuBackdrop" onclick="if(event.target===this)closeMoreMenu()">
+<div class="more-menu-backdrop" id="moreMenuBackdrop" role="dialog" aria-modal="true" aria-label="Additional metrics menu" data-act="closeMoreMenu" data-act-self="1">
   <div class="more-menu-sheet">
     <div class="more-menu-handle"></div>
     <div class="more-menu-header">
       <div class="more-menu-title">Metrics</div>
-      <button class="more-menu-close" onclick="closeMoreMenu()">✕ Close</button>
+      <button class="more-menu-close" data-act="closeMoreMenu">✕ Close</button>
     </div>
     <div class="more-menu-grid">
-      <div class="more-tile" onclick="openFeature('measurements')">
+      <div class="more-tile" data-act="openFeature" data-args="measurements">
         <div class="more-tile-icon">📏</div><div class="more-tile-name">Measurements</div>
         <div class="more-tile-desc">Waist, hips, chest, arms & legs</div>
       </div>
-      <div class="more-tile" onclick="openFeature('progress')">
+      <div class="more-tile" data-act="openFeature" data-args="progress">
         <div class="more-tile-icon">📈</div><div class="more-tile-name">Progress</div>
         <div class="more-tile-desc">Weight, body fat & XP over time</div>
       </div>
-      <div class="more-tile" onclick="openFeature('strength')">
+      <div class="more-tile" data-act="openFeature" data-args="strength">
         <div class="more-tile-icon">💪</div><div class="more-tile-name">Strength & 1RM</div>
         <div class="more-tile-desc">PR tracker & 1RM calculator</div>
       </div>
-      <div class="more-tile" onclick="openFeature('checkin')">
+      <div class="more-tile" data-act="openFeature" data-args="checkin">
         <div class="more-tile-icon">📋</div><div class="more-tile-name">Check-In</div>
         <div class="more-tile-desc">Sleep, stress, energy & photo</div>
       </div>
-      <div class="more-tile" onclick="openFeature('meals')">
+      <div class="more-tile" data-act="openFeature" data-args="meals">
         <div class="more-tile-icon">🍽️</div><div class="more-tile-name">Meal Plan</div>
         <div class="more-tile-desc">Weekly meals & macro targets</div>
       </div>
-      <div class="more-tile" onclick="openFeature('calendar')">
+      <div class="more-tile" data-act="openFeature" data-args="calendar">
         <div class="more-tile-icon">📅</div><div class="more-tile-name">Calendar</div>
         <div class="more-tile-desc">Monthly view & adherence</div>
       </div>
-      <div class="more-tile" onclick="openFeature('badges')">
+      <div class="more-tile" data-act="openFeature" data-args="badges">
         <div class="more-tile-icon">🏅</div><div class="more-tile-name">Badges</div>
         <div class="more-tile-desc">Achievements & milestones unlocked</div>
+      </div>
+      <div class="more-tile" data-act="openFeature" data-args="musclemap">
+        <div class="more-tile-icon">🧬</div><div class="more-tile-name">Muscle Map</div>
+        <div class="more-tile-desc">Body silhouette by training load</div>
       </div>
     </div>
   </div>
@@ -261,65 +268,69 @@
 
 <!-- Feature Screens -->
 <div class="feature-screen" id="feature-progress">
-  <div class="feature-header"><div class="feature-title">Progress Charts</div><button class="feature-back" onclick="closeFeature('progress')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Progress Charts</div><button class="feature-back" data-act="closeFeature" data-args="progress">← Back</button></div>
   <div class="feature-body" id="feature-progress-body"></div>
 </div>
 <div class="feature-screen" id="feature-measurements">
-  <div class="feature-header"><div class="feature-title">Body Measurements</div><button class="feature-back" onclick="closeFeature('measurements')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Body Measurements</div><button class="feature-back" data-act="closeFeature" data-args="measurements">← Back</button></div>
   <div class="feature-body" id="feature-measurements-body"></div>
 </div>
 <div class="feature-screen" id="feature-strength">
-  <div class="feature-header"><div class="feature-title">Strength & 1RM</div><button class="feature-back" onclick="closeFeature('strength')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Strength & 1RM</div><button class="feature-back" data-act="closeFeature" data-args="strength">← Back</button></div>
   <div class="feature-body" id="feature-strength-body"></div>
 </div>
 <div class="feature-screen" id="feature-meals">
-  <div class="feature-header"><div class="feature-title">Meal Plan</div><button class="feature-back" onclick="closeFeature('meals')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Meal Plan</div><button class="feature-back" data-act="closeFeature" data-args="meals">← Back</button></div>
   <div class="feature-body" id="feature-meals-body"></div>
 </div>
 <div class="feature-screen" id="feature-checkin">
-  <div class="feature-header"><div class="feature-title">Weekly Check-In</div><button class="feature-back" onclick="closeFeature('checkin')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Weekly Check-In</div><button class="feature-back" data-act="closeFeature" data-args="checkin">← Back</button></div>
   <div class="feature-body" id="feature-checkin-body"></div>
 </div>
 <div class="feature-screen" id="feature-calendar">
-  <div class="feature-header"><div class="feature-title">Program Calendar</div><button class="feature-back" onclick="closeFeature('calendar')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Program Calendar</div><button class="feature-back" data-act="closeFeature" data-args="calendar">← Back</button></div>
   <div class="feature-body" id="feature-calendar-body"></div>
 </div>
 <div class="feature-screen" id="feature-compare">
-  <div class="feature-header"><div class="feature-title">Client Comparison</div><button class="feature-back" onclick="closeFeature('compare')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Client Comparison</div><button class="feature-back" data-act="closeFeature" data-args="compare">← Back</button></div>
   <div class="feature-body" id="feature-compare-body"></div>
 </div>
 <div class="feature-screen" id="feature-macros">
-  <div class="feature-header"><div class="feature-title">Macro Analyzer</div><button class="feature-back" onclick="closeFeature('macros')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Macro Analyzer</div><button class="feature-back" data-act="closeFeature" data-args="macros">← Back</button></div>
   <div class="feature-body" id="feature-macros-body"></div>
 </div>
 <div class="feature-screen" id="feature-photos">
-  <div class="feature-header"><div class="feature-title">Progress Photos</div><button class="feature-back" onclick="closeFeature('photos')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Progress Photos</div><button class="feature-back" data-act="closeFeature" data-args="photos">← Back</button></div>
   <div class="feature-body" id="feature-photos-body"></div>
 </div>
 <div class="feature-screen" id="feature-habits">
-  <div class="feature-header"><div class="feature-title">Habit Tracker</div><button class="feature-back" onclick="closeFeature('habits')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Habit Tracker</div><button class="feature-back" data-act="closeFeature" data-args="habits">← Back</button></div>
   <div class="feature-body" id="feature-habits-body"></div>
 </div>
 <div class="feature-screen" id="feature-summary">
-  <div class="feature-header"><div class="feature-title">Monthly Summary</div><button class="feature-back" onclick="closeFeature('summary')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Monthly Summary</div><button class="feature-back" data-act="closeFeature" data-args="summary">← Back</button></div>
   <div class="feature-body" id="feature-summary-body"></div>
 </div>
 <div class="feature-screen" id="feature-badges">
-  <div class="feature-header"><div class="feature-title">Badges</div><button class="feature-back" onclick="closeFeature('badges')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Badges</div><button class="feature-back" data-act="closeFeature" data-args="badges">← Back</button></div>
   <div class="feature-body" id="feature-badges-body"></div>
 </div>
 <div class="feature-screen" id="feature-movement-library">
-  <div class="feature-header"><div class="feature-title">Movement Library</div><button class="feature-back" onclick="closeFeature('movement-library')">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Movement Library</div><button class="feature-back" data-act="closeFeature" data-args="movement-library">← Back</button></div>
   <div class="feature-body" id="feature-movement-library-body"></div>
 </div>
 <div class="feature-screen" id="feature-periodization">
-  <div class="feature-header"><div class="feature-title">Periodization Plan</div><button class="feature-back" id="periodizationBackBtn" onclick="closePeriodizationScreen()">← Back</button></div>
+  <div class="feature-header"><div class="feature-title">Periodization Plan</div><button class="feature-back" id="periodizationBackBtn" data-act="closePeriodizationScreen">← Back</button></div>
   <div class="feature-body" id="feature-periodization-body"></div>
+</div>
+<div class="feature-screen" id="feature-musclemap">
+  <div class="feature-header"><div class="feature-title">Muscle Map</div><button class="feature-back" data-act="closeFeature" data-args="musclemap">← Back</button></div>
+  <div class="feature-body" id="feature-musclemap-body"></div>
 </div>
 
 <!-- Photo lightbox -->
-<div class="photo-lightbox" id="photoLightbox" style="display:none" onclick="closePhotoLightbox()">
-  <button class="photo-lightbox-close" onclick="closePhotoLightbox()">✕</button>
+<div class="photo-lightbox" id="photoLightbox" style="display:none" role="dialog" aria-modal="true" aria-label="Progress photo viewer" data-act="closePhotoLightbox">
+  <button class="photo-lightbox-close" data-act="closePhotoLightbox" aria-label="Close">✕</button>
   <img id="photoLightboxImg" src="" decoding="async" alt="Progress photo">
   <div class="photo-lightbox-date" id="photoLightboxDate"></div>
 </div>
@@ -342,18 +353,18 @@
 </div>
 
 <!-- ══ SCRIPTS ════════════════════════════════════════════════ -->
-<script src="js/core.js"></script>
-<script src="js/fitness.js"></script>
-<script src="js/coach.js"></script>
-<script src="js/tabata.js"></script>
-<script src="js/clients.js"></script>
-<script src="js/onboarding.js"></script>
-<script src="js/workout.js"></script>
-<script src="js/home.js"></script>
-<script src="js/features.js"></script>
-<script src="js/ai.js"></script>
-<script src="js/macros.js"></script>
-<script src="js/nutrition.js"></script>
+<script src="js/core.js" defer></script>
+<script src="js/fitness.js" defer></script>
+<script src="js/coach.js" defer></script>
+<script src="js/tabata.js" defer></script>
+<script src="js/clients.js" defer></script>
+<script src="js/onboarding.js" defer></script>
+<script src="js/workout.js" defer></script>
+<script src="js/home.js" defer></script>
+<script src="js/features.js" defer></script>
+<script src="js/ai.js" defer></script>
+<script src="js/macros.js" defer></script>
+<script src="js/nutrition.js" defer></script>
 
 </body>
 </html>

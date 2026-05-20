@@ -245,9 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, { passive: true });
   }
-  // Silently pull latest client list from Supabase on every page load
-  // so PIN screen always has up-to-date clients even on new devices
+  // Silently pull latest client list from Supabase on page load — but only
+  // when we already hold a valid session token (i.e. the coach is signed
+  // in). Pre-login there's no token, so the proxy would 401; fresh-device
+  // clients are hydrated individually after PIN login instead.
   if (!window._networkOk || !window._networkOk()) return;
+  if (typeof getAuthToken === 'function' && !getAuthToken()) return;
+  if (typeof getAuthRole === 'function' && getAuthRole() !== 'coach') return;
   sbSelect('clients', 'select=*').then(data => {
     if (!data || !data.length) return;
     const terminated = getLS('terminated_clients', []);

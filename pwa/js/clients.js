@@ -2,21 +2,48 @@
    CLIENT MANAGEMENT — dynamic clients stored in localStorage
 ══════════════════════════════════════════════════════════════ */
 
+// Microtask-scoped cache. Cleared after the current synchronous render frame
+// (queueMicrotask fires before the next paint), and on any write to the
+// underlying keys via invalidateClientsCache().
+let _clientsCache = null;
+let _dynamicCache = null;
+function invalidateClientsCache() { _clientsCache = null; _dynamicCache = null; }
+
 function getAllClients() {
+  if (_clientsCache) return _clientsCache;
   const terminated = getLS('terminated_clients', []);
   const dynamic = getDynamicClients();
   const hardcodedIds = CLIENTS.map(c => c.id);
   const newOnes = dynamic.filter(c => !hardcodedIds.includes(c.id));
-  return [...CLIENTS, ...newOnes].filter(c => !terminated.includes(c.id));
+  _clientsCache = [...CLIENTS, ...newOnes].filter(c => !terminated.includes(c.id));
+  queueMicrotask(() => { _clientsCache = null; });
+  return _clientsCache;
 }
 
 function getDynamicClients() {
-  try { return getLS('dynamic_clients', []); } catch { return []; }
+  if (_dynamicCache) return _dynamicCache;
+  try { _dynamicCache = getLS('dynamic_clients', []); }
+  catch { _dynamicCache = []; }
+  queueMicrotask(() => { _dynamicCache = null; });
+  return _dynamicCache;
 }
 
 function saveDynamicClients(list) {
   localStorage.setItem('dynamic_clients', JSON.stringify(list));
+  invalidateClientsCache();
 }
+
+// Auto-invalidate getAllClients() cache whenever any client-list key is written
+// directly via localStorage.setItem (many sites do this rather than calling
+// saveDynamicClients). One-time monkey-patch at module init.
+(function() {
+  const _origSet = localStorage.setItem.bind(localStorage);
+  const watched = new Set(['dynamic_clients','terminated_clients','paused_clients','archived_clients']);
+  localStorage.setItem = function(k, v) {
+    _origSet(k, v);
+    if (watched.has(k)) invalidateClientsCache();
+  };
+})();
 
 function addDynamicClient(client) {
   const list = getDynamicClients();

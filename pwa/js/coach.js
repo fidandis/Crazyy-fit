@@ -25,17 +25,58 @@ function selectCoach() {
 let _coachPollTimer  = null;
 let _lastSyncTime    = null;
 let _syncBadgeTimer  = null;
+let _coachPollActive = false;
+let _coachVisListener = null;
 
-function startCoachPolling() {
-  stopCoachPolling();
-  coachSilentRefresh(); // immediate first pull
+function _startCoachIntervals() {
+  if (_coachPollTimer || !_coachPollActive) return;
   _coachPollTimer = setInterval(coachSilentRefresh, 30000); // every 30s
   _syncBadgeTimer = setInterval(updateSyncBadge, 5000);     // badge text every 5s
 }
-
-function stopCoachPolling() {
+function _pauseCoachIntervals() {
   if (_coachPollTimer)  { clearInterval(_coachPollTimer);  _coachPollTimer  = null; }
   if (_syncBadgeTimer)  { clearInterval(_syncBadgeTimer);  _syncBadgeTimer  = null; }
+}
+
+function startCoachPolling() {
+  stopCoachPolling();
+  _coachPollActive = true;
+  coachSilentRefresh(); // immediate first pull
+  if (!document.hidden) _startCoachIntervals();
+  // Pause polling while the tab is hidden (saves network + battery on
+  // backgrounded PWAs). One refresh fires on resume to catch up.
+  _coachVisListener = () => {
+    if (!_coachPollActive) return;
+    if (document.hidden) _pauseCoachIntervals();
+    else { coachSilentRefresh(); _startCoachIntervals(); }
+  };
+  document.addEventListener('visibilitychange', _coachVisListener);
+}
+
+function stopCoachPolling() {
+  _coachPollActive = false;
+  _pauseCoachIntervals();
+  if (_coachVisListener) {
+    document.removeEventListener('visibilitychange', _coachVisListener);
+    _coachVisListener = null;
+  }
+}
+
+// Run an array of async tasks with at most N concurrent in flight. Used to
+// avoid swamping Supabase with parallel per-client pulls when many clients
+// change in the same 30s sync window.
+async function _runWithConcurrency(items, limit, worker) {
+  const queue = items.slice();
+  const inFlight = [];
+  while (queue.length || inFlight.length) {
+    while (inFlight.length < limit && queue.length) {
+      const item = queue.shift();
+      const p = Promise.resolve().then(() => worker(item)).catch(() => {})
+        .finally(() => { inFlight.splice(inFlight.indexOf(p), 1); });
+      inFlight.push(p);
+    }
+    if (inFlight.length) await Promise.race(inFlight);
+  }
 }
 
 async function coachSilentRefresh() {
@@ -47,6 +88,7 @@ async function coachSilentRefresh() {
   const terminated = getLS('terminated_clients', []);
   const existing   = getLS('dynamic_clients', []);
   let changed = false;
+  const needsPull = [];
 
   data.forEach(row => {
     if (terminated.includes(row.id)) return;
@@ -68,12 +110,12 @@ async function coachSilentRefresh() {
     if (idx >= 0) {
       if (existing[idx]._updated_at !== row.updated_at) {
         existing[idx] = newClient;
-        pullClientData(row.id).catch(() => {});
+        needsPull.push(row.id);
         changed = true;
       }
     } else {
       existing.push(newClient);
-      pullClientData(row.id).catch(() => {});
+      needsPull.push(row.id);
       changed = true;
     }
   });
@@ -87,6 +129,13 @@ async function coachSilentRefresh() {
   }
   _lastSyncTime = Date.now();
   updateSyncBadge();
+
+  // Fan out per-client pulls with a small concurrency cap (each pull issues
+  // 7+ Supabase requests of its own). Background — caller does not await.
+  if (needsPull.length) {
+    _runWithConcurrency(needsPull, 3, id => pullClientData(id))
+      .then(() => { if (needsPull.length) renderCoachDashboard(); });
+  }
 }
 
 function updateSyncBadge() {
@@ -311,6 +360,7 @@ function buildClientCard(c) {
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openPeriodizationScreen(this.dataset.cid)" style="color:#9b59b6;border-color:#9b59b6">📅 Periodize</button>
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="renderBadgesInCard(this.dataset.cid)" style="color:#f1c40f;border-color:rgba(241,196,15,.4)">🏅 Badges</button>
         <button class="ai-review-btn" data-cid="${esc(c.id)}" onclick="openAIReview(this.dataset.cid)" style="grid-column:1/-1">🤖 AI Program Review</button>
+        <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openAIBuildWorkout(this.dataset.cid)" style="grid-column:1/-1;color:var(--accent);border-color:rgba(232,255,71,.4)">AI Build Workout</button>
         <button class="coach-action-btn danger" data-cid="${esc(c.id)}" onclick="openTerminateModal(this.dataset.cid)" style="grid-column:1/-1">Terminate</button>
       </div>
     </div>`;
@@ -455,6 +505,20 @@ function renderCoachDashboard() {
         </div>
         <div class="coach-archived-grid" id="archivedGrid">${archivedCards}</div>
       </div>`;
+  }
+
+  // First-run empty state — no clients at all (and not just filtered out)
+  if (allClients.length === 0 && !searchQuery) {
+    const emptyHtml = `
+      <div class="coach-empty-state">
+        <div class="coach-empty-icon">🏋️</div>
+        <div class="coach-empty-title">Add your first client</div>
+        <div class="coach-empty-sub">Build their program, track workouts, and message them — all from here.</div>
+        <button class="coach-empty-cta" onclick="startOnboarding()">+ Add Client</button>
+        <div class="coach-empty-hint">Clients log in with a 4-digit PIN you'll generate during setup.</div>
+      </div>`;
+    document.getElementById('coachContent').innerHTML = headerHtml + emptyHtml;
+    return;
   }
 
   const groupsHtml =
@@ -781,6 +845,9 @@ function getISOWeek(d) {
 
 /* ── MILESTONES TAB RENDERER ── */
 function renderMilestones(c) {
+  // Reconcile any unlocks from logs that were added without going through
+  // the workout/tabata/fitness handlers (e.g. Apple Shortcut imports, coach manual entries).
+  try { checkMilestones(c); } catch(_) {}
   const unlocked = getUnlockedMilestones(c.id);
   const logs = getFitnessLogs(c.id);
   const totalSessions = logs.length;

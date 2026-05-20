@@ -384,6 +384,11 @@ function tabataStart(workoutId, cid) {
     paused: false,
     interval: null,
     startedAt: Date.now(),
+    // Absolute deadline for the current segment. Source of truth for
+    // timeLeft — every tick recomputes from this so the timer stays
+    // accurate even when iOS throttles us or the screen sleeps.
+    segmentEndAt: Date.now() + sequence[0].duration * 1000,
+    pausedRemaining: null, // ms left at the moment we paused
   };
 
   // Set up UI
@@ -407,21 +412,43 @@ function tabataStart(workoutId, cid) {
   tabataTick();
 }
 
+// One-time install: when the page becomes visible again, snap the timer
+// readout to the real remaining time without waiting for the next tick.
+// Fires only if a tabata is actually running.
+if (typeof window !== 'undefined' && !window._tabataVisInstalled) {
+  document.addEventListener('visibilitychange', () => {
+    const st = AppState.tabataState;
+    if (document.hidden || !st || st.paused) return;
+    const msLeft = st.segmentEndAt - Date.now();
+    const newSec = Math.max(0, Math.ceil(msLeft / 1000));
+    st.timeLeft = newSec;
+    tabataRender();
+    if (msLeft <= 0) tabataAdvance();
+  });
+  window._tabataVisInstalled = true;
+}
+
 function tabataTick() {
   if (!AppState.tabataState) return;
   if (AppState.tabataState.interval) clearInterval(AppState.tabataState.interval);
+  // Tick fast (200ms) so countdown stays smooth and the page catches up
+  // quickly after a missed-tick gap. Per-second audio cues only fire when
+  // we actually cross a second boundary (tracked via timeLeft change).
   AppState.tabataState.interval = setInterval(() => {
-    if (AppState.tabataState.paused) return;
-    AppState.tabataState.timeLeft--;
-    if (AppState.tabataState.timeLeft <= 0) {
-      tabataAdvance();
-    } else {
-      // Play per-second audio cues
-      var seg = AppState.tabataState.sequence[AppState.tabataState.currentIdx];
-      tabataSoundForSegment(seg, AppState.tabataState.timeLeft);
+    const st = AppState.tabataState;
+    if (!st || st.paused) return;
+    const msLeft = st.segmentEndAt - Date.now();
+    const newSec = Math.max(0, Math.ceil(msLeft / 1000));
+    if (newSec !== st.timeLeft) {
+      st.timeLeft = newSec;
       tabataRender();
+      if (newSec > 0) {
+        var seg = st.sequence[st.currentIdx];
+        tabataSoundForSegment(seg, newSec);
+      }
     }
-  }, 1000);
+    if (msLeft <= 0) tabataAdvance();
+  }, 200);
 }
 
 function tabataAdvance() {
@@ -436,6 +463,7 @@ function tabataAdvance() {
     return;
   }
   AppState.tabataState.timeLeft = nextSeg.duration;
+  AppState.tabataState.segmentEndAt = Date.now() + nextSeg.duration * 1000;
   tabataRender();
 }
 
@@ -494,28 +522,34 @@ function tabataRender() {
 }
 
 function tabataTogglePause() {
-  if (!AppState.tabataState) return;
-  AppState.tabataState.paused = !AppState.tabataState.paused;
-  const btn      = document.getElementById('tabataPauseBtn');
-  const phaseEl  = document.getElementById('tabataPhase');
-  if (AppState.tabataState.paused) {
+  const st = AppState.tabataState;
+  if (!st) return;
+  st.paused = !st.paused;
+  const btn     = document.getElementById('tabataPauseBtn');
+  const phaseEl = document.getElementById('tabataPhase');
+  if (st.paused) {
+    // Freeze remaining time so resuming preserves the exact seconds left
+    st.pausedRemaining = Math.max(0, st.segmentEndAt - Date.now());
     if (btn) { btn.textContent = 'Resume'; btn.classList.add('paused'); }
     if (phaseEl) { phaseEl.textContent = '— PAUSED —'; phaseEl.style.color = 'var(--muted)'; }
   } else {
+    // Shift the deadline forward by however long we sat paused
+    if (st.pausedRemaining != null) {
+      st.segmentEndAt = Date.now() + st.pausedRemaining;
+      st.pausedRemaining = null;
+    }
     if (btn) { btn.textContent = 'Pause'; btn.classList.remove('paused'); }
     tabataRender();
   }
 }
 
 function tabataStop() {
-  // Pause immediately so interval doesn't fire during prompt
+  // Pause cleanly (preserve deadline) while the confirm dialog is up
   const wasPaused = AppState.tabataState?.paused;
-  if (AppState.tabataState && !AppState.tabataState.paused) {
-    AppState.tabataState.paused = true;
-  }
+  if (AppState.tabataState && !AppState.tabataState.paused) tabataTogglePause();
   if (!confirm('End this Tabata workout?')) {
-    // Unpause if they cancel and weren't paused before
-    if (AppState.tabataState && !wasPaused) AppState.tabataState.paused = false;
+    // Cancel — resume only if they weren't already paused before
+    if (AppState.tabataState && !wasPaused) tabataTogglePause();
     return;
   }
   tabataClose();
