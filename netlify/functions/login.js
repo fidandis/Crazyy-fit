@@ -19,10 +19,26 @@
  *           { error } on failure (401)
  */
 
+// Zero-dependency: uses only Node built-ins + global fetch (Node 18+).
+// This lets the function deploy via Netlify drag-and-drop, which does NOT
+// run `npm install`.
 const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
 
 const TOKEN_TTL_HOURS = 24 * 14; // 14-day sessions
+
+// Minimal Supabase REST helpers (replace @supabase/supabase-js)
+async function sbRest(supabaseUrl, supabaseKey, path, opts = {}) {
+  const r = await fetch(supabaseUrl + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      apikey:        supabaseKey,
+      Authorization: 'Bearer ' + supabaseKey,
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
+  });
+  return r;
+}
 
 function sha256(s) {
   return crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
@@ -106,11 +122,11 @@ exports.handler = async (event) => {
   // SHA-256 hashed (length 64) or plaintext (legacy rows) — and
   // re-hash plaintext on successful login.
   if (role === 'client') {
-    const sb = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
-    const { data, error } = await sb.from('clients').select('id, name, pin');
-    if (error) {
+    const lookup = await sbRest(supabaseUrl, supabaseKey, 'clients?select=id,name,pin');
+    if (!lookup.ok) {
       return { statusCode: 500, body: JSON.stringify({ error: 'Lookup failed' }) };
     }
+    const data = await lookup.json().catch(() => []);
     const pinPlain  = String(pin);
     const pinHashed = sha256(pinPlain);
     const match = (data || []).find(c =>
@@ -121,7 +137,10 @@ exports.handler = async (event) => {
     }
     // Upgrade plaintext PIN to hashed on first auth'd use
     if (match.pin && match.pin.length !== 64) {
-      await sb.from('clients').update({ pin: pinHashed }).eq('id', match.id);
+      await sbRest(supabaseUrl, supabaseKey, 'clients?id=eq.' + encodeURIComponent(match.id), {
+        method: 'PATCH',
+        body: JSON.stringify({ pin: pinHashed }),
+      });
     }
     _resetAttempts(ip);
     const token = signToken({ role: 'client', cid: match.id, exp }, secret);
