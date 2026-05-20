@@ -1,0 +1,12 @@
+{
+  "name": "crazyy-fit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Crazyy Fit — coaching PWA + Netlify Functions",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "resend": "^3.5.0",
+    "stripe": "^14.21.0",
+    "web-push": "^3.6.7"
+  }
+}
