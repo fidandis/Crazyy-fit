@@ -329,7 +329,7 @@ function renderHabitTracker(c) {
   const pct = Math.round((done/HABITS.length)*100);
   let html = `<div class="chart-card" style="margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px">${new Date().toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'})}</div>
+      <div style="font-family:var(--display);font-size:20px">${new Date().toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'})}</div>
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:${done===HABITS.length?c.accent:'var(--muted)'}">
         ${done}/${HABITS.length} done
       </div>
@@ -689,7 +689,7 @@ function renderMonthlySummary(c) {
   const wtEnd   = wtsMonth[wtsMonth.length-1]?.weight || null;
   const wtChange = wtStart && wtEnd ? (wtEnd - wtStart).toFixed(1) : null;
   const prList  = Object.entries(prs).slice(0,5);
-  let html = `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;padding:4px 0 16px">${mName} Summary</div>`;
+  let html = `<div style="font-family:var(--display);font-size:22px;letter-spacing:1px;padding:4px 0 16px">${mName} Summary</div>`;
   html += `<div class="summary-grid">
     <div class="summary-stat"><div class="summary-stat-val" style="color:${c.accent}">${logs.length}</div><div class="summary-stat-lbl">Workouts</div></div>
     <div class="summary-stat"><div class="summary-stat-val" style="color:#ff6b35">${totalCal > 0 ? Math.round(totalCal/1000)+'k' : '—'}</div><div class="summary-stat-lbl">Kcal Burned</div></div>
@@ -774,7 +774,7 @@ function renderProgressCharts(c) {
     const diff = (end.weight - start.weight).toFixed(1);
     const diffCol = diff < 0 ? '#2ecc71' : diff > 0 ? '#e74c3c' : 'var(--muted)';
     html += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${c.accent}">${end.weight} <span style="font-size:14px;color:var(--muted)">lbs</span></div>
+      <div style="font-family:var(--display);font-size:28px;color:${c.accent}">${end.weight} <span style="font-size:14px;color:var(--muted)">lbs</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:${diffCol}">${diff > 0 ? '+' : ''}${diff} lbs since start</div>
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;overflow:visible">
@@ -800,7 +800,7 @@ function renderProgressCharts(c) {
 
   html += `<div class="chart-card"><div class="chart-title">XP Progress</div>
     <div style="text-align:center;padding:14px 0">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;color:${lvl.current.color}">${xp.toLocaleString()}</div>
+      <div style="font-family:var(--display);font-size:48px;letter-spacing:2px;color:${lvl.current.color}">${xp.toLocaleString()}</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px">${lvl.current.tier} · Level ${lvl.current.level}</div>
       <div style="background:var(--surface2);border-radius:6px;height:10px;overflow:hidden;margin:12px 20px">
         <div style="height:100%;width:${lvl.pct}%;background:${lvl.current.color};border-radius:6px;transition:width .6s"></div>
@@ -1111,7 +1111,7 @@ function addMealItem(cid, day, slot) {
   modal.className = 'app-overlay app-overlay--dim';
   modal.style.zIndex = '3000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:480px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:16px">Add Food — ${slot}</div>
+    <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;margin-bottom:16px">Add Food — ${slot}</div>
     <div class="ob-field"><label class="ob-label">Food Item</label>
       <input class="ob-input" id="mi-name" type="text" placeholder="e.g. Chicken breast 150g" autofocus></div>
     <div class="ob-input-row" style="margin-top:10px">
@@ -1201,7 +1201,7 @@ function renderCheckin(c) {
 
   // Check-in form
   html += `<div class="checkin-card">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:16px;color:var(--text)">Weekly Check-In</div>`;
+    <div style="font-family:var(--display);font-size:20px;letter-spacing:2px;margin-bottom:16px;color:var(--text)">Weekly Check-In</div>`;
 
   const questions = [
     ['sleep',    'Sleep Quality',      '😴', '1 = terrible · 5 = great'],
@@ -1445,22 +1445,22 @@ function renderCalendar(c) {
   html += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">CURRENT STREAK</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:${streak>=3?'#ff6b35':'var(--text)'}">${streak}<span style="font-size:11px;color:var(--muted);margin-left:4px;letter-spacing:1px">DAY${streak===1?'':'S'}</span></div>
+      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:${streak>=3?'#ff6b35':'var(--text)'}">${streak}<span style="font-size:11px;color:var(--muted);margin-left:4px;letter-spacing:1px">DAY${streak===1?'':'S'}</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">Best: ${bestStreak}</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">ADHERENCE</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:${adhColor}">${adh}%</div>
+      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:${adhColor}">${adh}%</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${scheduledLogged} of ${scheduledTraining} planned</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">SESSIONS</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--text)">${sessionsThisMonth}</div>
+      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:var(--text)">${sessionsThisMonth}</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">this month</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TOTAL SETS</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--text)">${setsThisMonth}</div>
+      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:var(--text)">${setsThisMonth}</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${topMuscle ? 'Top: ' + esc(topMuscle[0]) : 'this month'}</div>
     </div>
   </div>`;
@@ -1515,7 +1515,7 @@ function openCalDayDetail(cid, dateISO) {
     }
   } catch (_) {}
 
-  let body = `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:4px">${dayLabel} — ${date.toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
+  let body = `<div style="font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:4px">${dayLabel} — ${date.toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
   <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:16px">${dateStr}</div>`;
 
   // Scheduled workout
@@ -1870,7 +1870,7 @@ function openAddExerciseModal(cid, dayId, blockIdx) {
     <div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column">
       <div style="padding:28px 24px 0;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px">Add Exercise</div>
+          <div style="font-family:var(--display);font-size:22px;letter-spacing:2px">Add Exercise</div>
           <button onclick="document.getElementById('addExModal').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
         </div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch">${chipHtml}</div>
@@ -2172,7 +2172,7 @@ function openBroadcast() {
   modal.className = 'app-overlay app-overlay--dark';
   modal.style.zIndex = '4000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px;color:#e8ff47">📢 Broadcast Message</div>
+    <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;margin-bottom:4px;color:#e8ff47">📢 Broadcast Message</div>
     <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">Sent to ALL clients on their home screen</div>
     <textarea id="broadcastInput" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:14px;min-height:100px;font-family:'DM Sans',sans-serif;resize:vertical" maxlength="300" placeholder="e.g. Gym closed Saturday — see you Monday!">${esc(cur)}</textarea>
     <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;text-align:right" id="bcCharCount">${cur.length}/300</div>

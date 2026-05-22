@@ -750,7 +750,7 @@ function _nutrRing(val, target, label, unit, color) {
         stroke-dasharray="${circ}" stroke-dashoffset="${off}"
         stroke-linecap="round" transform="rotate(-90 42 42)" style="color:${color}"/>
       <text x="42" y="40" text-anchor="middle" dominant-baseline="middle"
-        font-family="'Bebas Neue',sans-serif" font-size="16" fill="${color}">${esc(disp)}</text>
+        font-family="var(--display)" font-size="16" fill="${color}">${esc(disp)}</text>
       <text x="42" y="55" text-anchor="middle" dominant-baseline="middle"
         font-family="'DM Mono',monospace" font-size="7" fill="var(--muted)">${esc(unit)}</text>
     </svg>
@@ -961,7 +961,7 @@ function openMealTargetModal(cid) {
   modal.id = 'nutrMealTargetModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Targets</div>
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Targets</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Set per-meal calorie goals (0 = no target).</div>
     ${['breakfast','lunch','dinner','snacks'].map(m => `
     <div class="ob-field" style="margin-bottom:10px">
@@ -1029,7 +1029,7 @@ function _nutrWeeklyBalance(cid, baseCal, accent) {
         <div class="nutr-targets-sub">${daysLogged} of 7 days logged</div>
       </div>
       <div style="text-align:right">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${balColor}">${balSign}${Math.abs(balance).toLocaleString()} kcal</div>
+        <div style="font-family:var(--display);font-size:22px;color:${balColor}">${balSign}${Math.abs(balance).toLocaleString()} kcal</div>
         <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px">${balLabel}</div>
       </div>
     </div>
@@ -1126,7 +1126,7 @@ function openMonthlyReport(cid, calTarget, accent) {
     <div style="padding:18px 18px 0">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px">${esc(monthName)}</div>
+          <div style="font-family:var(--display);font-size:24px;letter-spacing:1px">${esc(monthName)}</div>
           <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">${loggedDays} of ${elapsed} days logged</div>
         </div>
         <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px">&times;</button>
@@ -1135,12 +1135,12 @@ function openMonthlyReport(cid, calTarget, accent) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div style="background:var(--surface2);border-radius:8px;padding:12px">
           <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG CALORIES</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent}">${avgCal || '—'}</div>
+          <div style="font-family:var(--display);font-size:28px;color:${accent}">${avgCal || '—'}</div>
           ${calTarget ? `<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">target: ${calTarget}</div>` : ''}
         </div>
         <div style="background:var(--surface2);border-radius:8px;padding:12px">
           <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">LOG STREAK</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#f1c40f">${streak}d</div>
+          <div style="font-family:var(--display);font-size:28px;color:#f1c40f">${streak}d</div>
           <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">consecutive days</div>
         </div>
       </div>
@@ -1198,7 +1198,7 @@ function openNutrRemindersModal(cid) {
   modal.id = 'nutrRemindersModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Reminders</div>
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Reminders</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Push notifications when app is open. Works on Android; iOS requires app installed to home screen.</div>
     ${['breakfast','lunch','dinner'].map(m => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
@@ -1604,7 +1604,7 @@ function openNutrSearch(cid, meal, date) {
     <div class="nutr-search-sheet">
       <div class="nutr-search-top">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">Add Food</div>
+          <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Add Food</div>
           <button class="nutr-barcode-btn" onclick="openNutrBarcodeScanner()" title="Scan barcode">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/>
@@ -1767,7 +1767,7 @@ function openQuickAddKcal(cid, meal, date) {
   modal.id = 'nutrQuickAddModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">Quick Add</div>
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Quick Add</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Log calories without a food name. Macros optional.</div>
     <div class="ob-field" style="margin-bottom:10px">
       <label class="ob-label">Calories</label>
@@ -1903,7 +1903,7 @@ function _openWeightModal(food, foodId) {
   popup.id = 'nutrQtyModal';
   popup.style.cssText = 'position:fixed;inset:0;z-index:4100;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   popup.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px">${esc(food.name)}</div>
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">${esc(food.name)}</div>
     ${food.brand ? `<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${esc(food.brand)}</div>` : ''}
     <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">${perLabel}: ${food.cal} kcal · ${food.p}g P · ${food.c}g C · ${food.f}g F</div>
     <div style="margin-bottom:6px">
@@ -2036,7 +2036,7 @@ function openNutrCustomFood(mode, barcode) {
 
   modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px 28px;width:100%;max-width:500px;box-sizing:border-box;max-height:90vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">Custom Food</div>
+      <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Custom Food</div>
       <div style="display:flex;gap:6px">
         <button onclick="openNutrCustomFood('manual')" style="${tabStyle('manual')}">Manual</button>
         <button onclick="openNutrCustomFood('recipe')" style="${tabStyle('recipe')}">Recipe</button>
@@ -2387,7 +2387,7 @@ function openNutrBarcodeManual() {
   modal.id = 'nutrBarcodeModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4300;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px">Enter Barcode</div>
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:8px">Enter Barcode</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Type the barcode digits from your product.</div>
     <input class="fit-input" id="nutrBarcodeInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 3017620422003" style="font-size:16px;letter-spacing:1px;margin-bottom:14px" autofocus>
     <div id="nutrBarcodeStatus" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;min-height:14px"></div>
@@ -2437,7 +2437,7 @@ function openNutrBarcodeCameraScanner() {
   modal.style.cssText = 'position:fixed;inset:0;z-index:4400;background:#000;display:flex;flex-direction:column';
   modal.innerHTML = `
     <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.6)">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#fff">Scan Barcode</div>
+      <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;color:#fff">Scan Barcode</div>
       <button onclick="closeNutrBarcodeCam()" style="background:none;border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:0 8px">×</button>
     </div>
     <div style="flex:1;position:relative;overflow:hidden">

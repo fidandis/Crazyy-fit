@@ -18,11 +18,14 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Root → landing page
+# Root → landing page.
+# force = true is required: pwa/index.html is the directory index for "/",
+# and without force Netlify serves that static file instead of this rewrite.
 [[redirects]]
   from = "/"
   to = "/landing.html"
   status = 200
+  force = true
 
 # /login and /app → the PWA
 [[redirects]]

@@ -411,7 +411,7 @@ function buildActivityFeed(clients) {
 
   return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:0 16px 16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text)">Recent Activity <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">— last 48h</span></div>
+      <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;color:var(--text)">Recent Activity <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">— last 48h</span></div>
       <button onclick="triggerWeeklyDigest()" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;background:rgba(255,107,53,.1);color:#ff6b35;border:1px solid rgba(255,107,53,.3);border-radius:6px;padding:3px 8px;cursor:pointer">📧 Send Digest</button>
     </div>
     ${rows}
@@ -477,9 +477,9 @@ function renderCoachDashboard() {
       return `
         <div class="archived-card">
           <div class="archived-card-header">
-            <div class="coach-avatar" style="background:${c.avatarBg||'#222'};color:${c.avatarColor||'#888'};width:36px;height:36px;font-size:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;flex-shrink:0">${c.initials||'??'}</div>
+            <div class="coach-avatar" style="background:${c.avatarBg||'#222'};color:${c.avatarColor||'#888'};width:36px;height:36px;font-size:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);flex-shrink:0">${c.initials||'??'}</div>
             <div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--muted)">${c.name||'Unknown'}</div>
+              <div style="font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--muted)">${c.name||'Unknown'}</div>
               <div class="archived-badge">Archived</div>
             </div>
           </div>
@@ -892,7 +892,7 @@ function renderMilestones(c) {
           <div style="display:flex;align-items:center;gap:14px">
             <div style="font-size:32px">${next.emoji}</div>
             <div style="flex:1">
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px">${next.title}</div>
+              <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;margin-bottom:4px">${next.title}</div>
               <div style="display:flex;align-items:center;gap:8px">
                 <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
                   <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;transition:width .6s ease"></div>

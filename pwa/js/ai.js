@@ -551,7 +551,7 @@ function renderBadgesInCard(cid) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   overlay.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:24px 20px 32px;max-height:80vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">${esc(c.name)}'s Badges</div>
+      <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">${esc(c.name)}'s Badges</div>
       <button onclick="this.closest('[style]').remove()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer">✕</button>
     </div>
     ${earned.length === 0 ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">No badges unlocked yet.</div>` : `
@@ -1914,7 +1914,7 @@ function openLeads() {
       }).join('');
   modal.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#ff6b35">📥 Signup Leads</div>
+      <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;color:#ff6b35">📥 Signup Leads</div>
       <button class="ob-back-btn" onclick="document.getElementById('leadsModal').remove()">Close</button>
     </div>
     ${leadsHtml}
@@ -2142,7 +2142,7 @@ function openScheduleDayDetail(cid, dayLabel) {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">${esc(dayLabel)}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:${isRest ? 'var(--muted)' : c.accent};line-height:1.1;margin-top:2px">${esc(schedDay.title)}</div>
+          <div style="font-family:var(--display);font-size:26px;letter-spacing:1px;color:${isRest ? 'var(--muted)' : c.accent};line-height:1.1;margin-top:2px">${esc(schedDay.title)}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${esc(schedDay.sub || '')}</div>
           ${editBtn}
         </div>
@@ -2893,7 +2893,7 @@ function openSBSettings() {
   modal.className = 'terminate-backdrop open';
   const tokenOk = !!getAuthToken();
   modal.innerHTML = `<div class="terminate-modal">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Cloud Sync</div>
+    <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Cloud Sync</div>
     <div style="background:var(--surface2);border:1px solid ${tokenOk ? '#2ecc71' : '#e74c3c'}55;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px">
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">STATUS</div>
       <div style="color:${tokenOk ? '#2ecc71' : '#e74c3c'};font-weight:600">${tokenOk ? '● Authenticated — sync active' : '○ Not authenticated — log in again'}</div>
@@ -3224,7 +3224,7 @@ function _renderAiWorkoutResult(w, cid, logged) {
 
   return `
     <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px">${esc(w.title || 'Today\'s Session')}</div>
+      <div style="font-family:var(--display);font-size:24px;letter-spacing:1px;margin-bottom:4px">${esc(w.title || 'Today\'s Session')}</div>
       ${w.summary ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px">${esc(w.summary)}</div>` : ''}
       ${blocksHtml}
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">

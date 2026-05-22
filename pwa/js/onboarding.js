@@ -510,7 +510,7 @@ function renderObStep0() {
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">BODY FAT %</div>
-            <div id="ob-bf-pct" style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;line-height:1"></div>
+            <div id="ob-bf-pct" style="font-family:var(--display);font-size:36px;letter-spacing:1px;line-height:1"></div>
             <div id="ob-bf-cat" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;margin-top:2px"></div>
           </div>
           <div style="text-align:right">
@@ -1480,7 +1480,7 @@ function _showPinOverlay(name, pin, isNew) {
   ov.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 24px;max-width:320px;width:90%;text-align:center">
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">${esc(label)}</div>
-      <div id="_pinDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(pin)}</div>
+      <div id="_pinDisplay" style="font-family:var(--display);font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(pin)}</div>
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:20px">${esc(sub)}</div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button onclick="navigator.clipboard?.writeText('${esc(pin)}').then(()=>showFitToast('PIN copied!')).catch(()=>showFitToast('${esc(pin)}'))" style="background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;letter-spacing:1px">Copy PIN</button>

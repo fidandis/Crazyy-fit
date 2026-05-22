@@ -1236,7 +1236,7 @@ function openGoalsModal(cid) {
   div.innerHTML = `
     <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">Goals — ${esc(c.name)}</div>
+        <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Goals — ${esc(c.name)}</div>
         <button onclick="closeGoalsModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">✕</button>
       </div>
       <div class="goals-modal-scroll">${listHtml}</div>
