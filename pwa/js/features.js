@@ -1788,7 +1788,7 @@ function openExerciseSwap(cid, exIdx, context, dayId, blockIdx) {
   overlay.id = 'exSwapModal';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
-  const muscles = ['All','Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility'];
+  const muscles = ['All','Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility','Custom'];
   const chipHtml = muscles.map(m => `<button class="ex-swap-chip${m==='All'?' active':''}" onclick="filterExerciseByMuscle('${m}',this)">${m}</button>`).join('');
 
   overlay.innerHTML = `
@@ -1818,7 +1818,7 @@ let _exSwapItems = []; // lookup table so onclick can use a safe numeric index
 function buildExSwapList(query) {
   const q = query.toLowerCase().trim();
   const muscleFilter = typeof _exSwapMuscleFilter !== 'undefined' ? _exSwapMuscleFilter : 'All';
-  _exSwapItems = EXERCISE_DB.filter(e => {
+  _exSwapItems = getPickerMovements().filter(e => {
     const matchesMuscle = muscleFilter === 'All' || e.muscle === muscleFilter;
     const matchesQuery  = !q || e.name.toLowerCase().includes(q) || e.muscle.toLowerCase().includes(q);
     return matchesMuscle && matchesQuery;
@@ -1864,7 +1864,7 @@ function openAddExerciseModal(cid, dayId, blockIdx) {
   modal.id = 'addExModal';
   modal.className = 'app-overlay';
   modal.style.zIndex = '4000';
-  const muscles = ['All','Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility'];
+  const muscles = ['All','Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility','Custom'];
   const chipHtml = muscles.map(m => `<button class="ex-swap-chip${m==='All'?' active':''}" onclick="filterAddExByMuscle('${m}',this)">${m}</button>`).join('');
   modal.innerHTML = `
     <div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column">
@@ -1909,7 +1909,7 @@ function openAddExerciseModal(cid, dayId, blockIdx) {
 }
 
 function fillAddExDefaults(name) {
-  const match = EXERCISE_DB.find(e => e.name.toLowerCase() === name.toLowerCase());
+  const match = getPickerMovements().find(e => e.name.toLowerCase() === name.toLowerCase());
   if (!match) return;
   const setsEl = document.getElementById('addExSets');
   const repsEl = document.getElementById('addExReps');
@@ -1922,7 +1922,7 @@ let _addExPickerItems = [];
 
 function buildAddExPickerList(query) {
   const q = query.toLowerCase().trim();
-  _addExPickerItems = EXERCISE_DB.filter(e => {
+  _addExPickerItems = getPickerMovements().filter(e => {
     const matchesMuscle = _addExMuscleFilter === 'All' || e.muscle === _addExMuscleFilter;
     const matchesQuery  = !q || e.name.toLowerCase().includes(q) || e.muscle.toLowerCase().includes(q);
     return matchesMuscle && matchesQuery;
@@ -1994,6 +1994,9 @@ function saveAddedExercise(cid, dayId, blockIdx) {
   const blk = wDay.blocks[blockIdx] || wDay.blocks[0];
   if (!blk.exercises) blk.exercises = [];
   blk.exercises.push({ name, sets, reps, rest, note });
+
+  // Save brand-new movements to the coach's library so they're reusable later.
+  autoSaveCustomMovement({ name, sets, reps, note });
 
   updateDynamicClient(cid, c);
   sbAutoSync(cid);

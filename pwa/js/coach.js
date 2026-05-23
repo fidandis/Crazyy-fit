@@ -99,6 +99,9 @@ async function coachSilentRefresh() {
       pin:         row.pin         || '',
       goal:        row.goal        || '',
       accent:      row.accent      || '#ff6b35',
+      initials:    clientInitials(row.name),
+      avatarBg:    (row.accent || '#ff6b35') + '22',
+      avatarColor: row.accent || '#ff6b35',
       programType: row.program_type || '',
       data:        safeJSON(row.data,        {}),
       _meta:       safeJSON(row.meta,        {}),
@@ -253,7 +256,7 @@ function buildClientCard(c) {
     return `
     <div class="coach-card" data-longpress="client:${esc(c.id)}" style="--cc-accent:${c.accent};opacity:${_isPaused?0.65:1};border-top:${_isPaused?'3px solid #f1c40f':''}">
       <div class="coach-card-header">
-        <div class="coach-avatar" style="background:${c.avatarBg};color:${c.avatarColor}">${c.initials}</div>
+        <div class="coach-avatar" style="background:${c.avatarBg || (c.accent || '#ff6b35') + '22'};color:${c.avatarColor || c.accent || '#ff6b35'}">${c.initials || clientInitials(c.name)}</div>
         <div style="flex:1">
           <div class="coach-client-name">${esc(c.name)}${_unreadMsgs > 0 ? '' : ''}</div>
           <div class="coach-client-goal">${esc(c.goal)}</div>

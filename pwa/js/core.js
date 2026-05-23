@@ -23,6 +23,14 @@ const COACH = {
 
 const CLIENTS = [];
 
+/* Derive avatar initials from a display name (e.g. "Nick Fidandis" -> "NF"). */
+function clientInitials(name) {
+  if (!name) return '??';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return (parts[0] || '').slice(0, 2).toUpperCase() || '??';
+}
+
 /* ══════════════════════════════════════════════════════════════
    APP STATE — Centralized state management (prevents global pollution)
 ══════════════════════════════════════════════════════════════ */
@@ -561,6 +569,9 @@ async function _hydrateClientFromCloud(cid) {
       pin:         row.pin || '',
       goal:        row.goal || '',
       accent:      row.accent || '#ff6b35',
+      initials:    clientInitials(row.name),
+      avatarBg:    (row.accent || '#ff6b35') + '22',
+      avatarColor: row.accent || '#ff6b35',
       programType: row.program_type || '',
       data:        safeJSON(row.data, {}),
       _meta:       safeJSON(row.meta, {}),
@@ -1622,7 +1633,26 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   }
 
   // For a new session, inputs are blank; use previous session data only as reference
-  const activeData  = isNewSession ? null : saved;
+  let activeData  = isNewSession ? null : saved;
+
+  // Repeat-last-week auto-fill: on a brand-new session, if a dated repeat plan
+  // is still live, pre-fill this session from its template (unchecked). Once the
+  // plan's window has passed, clean it up.
+  if (isNewSession) {
+    const _rep = getWlRepeat(cid, dayId);
+    if (wlRepeatActive(_rep)) {
+      _wlApplyTemplate(cid, dayId, _rep.template, exercises);
+      const _filled = getWlData(cid, dayId);
+      // Drop any stale _countedDate so this filled session reads as today's
+      // in-progress work next render — prevents the template re-applying over
+      // edits the user makes before they check a set.
+      if (_filled._countedDate) { delete _filled._countedDate; saveWlData(cid, dayId, _filled); }
+      activeData = _filled; // render the now-filled live session
+    } else if (_rep && _rep.expiresAt) {
+      saveWlRepeat(cid, dayId, null);
+    }
+  }
+
   // Previous session: hist[0] if new session and saved exists, otherwise hist[0] from history
   const hist = getWlHistory(cid, dayId);
   const prevSession = isNewSession
@@ -1713,6 +1743,22 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   const prevLabel = isNewSession && prevDateStr
     ? `<div class="wl-prev-session-label">↑ Last session: ${prevDateStr}</div>`
     : '';
+
+  // Repeat-last-week control: an active plan shows a status banner; otherwise a
+  // button appears whenever there is a previous session to copy from.
+  const _repPlan = getWlRepeat(cid, dayId);
+  const _repLive = wlRepeatActive(_repPlan);
+  let repeatUi = '';
+  if (_repLive) {
+    const _wkLeft = Math.max(1, Math.ceil((new Date(_repPlan.expiresAt).getTime() - Date.now()) / (7*24*60*60*1000)));
+    const _until = new Date(_repPlan.expiresAt).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+    repeatUi = `<div class="wl-repeat-banner">
+      <span><span class="wl-repeat-ic">↻</span> Repeating movement list · ${_wkLeft} wk${_wkLeft!==1?'s':''} left · until ${_until}</span>
+      <button onclick="wlCancelRepeat('${cid}','${dayId}')">Cancel</button>
+    </div>`;
+  } else if (prevSession && prevSession.exercises && Object.keys(prevSession.exercises).length) {
+    repeatUi = `<button class="wl-repeat-btn" onclick="wlRepeatLastWeek('${cid}','${dayId}')"><span class="wl-repeat-ic">↻</span> Repeat Last Week</button>`;
+  }
   return `
     <button class="wl-toggle-btn ${hasSaved?'active':''}" id="wl-toggle-${cid}-${dayId}"
       onclick="toggleWorkoutLogger('${cid}','${dayId}')">
@@ -1732,6 +1778,7 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
         <div class="wl-progress-track"><div class="wl-progress-fill" id="wl-prog-fill-${cid}-${dayId}" style="width:0%"></div></div>
       </div>
       ${prevLabel}
+      ${repeatUi}
       ${exBlocks}
       <div class="wl-notes-row">
         <div class="wl-notes-label">Session Notes</div>

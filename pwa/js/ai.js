@@ -647,7 +647,62 @@ function shareMilestone() {
 
 /* ── MOVEMENT LIBRARY ────────────────────────────────────────── */
 function getMovementLibrary() { return getLS('movement_library', []); }
-function saveMovementLibrary(lib) { localStorage.setItem('movement_library', JSON.stringify(lib)); }
+function getMovementLibraryAt() { return localStorage.getItem('movement_library_at') || ''; }
+function saveMovementLibrary(lib) {
+  localStorage.setItem('movement_library', JSON.stringify(lib));
+  // Stamp the change so cloud sync can resolve newest-wins across devices.
+  localStorage.setItem('movement_library_at', new Date().toISOString());
+}
+
+// Map a freeform muscle-group string onto a known picker bucket, else "Custom".
+function _normalizeMuscle(raw) {
+  if (!raw) return 'Custom';
+  const known = ['Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Core','Full Body','Cardio','Mobility'];
+  const first = String(raw).split(/[,/]/)[0].trim().toLowerCase();
+  return known.find(m => m.toLowerCase() === first) || 'Custom';
+}
+
+// Built-in exercises plus the coach's saved/custom movements, normalised into the
+// picker shape ({name,muscle,sets,reps}) and deduped by name (built-ins win).
+function getPickerMovements() {
+  const seen = new Set(EXERCISE_DB.map(e => e.name.toLowerCase()));
+  const extra = getMovementLibrary()
+    .filter(e => e && e.name && !seen.has(e.name.toLowerCase()))
+    .map(e => ({
+      name: e.name,
+      muscle: _normalizeMuscle(e.muscleGroups),
+      // Picker templates append " sets", so keep just the leading number here.
+      sets: (String(e.sets || '').match(/\d+/) || ['3'])[0],
+      reps: e.reps || '10–12',
+      _custom: true,
+    }));
+  return EXERCISE_DB.concat(extra);
+}
+
+// Persist a newly typed movement to the coach's library so it's reusable in the
+// pickers next time. No-op if it already exists as a built-in or saved entry.
+function autoSaveCustomMovement(ex) {
+  if (!ex || !ex.name) return;
+  const lc = ex.name.trim().toLowerCase();
+  if (!lc) return;
+  if (EXERCISE_DB.some(e => e.name.toLowerCase() === lc)) return;
+  const lib = getMovementLibrary();
+  if (lib.some(e => e.name && e.name.toLowerCase() === lc)) return;
+  lib.push({
+    id: 'lib_' + Date.now(),
+    name: ex.name.trim(),
+    muscleGroups: '',
+    equipment: '',
+    videoUrl: '',
+    coachNotes: ex.note || '',
+    sets: ex.sets || '',
+    reps: ex.reps || '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    _auto: true,
+  });
+  saveMovementLibrary(lib);
+}
 
 function openMovementLibrary() {
   AppState._librarySearch = '';
@@ -2465,10 +2520,13 @@ function _sbAutoSyncFlush(cid) {
   if (c) {
     // Embed per-client data into the blob so it survives on a new device
     const _wlHist = {};
+    const _wlRepeat = {};
     (c.data?.workouts?.days || []).forEach(d => {
       const dayId = d.id || d.label;
       const h = getWlHistory(cid, dayId);
       if (h.length) _wlHist[dayId] = h;
+      const r = getWlRepeat(cid, dayId);
+      if (r) _wlRepeat[dayId] = r;
     });
     const _nutr = _collectNutritionBlob(cid);
     const dataBlob = Object.assign({}, c.data || {}, {
@@ -2478,8 +2536,11 @@ function _sbAutoSyncFlush(cid) {
       _wtHistory:     getWtHistory(cid),
       _wtCurrent:     localStorage.getItem('wt_current_' + cid) || null,
       _wlHist,
+      _wlRepeat,
       _mealLog:       getMealLog(cid),
       _periodization: getPeriodization(cid),
+      _movementLibrary:   getMovementLibrary(),
+      _movementLibraryAt: getMovementLibraryAt(),
       _nutrDiary:     _nutr.diary,
       _waterLog:      _nutr.water,
       _customFoods:   _nutr.custom,
@@ -2548,10 +2609,13 @@ async function syncAllClients() {
   let ok = 0, fail = 0;
   for (const c of clients) {
     const _wlHistFull = {};
+    const _wlRepeatFull = {};
     (c.data?.workouts?.days || []).forEach(d => {
       const dayId = d.id || d.label;
       const h = getWlHistory(c.id, dayId);
       if (h.length) _wlHistFull[dayId] = h;
+      const r = getWlRepeat(c.id, dayId);
+      if (r) _wlRepeatFull[dayId] = r;
     });
     const _nutrFull = _collectNutritionBlob(c.id);
     const fullBlob = Object.assign({}, c.data || {}, {
@@ -2561,8 +2625,11 @@ async function syncAllClients() {
       _wtHistory:     getWtHistory(c.id),
       _wtCurrent:     localStorage.getItem('wt_current_' + c.id) || null,
       _wlHist:        _wlHistFull,
+      _wlRepeat:      _wlRepeatFull,
       _mealLog:       getMealLog(c.id),
       _periodization: getPeriodization(c.id),
+      _movementLibrary:   getMovementLibrary(),
+      _movementLibraryAt: getMovementLibraryAt(),
       _nutrDiary:     _nutrFull.diary,
       _waterLog:      _nutrFull.water,
       _customFoods:   _nutrFull.custom,
@@ -2716,6 +2783,27 @@ async function pullClientData(cid) {
             const local = getWlHistory(cid, dayId);
             if (hist.length > local.length) saveWlHistory(cid, dayId, hist);
           });
+        }
+        if (pulled._wlRepeat && typeof pulled._wlRepeat === 'object') {
+          Object.entries(pulled._wlRepeat).forEach(([dayId, plan]) => {
+            // Only keep plans whose window is still open; drop expired ones.
+            if (plan && plan.expiresAt && Date.now() < new Date(plan.expiresAt).getTime()) {
+              saveWlRepeat(cid, dayId, plan);
+            } else {
+              saveWlRepeat(cid, dayId, null);
+            }
+          });
+        }
+        // Movement Library (global, coach-level): newest-wins by timestamp so
+        // adds AND deletes converge across devices. Stored redundantly in every
+        // client blob; the timestamp guard makes the merge order-independent.
+        if (Array.isArray(pulled._movementLibrary)) {
+          const cloudAt = pulled._movementLibraryAt || '';
+          const localAt = getMovementLibraryAt();
+          if (cloudAt && (!localAt || cloudAt > localAt)) {
+            localStorage.setItem('movement_library', JSON.stringify(pulled._movementLibrary));
+            localStorage.setItem('movement_library_at', cloudAt);
+          }
         }
         if (pulled._mealLog && pulled._mealLog.length) {
           const local = getMealLog(cid);

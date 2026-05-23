@@ -230,6 +230,179 @@ function wlAddSet(cid, dayId, exIdx, totalEx) {
 function getWlHistory(cid, dayId) { return getLS('wl_hist_' + cid + '_' + dayId, []); }
 function saveWlHistory(cid, dayId, hist) { localStorage.setItem('wl_hist_' + cid + '_' + dayId, JSON.stringify(hist)); }
 
+/* ══════════════════════════════════════════════════════════════
+   REPEAT LAST WEEK
+   Carry every movement (incl. swaps/added exercises) + its weights
+   and reps forward into upcoming sessions, for a chosen number of
+   calendar weeks. Client- or coach-driven; plan syncs via the data
+   blob so it propagates across devices.
+══════════════════════════════════════════════════════════════ */
+const WK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function getWlRepeat(cid, dayId) { return getLS('wl_repeat_' + cid + '_' + dayId, null); }
+function saveWlRepeat(cid, dayId, plan) {
+  const key = 'wl_repeat_' + cid + '_' + dayId;
+  if (plan) localStorage.setItem(key, JSON.stringify(plan));
+  else localStorage.removeItem(key);
+}
+// A plan is live until its expiry date passes.
+function wlRepeatActive(plan) {
+  return !!(plan && plan.template && plan.expiresAt && Date.now() < new Date(plan.expiresAt).getTime());
+}
+
+// The most recent completed session for a day — history first, then the live
+// (possibly previous-day) session sitting in the working key.
+function _wlLastSession(cid, dayId) {
+  const hist = getWlHistory(cid, dayId);
+  if (hist && hist[0]?.exercises && Object.keys(hist[0].exercises).length) return hist[0];
+  const saved = getWlData(cid, dayId);
+  if (saved?.exercises && Object.keys(saved.exercises).length) return saved;
+  return null;
+}
+
+// Flat list of a day's prescribed exercises (across all blocks), in render order.
+function _wlDayExercises(cid, dayId) {
+  const c = getAllClients().find(cl => cl.id === cid);
+  const days = c?.data?.workouts?.days || [];
+  const d = days.find(x => x.id === dayId || x.label === dayId);
+  if (!d?.blocks) return [];
+  return d.blocks.reduce((acc, b) => b.exercises ? acc.concat(b.exercises) : acc, []);
+}
+
+// Distil a logged session into a repeat template: the MOVEMENT LIST only — each
+// slot's exercise name (incl. any swap). Weights/reps are intentionally dropped
+// so the upcoming sessions start blank.
+function _wlBuildTemplate(session) {
+  if (!session?.exercises) return null;
+  const exercises = {};
+  Object.entries(session.exercises).forEach(([idx, ex]) => {
+    if (ex && ex.name) exercises[idx] = { name: ex.name };
+  });
+  return Object.keys(exercises).length ? { exercises } : null;
+}
+
+// Apply a template's movement list to a day's live session. Only swaps and
+// added movements are written (as alt overrides with blank sets); prescribed
+// slots that match are left to the program. No weights/reps are filled.
+function _wlApplyTemplate(cid, dayId, template, programExercises) {
+  if (!template?.exercises) return;
+  const data = getWlData(cid, dayId) || { exercises: {} };
+  if (!data.exercises) data.exercises = {};
+  Object.entries(template.exercises).forEach(([idx, tex]) => {
+    const progName = programExercises?.[idx]?.name || '';
+    const name = tex.name || progName || '';
+    if (!name) return;
+    if (progName && name !== progName) {
+      // Swap from the prescribed movement — restore the alternate, blank sets.
+      data['alt_' + idx] = name;
+      data.exercises[idx] = { name, sets: [] };
+    } else if (!progName) {
+      // Movement beyond the prescribed list (added previously) — keep it, blank.
+      data.exercises[idx] = { name, sets: [] };
+    }
+    // name === progName: nothing to do; the program already lists this movement.
+  });
+  saveWlData(cid, dayId, data);
+}
+
+// Re-render a single day panel in place (mirrors saveAddedExercise's refresh).
+function _wlRefreshDayPanel(cid, dayId) {
+  const c = getAllClients().find(cl => cl.id === cid);
+  if (!c?.data?.workouts) return;
+  const panel = document.getElementById('day-' + cid + '-' + dayId);
+  if (!panel) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = renderWorkouts(c.data.workouts, c);
+  const fresh = tmp.querySelector('#day-' + cid + '-' + dayId);
+  if (fresh) { panel.innerHTML = fresh.innerHTML; panel.style.display = ''; }
+}
+
+let _wlRepWeeks = 4;
+
+// Open the "Repeat Last Week" sheet: preview the movements and pick a duration.
+function wlRepeatLastWeek(cid, dayId) {
+  const template = _wlBuildTemplate(_wlLastSession(cid, dayId));
+  if (!template) { showFitToast('No previous workout to repeat yet'); return; }
+  document.getElementById('wlRepeatModal')?.remove();
+  _wlRepWeeks = 4;
+
+  const prog = _wlDayExercises(cid, dayId);
+  const rows = Object.entries(template.exercises).map(([idx, ex]) => {
+    const progName = prog[idx]?.name || '';
+    const swapped = progName && ex.name !== progName;
+    const meta = prog[idx]
+      ? `${prog[idx].sets || ''}${prog[idx].reps ? ' · ' + prog[idx].reps : ''}`.trim()
+      : 'Added movement';
+    const tag = swapped ? '<span class="wl-rep-swap">swap</span>' : '';
+    return `<div class="wl-rep-row"><span class="wl-rep-ex">${esc(ex.name || 'Exercise')}${tag}</span><span class="wl-rep-sets">${esc(meta || '—')}</span></div>`;
+  }).join('');
+
+  const weekBtns = [1, 2, 4, 6, 8].map(w =>
+    `<button class="wl-rep-week${w === _wlRepWeeks ? ' active' : ''}" onclick="_wlRepPickWeeks(this,${w})">${w} wk${w > 1 ? 's' : ''}</button>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'wlRepeatModal';
+  modal.className = 'app-overlay';
+  modal.style.zIndex = '5000';
+  modal.innerHTML = `
+    <div class="wl-rep-sheet">
+      <div class="wl-rep-head">
+        <div>
+          <div class="wl-rep-title">Repeat Last Week</div>
+          <div class="wl-rep-sub">Same movement list (incl. swaps) — log fresh weights &amp; reps</div>
+        </div>
+        <button class="wl-rep-x" onclick="document.getElementById('wlRepeatModal').remove()">&times;</button>
+      </div>
+      <div class="wl-rep-list">${rows}</div>
+      <div class="wl-rep-weeks-label">Repeat for how many weeks?</div>
+      <div class="wl-rep-weeks" id="wlRepWeeks">${weekBtns}</div>
+      <button class="wl-rep-apply" onclick="wlApplyRepeat('${esc(cid)}','${esc(dayId)}')">Apply</button>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _wlRepPickWeeks(btn, w) {
+  _wlRepWeeks = w;
+  document.querySelectorAll('#wlRepWeeks .wl-rep-week').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Fill this session now and, for multi-week durations, store a dated plan that
+// auto-fills future sessions until it expires.
+function wlApplyRepeat(cid, dayId) {
+  const weeks = _wlRepWeeks || 1;
+  const template = _wlBuildTemplate(_wlLastSession(cid, dayId));
+  if (!template) { showFitToast('Nothing to repeat'); return; }
+
+  _wlApplyTemplate(cid, dayId, template, _wlDayExercises(cid, dayId));
+
+  if (weeks >= 2) {
+    const now = Date.now();
+    saveWlRepeat(cid, dayId, {
+      template,
+      startedAt: new Date(now).toISOString(),
+      expiresAt: new Date(now + weeks * WK_MS).toISOString(),
+      totalWeeks: weeks,
+    });
+  } else {
+    saveWlRepeat(cid, dayId, null);
+  }
+
+  document.getElementById('wlRepeatModal')?.remove();
+  sbAutoSync(cid);
+  _wlRefreshDayPanel(cid, dayId);
+  showFitToast(weeks >= 2 ? `Repeating movement list for ${weeks} weeks` : 'Movement list loaded');
+}
+
+function wlCancelRepeat(cid, dayId) {
+  saveWlRepeat(cid, dayId, null);
+  sbAutoSync(cid);
+  _wlRefreshDayPanel(cid, dayId);
+  showFitToast('Repeat plan cancelled');
+}
+
 function wlUpdateProgress(cid, dayId) {
   // Scope the query to this workout's logger container so the attribute-
   // prefix selectors don't scan the entire document.
