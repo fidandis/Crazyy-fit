@@ -517,9 +517,9 @@ function buildWlHistoryHtml(cid, dayId, skipFirst) {
 const XP_LEVELS = [
   { level:1,  xp:0,    tier:'Rookie',   color:'#888888' },
   { level:2,  xp:200,  tier:'Rookie',   color:'#aaaaaa' },
-  { level:3,  xp:450,  tier:'Grinder',  color:'#ff6b35' },
+  { level:3,  xp:450,  tier:'Grinder',  color:'#3B9EFF' },
   { level:4,  xp:750,  tier:'Grinder',  color:'#ff8c00' },
-  { level:5,  xp:1100, tier:'Athlete',  color:'#e8ff47' },
+  { level:5,  xp:1100, tier:'Athlete',  color:'#3B9EFF' },
   { level:6,  xp:1500, tier:'Athlete',  color:'#c8e020' },
   { level:7,  xp:2000, tier:'Beast',    color:'#00d4ff' },
   { level:8,  xp:2600, tier:'Beast',    color:'#00aadd' },

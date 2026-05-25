@@ -6,7 +6,7 @@ const PROGRAM_TEMPLATES = {
     name: 'Strength / Muscle Gain',
     emoji: '🏋️',
     desc: 'Hypertrophy-focused lifting program',
-    accent: '#e8ff47',
+    accent: '#3B9EFF',
     days: [
       { id:'mon', label:'Mon', tag:'Strength', title:'Lower Body A', sub:'Squat focus', exercises:[
         {name:'Barbell Squat',sets:'4 sets',reps:'6–8 reps',rest:'3 min',note:'Primary strength mover. Depth is everything.'},
@@ -40,7 +40,7 @@ const PROGRAM_TEMPLATES = {
     name: 'Weight Loss',
     emoji: '🔥',
     desc: 'Fat-burning full-body circuit program',
-    accent: '#ff6b35',
+    accent: '#3B9EFF',
     days: [
       { id:'mon', label:'Mon', tag:'Strength', title:'Full Body A', sub:'Squat + Push', exercises:[
         {name:'Goblet Squat',sets:'3 sets',reps:'12–15 reps',rest:'90 sec',note:'Chest stays tall.'},
@@ -70,7 +70,7 @@ const PROGRAM_TEMPLATES = {
     name: 'Hybrid Athlete',
     emoji: '⚡',
     desc: 'Strength + endurance concurrent training',
-    accent: '#e8ff47',
+    accent: '#3B9EFF',
     days: [
       { id:'mon', label:'Mon', tag:'Strength', title:'Lower Body', sub:'Squat focus', exercises:[
         {name:'Bulgarian Split Squat',sets:'4 sets',reps:'8–10 / leg',rest:'2 min',note:'Primary quad/glute driver.'},
@@ -314,7 +314,7 @@ function startOnboarding(editClientId) {
     goalWeight: existing?.weightLoss?.goal || '',
     programType: existing?._meta?.programType || null,
     pin: existing?.pin || generatePIN(),
-    accent: existing?.accent || '#ff6b35',
+    accent: existing?.accent || '#3B9EFF',
     days: existing?._meta?.days ? JSON.parse(JSON.stringify(existing._meta.days)) : null,
     editDay: 0,
     activityLevel: existing?._meta?.activityLevel || 'moderate',
@@ -338,7 +338,7 @@ function startOnboarding(editClientId) {
   if (!AppState.obState.editId) AppState.obState.editId = editClientId || null;
 
   document.getElementById('onboardHeaderTitle').textContent = isEdit ? `Edit ${existing?.name || 'Client'}` : 'New Client';
-  document.documentElement.style.setProperty('--accent', '#e8ff47');
+  document.documentElement.style.setProperty('--accent', '#3B9EFF');
   showScreen('onboard');
   renderOnboardStep(draft ? (draft.step || 0) : 0);
 }
@@ -352,7 +352,7 @@ function onboardBack() {
     if (!AppState.obState.editId && _obDraftHasContent(AppState.obState)) {
       if (!confirm('Discard this client? Unsaved progress will be kept as a draft.')) return;
     }
-    document.documentElement.style.setProperty('--accent', '#e8ff47');
+    document.documentElement.style.setProperty('--accent', '#3B9EFF');
     showScreen('coach');
   } else {
     renderOnboardStep(AppState.obState.step - 1);
@@ -382,7 +382,7 @@ function renderOnboardStep(step) {
 function renderObStep0() {
   const isWeightLoss = AppState.obState.programType === 'weightloss' || AppState.obState.goal.toLowerCase().includes('weight') || AppState.obState.goal.toLowerCase().includes('loss');
   const nameDup = _obNameConflict(AppState.obState.name, AppState.obState.editId);
-  const nameDupHtml = nameDup ? `<div class="ob-warn" id="ob-name-warn" style="color:#f5a524;font-family:'DM Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Heads up — you already have a client named "${esc(nameDup.name)}".</div>` : `<div class="ob-warn" id="ob-name-warn" style="display:none"></div>`;
+  const nameDupHtml = nameDup ? `<div class="ob-warn" id="ob-name-warn" style="color:#f5a524;font-family:'Geist Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Heads up — you already have a client named "${esc(nameDup.name)}".</div>` : `<div class="ob-warn" id="ob-name-warn" style="display:none"></div>`;
   return `
     <div class="onboard-step active">
       <div class="onboard-step-title">Client Profile</div>
@@ -391,7 +391,7 @@ function renderObStep0() {
       <div class="ob-field">
         <label class="ob-label">Client Name</label>
         <input class="ob-input" id="ob-name" type="text" placeholder="e.g. Alex Johnson" value="${esc(AppState.obState.name)}" oninput="AppState.obState.name=this.value;obNameCheck();_obDraftSave()">
-        <div class="ob-err" id="ob-name-err" style="display:none;color:#e74c3c;font-family:'DM Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Client name is required</div>
+        <div class="ob-err" id="ob-name-err" style="display:none;color:#e74c3c;font-family:'Geist Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Client name is required</div>
         ${nameDupHtml}
       </div>
 
@@ -425,7 +425,7 @@ function renderObStep0() {
         </div>
       </div>
 
-      <div class="ob-section-title" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Body Stats &amp; Nutrition</div>
+      <div class="ob-section-title" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Body Stats &amp; Nutrition</div>
 
       <div class="ob-field">
         <label class="ob-label">Activity Level</label>
@@ -438,7 +438,7 @@ function renderObStep0() {
         </select>
       </div>
 
-      <div class="ob-section-title" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Body Measurements</div>
+      <div class="ob-section-title" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Body Measurements</div>
 
       <div class="ob-input-row">
         <div class="ob-field">
@@ -470,21 +470,21 @@ function renderObStep0() {
         </div>
       </div>
 
-      <div class="ob-section-title" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center">
+      <div class="ob-section-title" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center">
         <span>Body Fat % <span style="color:var(--faint)">(optional)</span></span>
         <div style="display:flex;gap:4px;font-size:8px">
-          <button type="button" class="ob-bfmode-btn ${AppState.obState.bfMode!=='direct'?'active':''}" onclick="obSetBFMode('skinfold')" style="background:${AppState.obState.bfMode!=='direct'?'var(--accent)':'var(--surface2)'};color:${AppState.obState.bfMode!=='direct'?'#000':'var(--muted)'};border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer">CALIPER TEST</button>
-          <button type="button" class="ob-bfmode-btn ${AppState.obState.bfMode==='direct'?'active':''}" onclick="obSetBFMode('direct')" style="background:${AppState.obState.bfMode==='direct'?'var(--accent)':'var(--surface2)'};color:${AppState.obState.bfMode==='direct'?'#000':'var(--muted)'};border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer">I KNOW IT</button>
+          <button type="button" class="ob-bfmode-btn ${AppState.obState.bfMode!=='direct'?'active':''}" onclick="obSetBFMode('skinfold')" style="background:${AppState.obState.bfMode!=='direct'?'var(--accent)':'var(--surface2)'};color:${AppState.obState.bfMode!=='direct'?'#000':'var(--muted)'};border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-family:'Geist Mono',monospace;letter-spacing:1px;cursor:pointer">CALIPER TEST</button>
+          <button type="button" class="ob-bfmode-btn ${AppState.obState.bfMode==='direct'?'active':''}" onclick="obSetBFMode('direct')" style="background:${AppState.obState.bfMode==='direct'?'var(--accent)':'var(--surface2)'};color:${AppState.obState.bfMode==='direct'?'#000':'var(--muted)'};border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-family:'Geist Mono',monospace;letter-spacing:1px;cursor:pointer">I KNOW IT</button>
         </div>
       </div>
       ${AppState.obState.bfMode === 'direct' ? `
         <div class="ob-field" style="margin-bottom:10px">
           <label class="ob-label">Body Fat %</label>
           <input class="ob-input" type="number" min="3" max="60" step="0.1" placeholder="e.g. 18" value="${AppState.obState.bfPctDirect||''}" oninput="AppState.obState.bfPctDirect=this.value;obCalcBF();_obDraftSave()">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-top:6px">Enter a known DEXA, InBody, or estimate. Used for lean-mass protein targeting.</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-top:6px">Enter a known DEXA, InBody, or estimate. Used for lean-mass protein targeting.</div>
         </div>
       ` : `
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-bottom:10px">Durnin-Womersley 4-site · caliper readings in millimetres</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-bottom:10px">Durnin-Womersley 4-site · caliper readings in millimetres</div>
         <div class="ob-input-row" style="margin-bottom:8px">
           <div class="ob-field">
             <label class="ob-label">Bicep (mm)</label>
@@ -509,14 +509,14 @@ function renderObStep0() {
       <div id="ob-bf-result" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">BODY FAT %</div>
-            <div id="ob-bf-pct" style="font-family:var(--display);font-size:36px;letter-spacing:1px;line-height:1"></div>
-            <div id="ob-bf-cat" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;margin-top:2px"></div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">BODY FAT %</div>
+            <div id="ob-bf-pct" style="font-family:var(--display);font-weight:700;font-size:36px;letter-spacing:1px;line-height:1"></div>
+            <div id="ob-bf-cat" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;margin-top:2px"></div>
           </div>
           <div style="text-align:right">
-            <div id="ob-bf-lean" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text)"></div>
-            <div id="ob-bf-fat" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px"></div>
-            <div id="ob-bf-sum" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);margin-top:4px"></div>
+            <div id="ob-bf-lean" style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text)"></div>
+            <div id="ob-bf-fat" style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px"></div>
+            <div id="ob-bf-sum" style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);margin-top:4px"></div>
           </div>
       <div id="ob-macro-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px"></div>
         </div>
@@ -525,7 +525,7 @@ function renderObStep0() {
       <div class="ob-field">
         <label class="ob-label">Client Email <span style="color:var(--muted);font-size:9px">(optional — for sending credentials)</span></label>
         <input class="ob-input" id="ob-email" type="email" placeholder="client@email.com" value="${esc(AppState.obState.email||'')}" oninput="AppState.obState.email=this.value.trim();_obDraftSave()">
-        <div class="ob-err" id="ob-email-err" style="display:none;color:#e74c3c;font-family:'DM Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Enter a valid email address</div>
+        <div class="ob-err" id="ob-email-err" style="display:none;color:#e74c3c;font-family:'Geist Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:.5px">Enter a valid email address</div>
       </div>
 
       <div class="ob-field">
@@ -578,7 +578,7 @@ function obNameCheck() {
   if (dup) {
     warn.style.display = 'block';
     warn.style.color = '#f5a524';
-    warn.style.fontFamily = "'DM Mono',monospace";
+    warn.style.fontFamily = "'Geist Mono',monospace";
     warn.style.fontSize = '10px';
     warn.style.marginTop = '6px';
     warn.style.letterSpacing = '.5px';
@@ -627,7 +627,7 @@ function obNextStep0() {
     const inferred = _obInferProgramType(AppState.obState.goal);
     if (inferred) {
       AppState.obState.programType = inferred;
-      AppState.obState.accent = PROGRAM_TEMPLATES[inferred]?.accent || '#ff6b35';
+      AppState.obState.accent = PROGRAM_TEMPLATES[inferred]?.accent || '#3B9EFF';
     }
   }
   renderOnboardStep(1);
@@ -652,8 +652,8 @@ function renderObStep1() {
       <div class="program-type-emoji">${t.emoji}</div>
       <div class="program-type-name">${t.name}</div>
       <div class="program-type-desc">${t.desc}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--faint);letter-spacing:1px;margin-top:6px;text-transform:uppercase">${dayLabel}</div>
-      ${t.key !== 'custom' ? `<button type="button" class="program-preview-btn" onclick="event.stopPropagation();obPreviewProgram('${t.key}')" style="margin-top:8px;width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;padding:6px 0;border-radius:4px;cursor:pointer;text-transform:uppercase">Preview 7 days</button>` : ''}
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--faint);letter-spacing:1px;margin-top:6px;text-transform:uppercase">${dayLabel}</div>
+      ${t.key !== 'custom' ? `<button type="button" class="program-preview-btn" onclick="event.stopPropagation();obPreviewProgram('${t.key}')" style="margin-top:8px;width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;padding:6px 0;border-radius:4px;cursor:pointer;text-transform:uppercase">Preview 7 days</button>` : ''}
     </div>`;
   }).join('');
 
@@ -664,7 +664,7 @@ function renderObStep1() {
       <div class="program-type-emoji">⎘</div>
       <div class="program-type-name">Start from client</div>
       <div class="program-type-desc">Clone an existing client's program as a starting point</div>
-      ${AppState.obState._cloneFromName ? `<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent);letter-spacing:1px;margin-top:6px;text-transform:uppercase">Using: ${esc(AppState.obState._cloneFromName)}</div>` : ''}
+      ${AppState.obState._cloneFromName ? `<div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--accent);letter-spacing:1px;margin-top:6px;text-transform:uppercase">Using: ${esc(AppState.obState._cloneFromName)}</div>` : ''}
     </div>` : '';
 
   // Mismatch warning
@@ -672,7 +672,7 @@ function renderObStep1() {
   const tplCount = (sel && sel !== 'custom' && sel !== 'clone') ? _obTemplateTrainingDays(sel) : null;
   const target = AppState.obState.trainingDays;
   const mismatchHtml = (tplCount && tplCount !== target) ? `
-    <div style="background:rgba(245,165,36,.08);border:1px solid rgba(245,165,36,.35);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:10px;color:#f5a524;line-height:1.5;letter-spacing:.5px">
+    <div style="background:rgba(245,165,36,.08);border:1px solid rgba(245,165,36,.35);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-family:'Geist Mono',monospace;font-size:10px;color:#f5a524;line-height:1.5;letter-spacing:.5px">
       You set <b>${target}</b> training days but this template is ${tplCount}-day. ${target > tplCount ? `We'll add ${target - tplCount} accessory day(s) automatically.` : `We'll convert ${tplCount - target} training day(s) to rest.`}
     </div>` : '';
 
@@ -694,12 +694,12 @@ function obPreviewProgram(key) {
   if (!tpl) return;
   const dayHtml = tpl.days.map(d => {
     const isRest = !d.exercises || d.exercises.length === 0;
-    const exList = isRest ? '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">REST / RECOVERY</div>'
-      : d.exercises.map(e => `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">${esc(e.name)}</span> <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px">${esc(e.sets)} · ${esc(e.reps)}</span></div>`).join('');
+    const exList = isRest ? '<div style="font-family:\'Geist Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">REST / RECOVERY</div>'
+      : d.exercises.map(e => `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">${esc(e.name)}</span> <span style="color:var(--muted);font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:.5px">${esc(e.sets)} · ${esc(e.reps)}</span></div>`).join('');
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
         <div><span style="font-weight:700;font-size:12px">${d.label}</span> <span style="color:var(--muted);font-size:11px">— ${esc(d.title || '')}</span></div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px">${esc((d.tag||'').toUpperCase())}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px">${esc((d.tag||'').toUpperCase())}</div>
       </div>
       ${exList}
     </div>`;
@@ -713,14 +713,14 @@ function obPreviewProgram(key) {
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <div>
           <div style="font-size:14px;font-weight:700">${esc(tpl.name)}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px">${esc(tpl.desc || '')}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px">${esc(tpl.desc || '')}</div>
         </div>
         <button onclick="document.getElementById('obPreviewModal')?.remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px">&times;</button>
       </div>
       <div style="overflow-y:auto;padding:14px 16px">${dayHtml}</div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="document.getElementById('obPreviewModal')?.remove()" style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Close</button>
-        <button onclick="obSelectProgram('${key}');document.getElementById('obPreviewModal')?.remove()" style="background:var(--accent);color:#000;border:none;padding:8px 14px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer">Use this program</button>
+        <button onclick="document.getElementById('obPreviewModal')?.remove()" style="background:none;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Close</button>
+        <button onclick="obSelectProgram('${key}');document.getElementById('obPreviewModal')?.remove()" style="background:var(--accent);color:#000;border:none;padding:8px 14px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer">Use this program</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -736,7 +736,7 @@ function obOpenClonePicker() {
   const rows = others.map(c => `
     <button onclick="obCloneFromClient('${c.id}')" style="width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:6px;cursor:pointer;color:var(--text)">
       <div style="font-weight:600;font-size:13px">${esc(c.name)}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">${esc(c._meta?.programType || 'custom').toUpperCase()} · ${(c._meta?.days||[]).filter(d=>d.exercises?.length>0).length} training days</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">${esc(c._meta?.programType || 'custom').toUpperCase()} · ${(c._meta?.days||[]).filter(d=>d.exercises?.length>0).length} training days</div>
     </button>`).join('');
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;max-width:460px;width:100%;max-height:80vh;display:flex;flex-direction:column">
@@ -765,7 +765,7 @@ function obCloneFromClient(cid) {
 
 function obSelectProgram(key) {
   AppState.obState.programType = key;
-  AppState.obState.accent = PROGRAM_TEMPLATES[key]?.accent || '#ff6b35';
+  AppState.obState.accent = PROGRAM_TEMPLATES[key]?.accent || '#3B9EFF';
   // Always reset days when selecting a program so training day count is applied fresh on Next
   AppState.obState.days = null;
   AppState.obState._cloneFromName = null;
@@ -877,7 +877,7 @@ function renderObStep2() {
   `).join('');
 
   const exRows = activeDay.exercises.length === 0
-    ? `<div style="padding:16px 18px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;">No exercises — this is a rest day. Add exercises below to make it a training day.</div>`
+    ? `<div style="padding:16px 18px;font-size:12px;color:var(--muted);font-family:'Geist Mono',monospace;">No exercises — this is a rest day. Add exercises below to make it a training day.</div>`
     : activeDay.exercises.map((e, i) => `
       <div class="ex-editor-row" data-ex-idx="${i}" draggable="true"
         ondragstart="obDragStart(event,${i})" ondragover="obDragOver(event,${i})" ondragleave="obDragLeave(event)" ondrop="obDrop(event,${i})" ondragend="obDragEnd(event)"
@@ -898,7 +898,7 @@ function renderObStep2() {
   // Day duration estimate (rough): sum(sets * (reps_mid_s + rest_s))
   const est = _obEstimateDayMin(activeDay);
   const estHtml = (est > 0 && activeDay.exercises.length > 0)
-    ? `<span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-left:8px">~${est} min</span>`
+    ? `<span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:1px;margin-left:8px">~${est} min</span>`
     : '';
 
   // Other days for "copy to" menu
@@ -917,9 +917,9 @@ function renderObStep2() {
             value="${esc(activeDay.title || '')}"
             placeholder="Day title (e.g. Push Day A)"
             oninput="AppState.obState.days[${editDay}].title=this.value;_obDraftSave()">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);display:flex;align-items:center;gap:10px">
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);display:flex;align-items:center;gap:10px">
             <span>${activeDay.exercises.length} exercise${activeDay.exercises.length!==1?'s':''}${estHtml}</span>
-            <select onchange="if(this.value!==''){obCopyDayTo(parseInt(this.value));this.value=''}" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;cursor:pointer">
+            <select onchange="if(this.value!==''){obCopyDayTo(parseInt(this.value));this.value=''}" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:.5px;cursor:pointer">
               <option value="">COPY DAY TO…</option>
               ${copyTargets}
             </select>
@@ -1051,9 +1051,9 @@ function obOpenExercisePicker() {
     return `<button type="button" data-ob-ex-idx="${i}" data-ob-ex-name="${esc(ex.name.toLowerCase())}" onclick="obPickExerciseFromLibrary(${i})" ${used ? 'disabled' : ''} style="width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:6px;cursor:${used?'not-allowed':'pointer'};color:var(--text);opacity:${used?'.45':'1'}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
         <span style="font-weight:600;font-size:13px">${esc(ex.name)}</span>
-        ${used ? '<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--faint);letter-spacing:1px">IN DAY</span>' : ''}
+        ${used ? '<span style="font-family:\'Geist Mono\',monospace;font-size:9px;color:var(--faint);letter-spacing:1px">IN DAY</span>' : ''}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.8px;margin-top:3px">${esc(ex.sets)} · ${esc(ex.reps)} · ${esc(ex.rest)}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.8px;margin-top:3px">${esc(ex.sets)} · ${esc(ex.reps)} · ${esc(ex.rest)}</div>
     </button>`;
   }).join('');
   modal.innerHTML = `
@@ -1061,7 +1061,7 @@ function obOpenExercisePicker() {
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <div>
           <div style="font-size:14px;font-weight:700">Exercise library</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px">${items.length} exercise${items.length!==1?'s':''} · tap to add</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px">${items.length} exercise${items.length!==1?'s':''} · tap to add</div>
         </div>
         <button onclick="document.getElementById('obExPickerModal')?.remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px">&times;</button>
       </div>
@@ -1090,7 +1090,7 @@ function obExPickerFilter(q) {
     if (!empty) {
       empty = document.createElement('div');
       empty.className = 'ob-ex-empty';
-      empty.style.cssText = 'padding:20px 4px;text-align:center;font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px';
+      empty.style.cssText = 'padding:20px 4px;text-align:center;font-family:\'Geist Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px';
       empty.textContent = 'NO MATCHES';
       list.appendChild(empty);
     }
@@ -1416,10 +1416,10 @@ function renderObSuccess(client) {
       <div class="ob-success-sub">Program created. Share login credentials with your client.</div>
 
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:16px 0;text-align:left">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Summary</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Summary</div>
         <div style="font-size:13px;color:var(--text);margin-bottom:3px">${esc(summaryLine)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px">Sync: ${syncStatus}</div>
-        ${email ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:3px" id="obEmailStatus">Email: ${AppState.obState.emailCredentialsOnSave ? 'Sending to ' + esc(email) + '…' : 'Not sent'}</div>` : ''}
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px">Sync: ${syncStatus}</div>
+        ${email ? `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:3px" id="obEmailStatus">Email: ${AppState.obState.emailCredentialsOnSave ? 'Sending to ' + esc(email) + '…' : 'Not sent'}</div>` : ''}
       </div>
 
       <div class="ob-pin-reveal">
@@ -1441,7 +1441,7 @@ function renderObSuccess(client) {
 }
 
 function obFinish() {
-  document.documentElement.style.setProperty('--accent', '#e8ff47');
+  document.documentElement.style.setProperty('--accent', '#3B9EFF');
   launchCoach();
   showScreen('coach');
 }
@@ -1479,12 +1479,12 @@ function _showPinOverlay(name, pin, isNew) {
   const sub = isNew ? "Share this with your client — it won't be shown again" : 'Coach-only · stored locally on this device';
   ov.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 24px;max-width:320px;width:90%;text-align:center">
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">${esc(label)}</div>
-      <div id="_pinDisplay" style="font-family:var(--display);font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(pin)}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:20px">${esc(sub)}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">${esc(label)}</div>
+      <div id="_pinDisplay" style="font-family:var(--display);font-weight:700;font-size:52px;letter-spacing:6px;color:var(--accent);margin:8px 0">${esc(pin)}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:20px">${esc(sub)}</div>
       <div style="display:flex;gap:10px;justify-content:center">
-        <button onclick="navigator.clipboard?.writeText('${esc(pin)}').then(()=>showFitToast('PIN copied!')).catch(()=>showFitToast('${esc(pin)}'))" style="background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;letter-spacing:1px">Copy PIN</button>
-        <button onclick="this.closest('[style*=fixed]').remove()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:10px 20px;border-radius:6px;cursor:pointer">Done</button>
+        <button onclick="navigator.clipboard?.writeText('${esc(pin)}').then(()=>showFitToast('PIN copied!')).catch(()=>showFitToast('${esc(pin)}'))" style="background:var(--accent);border:none;color:#000;font-family:'Geist Mono',monospace;font-size:10px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;letter-spacing:1px">Copy PIN</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Geist Mono',monospace;font-size:10px;padding:10px 20px;border-radius:6px;cursor:pointer">Done</button>
       </div>
     </div>`;
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -1497,7 +1497,7 @@ function coachEditClient(cid) {
     showFitToast('Built-in clients must be edited in code');
     return;
   }
-  document.documentElement.style.setProperty('--accent', '#e8ff47');
+  document.documentElement.style.setProperty('--accent', '#3B9EFF');
   showScreen('onboard');
   startOnboarding(cid);
 }

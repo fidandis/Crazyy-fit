@@ -1,16 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Background -->
-  <rect width="512" height="512" fill="#0d0d0d" rx="80"/>
-
-  <!-- CRAZYY (white) + FIT (orange) on one line, vertically centred -->
-  <text
-    y="296"
-    font-family="Arial Black, Impact, sans-serif"
-    font-weight="900"
-    font-size="114"
-    text-anchor="middle"
-    letter-spacing="-2"
-  >
-    <tspan x="256" fill="#ffffff">CRAZYY</tspan><tspan fill="#ff6b35"> FIT</tspan>
-  </text>
+  <!-- Brand mark: ocean square + Instrument Serif italic "c" (matches the app wordmark mark) -->
+  <rect width="512" height="512" rx="112" fill="#3B9EFF"/>
+  <text x="256" y="352" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-style="italic" font-size="380" text-anchor="middle" fill="#0a0c0e">c</text>
 </svg>

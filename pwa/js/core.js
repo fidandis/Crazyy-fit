@@ -511,7 +511,7 @@ function updatePinDots(buf, mode) {
         d.style.background = '#e74c3c';
       } else if (i < buf.length) {
         d.classList.add('filled');
-        const accentColor = AppState.currentClient?.accent || '#e8ff47';
+        const accentColor = AppState.currentClient?.accent || '#3B9EFF';
         d.style.borderColor = accentColor;
         d.style.background = accentColor;
       }
@@ -568,10 +568,10 @@ async function _hydrateClientFromCloud(cid) {
       name:        row.name,
       pin:         row.pin || '',
       goal:        row.goal || '',
-      accent:      row.accent || '#ff6b35',
+      accent:      row.accent || '#3B9EFF',
       initials:    clientInitials(row.name),
-      avatarBg:    (row.accent || '#ff6b35') + '22',
-      avatarColor: row.accent || '#ff6b35',
+      avatarBg:    (row.accent || '#3B9EFF') + '22',
+      avatarColor: row.accent || '#3B9EFF',
       programType: row.program_type || '',
       data:        safeJSON(row.data, {}),
       _meta:       safeJSON(row.meta, {}),
@@ -1011,7 +1011,7 @@ function buildBannerHTML(c) {
           <div class="wt-stat-lbl">Goal</div>
         </div>
       </div>
-      ${lost > 0 ? `<div style="text-align:center;margin-bottom:8px"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent)">▼ ${lost.toFixed(1)} ${wl.unit} lost</span>${done ? ' <span style="color:#2ecc71">· Goal achieved! 🎉</span>' : ''}</div>` : ''}
+      ${lost > 0 ? `<div style="text-align:center;margin-bottom:8px"><span style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--accent)">▼ ${lost.toFixed(1)} ${wl.unit} lost</span>${done ? ' <span style="color:#2ecc71">· Goal achieved! 🎉</span>' : ''}</div>` : ''}
       <div class="wt-edit">
         <input class="wt-input" id="wt-input-${c.id}" type="number" step="0.1" min="50" max="500"
           placeholder="Update current weight (${wl.unit})" value="">
@@ -1159,7 +1159,7 @@ function buildGoalsBannerHTML(c) {
         </div>
         <div class="wt-track"><div class="wt-fill" style="width:${p.pct}%;background:${color}"></div></div>
         ${p.done
-          ? `<div style="text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:#2ecc71;margin:4px 0">🎯 Goal reached!</div>`
+          ? `<div style="text-align:center;font-family:'Geist Mono',monospace;font-size:10px;color:#2ecc71;margin:4px 0">🎯 Goal reached!</div>`
           : `<div class="goal-endpoints"><span>${displayGoalValue(goal, goal.start)}</span><span>🎯 ${displayGoalValue(goal, goal.target)}</span></div>`}
         <div class="goal-log-row">
           <input class="goal-log-input" id="goal-input-${esc(c.id)}-${esc(goal.id)}"
@@ -1214,7 +1214,7 @@ function buildCoachGoalsMini(c) {
       <div class="coach-wt-label">Goals</div>
       <button class="coach-goal-manage-btn" onclick="openGoalsModal('${c.id}')">Manage</button>
     </div>
-    ${rows || `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0">No goals set yet.</div>`}
+    ${rows || `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);padding:4px 0">No goals set yet.</div>`}
   </div>`;
 }
 
@@ -1225,7 +1225,7 @@ function openGoalsModal(cid) {
   migrateWeightLoss(c);
   const goals = getClientGoals(cid);
   const listHtml = goals.length === 0
-    ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:12px 0">No goals yet.</div>`
+    ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);padding:12px 0">No goals yet.</div>`
     : goals.map(g => {
         const cur = getGoalCurrent(cid, g.id);
         const p   = calcGoalProgress(g, cur);
@@ -1247,12 +1247,12 @@ function openGoalsModal(cid) {
   div.innerHTML = `
     <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Goals — ${esc(c.name)}</div>
+        <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px">Goals — ${esc(c.name)}</div>
         <button onclick="closeGoalsModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">✕</button>
       </div>
       <div class="goals-modal-scroll">${listHtml}</div>
       <div class="goal-divider" style="margin:16px 0"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">ADD NEW GOAL</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">ADD NEW GOAL</div>
       <div class="goal-type-row" id="goalTypeRow">
         <button class="goal-type-btn sel" onclick="selectGoalType(this,'weight')">⚖️ Weight Loss</button>
         <button class="goal-type-btn" onclick="selectGoalType(this,'runtime')">🏃 Run Time</button>
@@ -1314,7 +1314,7 @@ function _safeTabRender(tid, fn) {
   try { return fn(); }
   catch (e) {
     console.error('Tab render error (' + tid + '):', e);
-    return `<div style="padding:20px;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace">Failed to load — check console.</div>`;
+    return `<div style="padding:20px;color:var(--muted);font-size:12px;font-family:'Geist Mono',monospace">Failed to load — check console.</div>`;
   }
 }
 
@@ -1559,7 +1559,7 @@ function renderWorkouts(w, c) {
     const loggerHtml = allExercises.length > 0 ? buildWorkoutLogger(c.id, d.id, allExercises, c.accent) : '';
 
     const _mainBlockIdx = d.blocks.findIndex(b => b.exercises?.length > 0);
-    const _addExBtn = `<button onclick="openAddExerciseModal('${esc(c.id)}','${esc(d.id||d.label)}',${_mainBlockIdx >= 0 ? _mainBlockIdx : 0})" style="display:flex;align-items:center;gap:6px;margin:12px 24px 4px;padding:8px 14px;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor=this.style.color='${esc(c.accent)}'" onmouseout="this.style.borderColor='';this.style.color=''">+ ADD EXERCISE</button>`;
+    const _addExBtn = `<button onclick="openAddExerciseModal('${esc(c.id)}','${esc(d.id||d.label)}',${_mainBlockIdx >= 0 ? _mainBlockIdx : 0})" style="display:flex;align-items:center;gap:6px;margin:12px 24px 4px;padding:8px 14px;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor=this.style.color='${esc(c.accent)}'" onmouseout="this.style.borderColor='';this.style.color=''">+ ADD EXERCISE</button>`;
 
     return `
       <div id="day-${c.id}-${d.id}" class="day-detail" style="${i>0?'display:none':''}">
@@ -1580,13 +1580,13 @@ function renderWorkouts(w, c) {
     <div class="period-current-banner">
       <div style="font-size:20px">${_currentPhase.color || '📅'}</div>
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Current Phase</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Current Phase</div>
         <div class="period-current-phase">${esc(_currentPhase.name)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${esc(_currentPhase.phase||'')}${_currentPhase.endDate?' · ends '+new Date(_currentPhase.endDate).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}):''}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${esc(_currentPhase.phase||'')}${_currentPhase.endDate?' · ends '+new Date(_currentPhase.endDate).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}):''}</div>
       </div>
     </div>` : '';
   const _suggestions = buildProgressionSuggestionsHtml(c);
-  const _aiBuildBtn = `<button onclick="openAIBuildWorkout('${esc(c.id)}')" style="display:block;width:100%;margin:0 0 14px;padding:12px;background:var(--surface2);border:1px dashed ${esc(c.accent || '#e8ff47')};border-radius:10px;color:${esc(c.accent || '#e8ff47')};font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">+ AI Build Workout</button>`;
+  const _aiBuildBtn = `<button onclick="openAIBuildWorkout('${esc(c.id)}')" style="display:block;width:100%;margin:0 0 14px;padding:12px;background:var(--surface2);border:1px dashed ${esc(c.accent || '#3B9EFF')};border-radius:10px;color:${esc(c.accent || '#3B9EFF')};font-family:'Geist Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">+ AI Build Workout</button>`;
   return `
     <div class="panel-title">Workout Breakdown</div>
     <p class="panel-desc">Select a training day to see the full session.</p>
@@ -1797,7 +1797,7 @@ function selDay(id, el, cid) {
 }
 
 function renderEndurance(e, c) {
-  const zoneStyles = { z1:'background:rgba(39,174,96,.15);color:#2ecc71', z2:'background:rgba(46,204,113,.12);color:#27ae60', z3:'background:rgba(241,196,15,.12);color:#f1c40f', z4:'background:rgba(255,107,53,.15);color:#ff6b35', z5:'background:rgba(231,76,60,.15);color:#e74c3c' };
+  const zoneStyles = { z1:'background:rgba(39,174,96,.15);color:#2ecc71', z2:'background:rgba(46,204,113,.12);color:#27ae60', z3:'background:rgba(241,196,15,.12);color:#f1c40f', z4:'background:rgba(59,158,255,.15);color:#3B9EFF', z5:'background:rgba(231,76,60,.15);color:#e74c3c' };
   const zones = e.zones.map(z => `
     <div class="ex-row">
       <div>
@@ -1843,20 +1843,20 @@ function renderHRZoneCalc(c) {
         <div class="block-label" style="margin-bottom:10px">Heart Rate Zone Calculator</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">AGE</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">AGE</div>
             <input class="fit-input" type="number" min="10" max="100" id="hr-age-${c.id}" value="${defaultAge}" placeholder="30" oninput="updateHRZones('${esc(c.id)}')" style="font-size:16px">
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">RESTING HR (OPT)</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">RESTING HR (OPT)</div>
             <input class="fit-input" type="number" min="30" max="120" id="hr-rest-${c.id}" value="${defaultRest}" placeholder="60" oninput="updateHRZones('${esc(c.id)}')" style="font-size:16px">
           </div>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:12px">
-          <button type="button" id="hr-m-tanaka-${c.id}" onclick="setHRMethod('${esc(c.id)}','tanaka')" style="flex:1;padding:6px 8px;background:${method==='tanaka'?c.accent:'var(--surface2)'};color:${method==='tanaka'?'#000':'var(--muted)'};border:1px solid var(--border);border-radius:4px;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer">TANAKA</button>
-          <button type="button" id="hr-m-fox-${c.id}" onclick="setHRMethod('${esc(c.id)}','fox')" style="flex:1;padding:6px 8px;background:${method==='fox'?c.accent:'var(--surface2)'};color:${method==='fox'?'#000':'var(--muted)'};border:1px solid var(--border);border-radius:4px;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer">220 − AGE</button>
+          <button type="button" id="hr-m-tanaka-${c.id}" onclick="setHRMethod('${esc(c.id)}','tanaka')" style="flex:1;padding:6px 8px;background:${method==='tanaka'?c.accent:'var(--surface2)'};color:${method==='tanaka'?'#000':'var(--muted)'};border:1px solid var(--border);border-radius:4px;font-family:'Geist Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer">TANAKA</button>
+          <button type="button" id="hr-m-fox-${c.id}" onclick="setHRMethod('${esc(c.id)}','fox')" style="flex:1;padding:6px 8px;background:${method==='fox'?c.accent:'var(--surface2)'};color:${method==='fox'?'#000':'var(--muted)'};border:1px solid var(--border);border-radius:4px;font-family:'Geist Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer">220 − AGE</button>
         </div>
         <div id="hr-zones-${c.id}"></div>
-        <div id="hr-meta-${c.id}" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.8px;margin-top:8px;text-align:center"></div>
+        <div id="hr-meta-${c.id}" style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.8px;margin-top:8px;text-align:center"></div>
       </div>
     </div>`;
 }
@@ -1888,7 +1888,7 @@ function updateHRZones(cid) {
   const saved = _hrCalcLoad(cid);
   _hrCalcSave(cid, { ...saved, age: age || '', rest: rest || '', method: saved.method || 'tanaka' });
   if (!age || age < 10 || age > 100) {
-    out.innerHTML = '<div style="padding:16px;text-align:center;font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">ENTER AGE TO CALCULATE</div>';
+    out.innerHTML = '<div style="padding:16px;text-align:center;font-family:\'Geist Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">ENTER AGE TO CALCULATE</div>';
     if (meta) meta.textContent = '';
     return;
   }
@@ -1900,7 +1900,7 @@ function updateHRZones(cid) {
     { key:'z1', label:'Zone 1', feel:'Recovery',        cls:'z1', color:'#2ecc71', lo:50, hi:60 },
     { key:'z2', label:'Zone 2', feel:'Aerobic base',    cls:'z2', color:'#27ae60', lo:60, hi:70 },
     { key:'z3', label:'Zone 3', feel:'Tempo',           cls:'z3', color:'#f1c40f', lo:70, hi:80 },
-    { key:'z4', label:'Zone 4', feel:'Threshold',       cls:'z4', color:'#ff6b35', lo:80, hi:90 },
+    { key:'z4', label:'Zone 4', feel:'Threshold',       cls:'z4', color:'#3B9EFF', lo:80, hi:90 },
     { key:'z5', label:'Zone 5', feel:'VO2 / Anaerobic', cls:'z5', color:'#e74c3c', lo:90, hi:100 },
   ];
   const toBpm = (pct) => useKarvonen
@@ -1912,7 +1912,7 @@ function updateHRZones(cid) {
     return `<div class="ex-row" style="padding:8px 0">
       <div style="flex:1">
         <div class="ex-name" style="font-size:13px">${z.label} <span style="color:var(--muted);font-weight:400">— ${z.feel}</span></div>
-        <div class="ex-note" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.8px">${z.lo}–${z.hi}% ${useKarvonen ? 'HRR' : 'HRmax'}</div>
+        <div class="ex-note" style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.8px">${z.lo}–${z.hi}% ${useKarvonen ? 'HRR' : 'HRmax'}</div>
       </div>
       <div class="badge" style="background:${z.color}22;color:${z.color};font-weight:700;letter-spacing:.5px">${loBpm}–${hiBpm} bpm</div>
     </div>`;
@@ -1962,11 +1962,11 @@ function renderNutrition(n, c) {
     const isToday = d.date === today;
     const barColor = d.cal === 0 ? 'var(--border)' : d.hit ? '#2ecc71' : c.accent;
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">${d.cal > 0 ? (d.cal >= 1000 ? (d.cal/1000).toFixed(1)+'k' : d.cal) : ''}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">${d.cal > 0 ? (d.cal >= 1000 ? (d.cal/1000).toFixed(1)+'k' : d.cal) : ''}</div>
       <div style="width:100%;background:var(--surface2);border-radius:3px;height:48px;display:flex;align-items:flex-end;overflow:hidden">
         <div style="width:100%;height:${pct}%;background:${barColor};border-radius:3px;transition:height 0.3s"></div>
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${isToday ? c.accent : 'var(--muted)'};font-weight:${isToday ? '600' : '400'}">${d.label}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;color:${isToday ? c.accent : 'var(--muted)'};font-weight:${isToday ? '600' : '400'}">${d.label}</div>
     </div>`;
   }).join('');
 
@@ -1977,42 +1977,42 @@ function renderNutrition(n, c) {
     <div class="card" style="margin-bottom:12px">
       <div class="card-block" style="border-bottom:1px solid var(--border)">
         <div class="block-label" style="margin-bottom:8px">Daily Calorie Intake</div>
-        <input type="date" id="ci-date-${c.id}" value="${today}" max="${today}" onchange="loadIntakeForDate('${esc(c.id)}',this.value)" style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2,#1a1a1a);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:6px 10px;margin-bottom:14px;width:100%;color-scheme:dark">
+        <input type="date" id="ci-date-${c.id}" value="${today}" max="${today}" onchange="loadIntakeForDate('${esc(c.id)}',this.value)" style="font-family:'Geist Mono',monospace;font-size:11px;background:var(--surface2,#1a1a1a);color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:6px 10px;margin-bottom:14px;width:100%;color-scheme:dark">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">CALORIES${calTargetVal ? ' (target: '+calTargetVal+')' : ''}</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">CALORIES${calTargetVal ? ' (target: '+calTargetVal+')' : ''}</div>
             <input class="fit-input" type="number" id="ci-cal-${c.id}" placeholder="${calTargetVal || '2000'}" value="${todayIntake?.calories || ''}" style="font-size:16px">
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">PROTEIN (g)${proteinTargetVal ? ' (target: '+proteinTargetVal+'g)' : ''}</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">PROTEIN (g)${proteinTargetVal ? ' (target: '+proteinTargetVal+'g)' : ''}</div>
             <input class="fit-input" type="number" id="ci-prot-${c.id}" placeholder="${proteinTargetVal || '150'}" value="${todayIntake?.protein || ''}" style="font-size:16px">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">CARBS (g)</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">CARBS (g)</div>
             <input class="fit-input" type="number" id="ci-carb-${c.id}" placeholder="200" value="${todayIntake?.carbs || ''}" style="font-size:16px">
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">FAT (g)</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:1px">FAT (g)</div>
             <input class="fit-input" type="number" id="ci-fat-${c.id}" placeholder="70" value="${todayIntake?.fat || ''}" style="font-size:16px">
           </div>
         </div>
         ${calFill > 0 ? `<div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">vs target</div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:${calColor}">${calFill}%</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">vs target</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:${calColor}">${calFill}%</div>
           </div>
           <div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden">
             <div style="height:100%;width:${calFill}%;background:${calColor};border-radius:2px;transition:width 0.4s"></div>
           </div>
         </div>` : ''}
-        <button onclick="saveCalorieIntake('${esc(c.id)}',document.getElementById('ci-cal-${c.id}')?.value,document.getElementById('ci-prot-${c.id}')?.value,document.getElementById('ci-carb-${c.id}')?.value,document.getElementById('ci-fat-${c.id}')?.value,document.getElementById('ci-date-${c.id}')?.value)" style="width:100%;padding:12px;background:${c.accent};color:#000;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px">Save Intake</button>
+        <button onclick="saveCalorieIntake('${esc(c.id)}',document.getElementById('ci-cal-${c.id}')?.value,document.getElementById('ci-prot-${c.id}')?.value,document.getElementById('ci-carb-${c.id}')?.value,document.getElementById('ci-fat-${c.id}')?.value,document.getElementById('ci-date-${c.id}')?.value)" style="width:100%;padding:12px;background:${c.accent};color:#000;border:none;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px">Save Intake</button>
       </div>
       <div class="card-block">
         <div class="block-label" style="margin-bottom:12px">7-Day History</div>
         <div style="display:flex;gap:6px;align-items:flex-end">${histBars}</div>
-        ${calTargetVal ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTargetVal} kcal target</div></div>` : ''}
+        ${calTargetVal ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTargetVal} kcal target</div></div>` : ''}
       </div>
     </div>`;
 
@@ -2079,7 +2079,7 @@ function logout() {
     AppState.altTarget = null;
     AppState.obState = {};
     AppState.nutrDate = new Date().toISOString().slice(0, 10);
-    document.documentElement.style.setProperty('--accent', '#ff6b35');
+    document.documentElement.style.setProperty('--accent', '#3B9EFF');
     AppState.tabataReturnScreen = 'login';
     showScreen('login');
   } catch (e) {

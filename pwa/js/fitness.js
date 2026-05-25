@@ -3,7 +3,7 @@
 ══════════════════════════════════════════════════════════════ */
 
 // Zone colors
-const ZONE_COLORS = ['#2ecc71','#27ae60','#f1c40f','#ff6b35','#e74c3c'];
+const ZONE_COLORS = ['#2ecc71','#27ae60','#f1c40f','#3B9EFF','#e74c3c'];
 const ZONE_NAMES  = ['Zone 1','Zone 2','Zone 3','Zone 4','Zone 5'];
 
 function getFitnessLogs(cid) {
@@ -134,7 +134,7 @@ function renderFitnessLog(c) {
           <li data-n="5">Add action: <strong>Open URLs</strong> → paste your app URL + parameters below</li>
           <li data-n="6">Run the shortcut right after finishing a workout in the Fitness app</li>
         </ul>
-        <div style="margin-top:10px;background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;line-height:1.8;">
+        <div style="margin-top:10px;background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;line-height:1.8;">
           <span style="color:var(--accent)">YOUR-APP-URL</span>/?client=<span style="color:var(--accent)">${c.id}</span>&cal=<span style="color:#ffb347">[Active Energy]</span>&dur=<span style="color:#ffb347">[Duration in Minutes]</span>&avghr=<span style="color:#e74c3c">[Average Heart Rate]</span>&maxhr=<span style="color:#e74c3c">[Maximum Heart Rate]</span>&type=<span style="color:#aaa">[Workout Type]</span>
         </div>
         <div style="margin-top:6px;font-size:11px;color:var(--muted);font-weight:300;">Replace <em>YOUR-APP-URL</em> with your Netlify URL. The bracketed values are Shortcut variables — tap each to select from Shortcut output.</div>

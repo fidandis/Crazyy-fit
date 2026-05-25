@@ -85,7 +85,7 @@ function renderBodyStats(c) {
         const pct = Math.max(10, Math.round(((w.weight - min) / range) * 40 + 8));
         return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
           <div style="width:100%;background:${c.accent};border-radius:2px 2px 0 0;height:${pct}px"></div>
-          <div style="font-family:'DM Mono',monospace;font-size:7px;color:var(--muted)">${w.weight}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:7px;color:var(--muted)">${w.weight}</div>
         </div>`;
       }).join('') + `</div>`;
   }
@@ -93,7 +93,7 @@ function renderBodyStats(c) {
   if (current && goal) {
     const diff = (current - goal).toFixed(1);
     const col  = diff <= 0 ? '#2ecc71' : '#f1c40f';
-    wtBadge = `<span style="font-family:'DM Mono',monospace;font-size:10px;color:${col};margin-left:8px">${diff > 0 ? diff + ' lbs to go' : 'Goal reached! 🎉'}</span>`;
+    wtBadge = `<span style="font-family:'Geist Mono',monospace;font-size:10px;color:${col};margin-left:8px">${diff > 0 ? diff + ' lbs to go' : 'Goal reached! 🎉'}</span>`;
   }
   // Weight trend arrow vs 7 days ago
   let trendArrow = '';
@@ -106,13 +106,13 @@ function renderBodyStats(c) {
   }
   return `
     <div style="padding:0 0 8px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;padding:4px 0 10px;text-transform:uppercase">Log Today's Weight</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;padding:4px 0 10px;text-transform:uppercase">Log Today's Weight</div>
       <div class="wt-log-strip">
         <input class="wt-log-input" type="number" id="wt-log-input-${c.id}" placeholder="${current || '175'}" step="0.1" min="50" max="700">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">lbs</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted)">lbs</div>
         <button class="wt-log-btn" onclick="logDailyWeight('${c.id}')">Log</button>
       </div>
-      ${current ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:0 0 6px">Current: <span style="color:${c.accent}">${current} lbs</span>${wtBadge}${trendArrow}</div>` : ''}
+      ${current ? `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);padding:0 0 6px">Current: <span style="color:${c.accent}">${current} lbs</span>${wtBadge}${trendArrow}</div>` : ''}
       ${sparkHtml}
       ${recent.length > 0 ? `<div class="wt-history-mini">${recent.slice().reverse().map(w => `<div class="wt-pill"><span>${w.weight}</span> · ${new Date(w.date).toLocaleDateString('en',{month:'short',day:'numeric'})}</div>`).join('')}</div>` : ''}
     </div>
@@ -238,7 +238,7 @@ function renderPhotoGallery(c) {
       _photoCache['ba_before'] = oldest.src;
       _photoCache['ba_after']  = newest.src;
       html += `<div style="margin:0 16px 16px">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Before / After</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Before / After</div>
         <div class="ba-wrap" id="baWrap" onmousedown="baStart(event)" ontouchstart="baStart(event)">
           <img class="ba-img" src="${oldest.src}" decoding="async" alt="Before">
           <img class="ba-img ba-after" id="baAfter" src="${newest.src}" decoding="async" alt="After">
@@ -329,8 +329,8 @@ function renderHabitTracker(c) {
   const pct = Math.round((done/HABITS.length)*100);
   let html = `<div class="chart-card" style="margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-family:var(--display);font-size:20px">${new Date().toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'})}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:${done===HABITS.length?c.accent:'var(--muted)'}">
+      <div style="font-family:var(--display);font-weight:700;font-size:20px">${new Date().toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'})}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:${done===HABITS.length?c.accent:'var(--muted)'}">
         ${done}/${HABITS.length} done
       </div>
     </div>
@@ -661,7 +661,7 @@ function buildWeeklySummaryCard(c) {
         <div class="weekly-sum-lbl">Sessions</div>
       </div>
       <div class="weekly-sum-stat">
-        <div class="weekly-sum-val" style="color:#ff6b35">${kcal > 0 ? (kcal / 1000).toFixed(1) + 'k' : '—'}</div>
+        <div class="weekly-sum-val" style="color:#3B9EFF">${kcal > 0 ? (kcal / 1000).toFixed(1) + 'k' : '—'}</div>
         <div class="weekly-sum-lbl">Kcal Burned</div>
       </div>
       <div class="weekly-sum-stat">
@@ -689,10 +689,10 @@ function renderMonthlySummary(c) {
   const wtEnd   = wtsMonth[wtsMonth.length-1]?.weight || null;
   const wtChange = wtStart && wtEnd ? (wtEnd - wtStart).toFixed(1) : null;
   const prList  = Object.entries(prs).slice(0,5);
-  let html = `<div style="font-family:var(--display);font-size:22px;letter-spacing:1px;padding:4px 0 16px">${mName} Summary</div>`;
+  let html = `<div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;padding:4px 0 16px">${mName} Summary</div>`;
   html += `<div class="summary-grid">
     <div class="summary-stat"><div class="summary-stat-val" style="color:${c.accent}">${logs.length}</div><div class="summary-stat-lbl">Workouts</div></div>
-    <div class="summary-stat"><div class="summary-stat-val" style="color:#ff6b35">${totalCal > 0 ? Math.round(totalCal/1000)+'k' : '—'}</div><div class="summary-stat-lbl">Kcal Burned</div></div>
+    <div class="summary-stat"><div class="summary-stat-val" style="color:#3B9EFF">${totalCal > 0 ? Math.round(totalCal/1000)+'k' : '—'}</div><div class="summary-stat-lbl">Kcal Burned</div></div>
     <div class="summary-stat"><div class="summary-stat-val" style="color:#3498db">${totalDur > 0 ? Math.round(totalDur/60)+'h' : '—'}</div><div class="summary-stat-lbl">Time Trained</div></div>
     <div class="summary-stat"><div class="summary-stat-val" style="color:${wtChange && wtChange<0?'#2ecc71':'var(--muted)'}">${wtChange !== null ? (wtChange > 0 ? '+':'') + wtChange : '—'}</div><div class="summary-stat-lbl">Weight (lbs)</div></div>
   </div>`;
@@ -735,7 +735,7 @@ function renderProgressCharts(c) {
   const _goals = getClientGoals(c.id);
   html += `<div class="chart-card"><div class="chart-title">Goals</div>`;
   if (!_goals.length) {
-    html += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:8px 0">No goals set yet — ask your coach to add one.</div>`;
+    html += `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);padding:8px 0">No goals set yet — ask your coach to add one.</div>`;
   } else {
     html += _goals.map(g => {
       const cur = getGoalCurrent(c.id, g.id);
@@ -743,13 +743,13 @@ function renderProgressCharts(c) {
       const col = GOAL_COLORS[g.type] || 'var(--accent)';
       return `<div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-family:'DM Sans',sans-serif;font-size:13px">${GOAL_ICONS[g.type]||'🎯'} ${esc(g.label)}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:${col}">${p.pct}%</span>
+          <span style="font-family:'Geist',sans-serif;font-size:13px">${GOAL_ICONS[g.type]||'🎯'} ${esc(g.label)}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:10px;color:${col}">${p.pct}%</span>
         </div>
         <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden">
           <div style="height:100%;width:${p.pct}%;background:${col};border-radius:4px;transition:width .4s"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px">
+        <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px">
           <span>${displayGoalValue(g, g.start)}</span>
           <span>Target: ${displayGoalValue(g, g.target)}${g.unit ? ' ' + esc(g.unit) : ''}</span>
         </div>
@@ -774,8 +774,8 @@ function renderProgressCharts(c) {
     const diff = (end.weight - start.weight).toFixed(1);
     const diffCol = diff < 0 ? '#2ecc71' : diff > 0 ? '#e74c3c' : 'var(--muted)';
     html += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <div style="font-family:var(--display);font-size:28px;color:${c.accent}">${end.weight} <span style="font-size:14px;color:var(--muted)">lbs</span></div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:${diffCol}">${diff > 0 ? '+' : ''}${diff} lbs since start</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:28px;color:${c.accent}">${end.weight} <span style="font-size:14px;color:var(--muted)">lbs</span></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:${diffCol}">${diff > 0 ? '+' : ''}${diff} lbs since start</div>
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;overflow:visible">
       <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c.accent}" stop-opacity=".3"/><stop offset="100%" stop-color="${c.accent}" stop-opacity="0"/></linearGradient></defs>
@@ -783,7 +783,7 @@ function renderProgressCharts(c) {
       <path d="${pathD}" fill="none" stroke="${c.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       ${pts.map((w,i) => i===pts.length-1?`<circle cx="${pad+i*xStep}" cy="${toY(w.weight)}" r="3" fill="${c.accent}"/>`:'').join('')}
     </svg>
-    <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">
+    <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">
       <span>${new Date(pts[0].date).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
       <span>${new Date(pts[pts.length-1].date).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
     </div>`;
@@ -791,7 +791,7 @@ function renderProgressCharts(c) {
       const goalW = c.weightLoss.goal;
       const goalPct = Math.min(100, Math.max(0, Math.round(((start.weight - end.weight) / (start.weight - goalW)) * 100)));
       html += `<div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Goal: ${goalW} lbs</span><span>${goalPct}%</span></div>
+        <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Goal: ${goalW} lbs</span><span>${goalPct}%</span></div>
         <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${goalPct}%;background:${c.accent};border-radius:4px"></div></div>
       </div>`;
     }
@@ -800,12 +800,12 @@ function renderProgressCharts(c) {
 
   html += `<div class="chart-card"><div class="chart-title">XP Progress</div>
     <div style="text-align:center;padding:14px 0">
-      <div style="font-family:var(--display);font-size:48px;letter-spacing:2px;color:${lvl.current.color}">${xp.toLocaleString()}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px">${lvl.current.tier} · Level ${lvl.current.level}</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:48px;letter-spacing:2px;color:${lvl.current.color}">${xp.toLocaleString()}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px">${lvl.current.tier} · Level ${lvl.current.level}</div>
       <div style="background:var(--surface2);border-radius:6px;height:10px;overflow:hidden;margin:12px 20px">
         <div style="height:100%;width:${lvl.pct}%;background:${lvl.current.color};border-radius:6px;transition:width .6s"></div>
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${lvl.xpIntoLevel} / ${lvl.xpNeeded} XP to next level</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${lvl.xpIntoLevel} / ${lvl.xpNeeded} XP to next level</div>
     </div></div>`;
 
   // Weekly workouts bar chart
@@ -824,9 +824,9 @@ function renderProgressCharts(c) {
     const pct = Math.max(4, Math.round((cnt/maxW)*70));
     const label = i === 7 ? 'This' : (7-i)+'w';
     html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${cnt>0?c.accent:'var(--muted)'}">${cnt||''}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;color:${cnt>0?c.accent:'var(--muted)'}">${cnt||''}</div>
       <div style="width:100%;background:${cnt>0?c.accent:'var(--border)'};border-radius:3px 3px 0 0;height:${pct}px"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:7px;color:var(--muted)">${label}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:7px;color:var(--muted)">${label}</div>
     </div>`;
   });
   html += `</div></div>`;
@@ -926,7 +926,7 @@ function renderStrength(c) {
     <div class="orm-result" id="orm-result-${c.id}">—</div>
     <div class="orm-result-lbl">Estimated 1RM (Epley)</div>
     <div class="orm-pct-grid" id="orm-pct-${c.id}"></div>
-    <button style="width:100%;margin-top:12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:11px;background:var(--accent);color:#000;border:none;cursor:pointer;border-radius:6px;font-weight:600" onclick="savePR('${c.id}')">Save as PR →</button>
+    <button style="width:100%;margin-top:12px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:11px;background:var(--accent);color:#000;border:none;cursor:pointer;border-radius:6px;font-weight:600" onclick="savePR('${c.id}')">Save as PR →</button>
   </div>`;
   html += `<div class="chart-card"><div class="chart-title">Personal Records</div>`;
   const prKeys = Object.keys(prs);
@@ -956,8 +956,8 @@ function renderStrength(c) {
       html += `<div class="pr-row" style="align-items:flex-start">
         <div style="flex:1;min-width:0">
           <div class="pr-exercise">${esc(ex)}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${pr.weight}lbs × ${pr.reps}reps · ${new Date(pr.date).toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
-          ${hist.length >= 2 ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px">${hist.length} entries · from ${hist[0].orm} → ${pr.orm} lbs</div>` : ''}
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${pr.weight}lbs × ${pr.reps}reps · ${new Date(pr.date).toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
+          ${hist.length >= 2 ? `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px">${hist.length} entries · from ${hist[0].orm} → ${pr.orm} lbs</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           ${sparkHtml}
@@ -1029,15 +1029,15 @@ function renderMealPlan(c) {
   let html = `<div class="meal-daily-total">
     <div class="meal-total-item"><div class="meal-total-val" style="color:var(--accent)">${totalCal}</div><div class="meal-total-lbl">kcal</div></div>
     <div class="meal-total-item"><div class="meal-total-val" style="color:#ff9f7a">${totalP}g</div><div class="meal-total-lbl">Protein</div></div>
-    <div class="meal-total-item"><div class="meal-total-val" style="color:#e8ff47">${totalC}g</div><div class="meal-total-lbl">Carbs</div></div>
+    <div class="meal-total-item"><div class="meal-total-val" style="color:#3B9EFF">${totalC}g</div><div class="meal-total-lbl">Carbs</div></div>
     <div class="meal-total-item"><div class="meal-total-val" style="color:var(--muted)">${totalF}g</div><div class="meal-total-lbl">Fat</div></div>
   </div>`;
 
   if (targets.calories) {
     html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Calories: ${totalCal} / ${targets.calories} kcal</span><span style="color:${calPct>100?'#e74c3c':calPct>=80?'#2ecc71':'var(--muted)'}">${calPct}%</span></div>
+      <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Calories: ${totalCal} / ${targets.calories} kcal</span><span style="color:${calPct>100?'#e74c3c':calPct>=80?'#2ecc71':'var(--muted)'}">${calPct}%</span></div>
       <div style="background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;margin-bottom:8px"><div style="height:100%;width:${calPct}%;background:${calPct>100?'#e74c3c':'var(--accent)'};border-radius:4px;transition:width .3s"></div></div>
-      <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Protein: ${totalP}g / ${targets.protein||0}g</span><span style="color:${pPct>=80?'#2ecc71':'var(--muted)'}">${pPct}%</span></div>
+      <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px"><span>Protein: ${totalP}g / ${targets.protein||0}g</span><span style="color:${pPct>=80?'#2ecc71':'var(--muted)'}">${pPct}%</span></div>
       <div style="background:var(--surface2);border-radius:4px;height:5px;overflow:hidden"><div style="height:100%;width:${pPct}%;background:#ff9f7a;border-radius:4px;transition:width .3s"></div></div>
     </div>`;
   }
@@ -1062,12 +1062,12 @@ function renderMealPlan(c) {
         <div class="meal-slot-macros">${slotCal>0?slotCal+' kcal'+(slotP?' · '+slotP+'p protein':''):'—'}</div>
       </div>`;
     if (items.length === 0) {
-      html += `<div style="padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);font-style:italic">No foods added</div>`;
+      html += `<div style="padding:10px 14px;font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);font-style:italic">No foods added</div>`;
     }
     items.forEach((item, ii) => {
       html += `<div class="meal-item">
         <span style="flex:1;font-size:13px">${esc(item.name)}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-right:8px">${[item.cal?item.cal+'cal':'', item.p?item.p+'p':''].filter(Boolean).join(' · ')}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-right:8px">${[item.cal?item.cal+'cal':'', item.p?item.p+'p':''].filter(Boolean).join(' · ')}</span>
         <button onclick="removeMealItem('${c.id}','${day}','${slot}',${ii})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px;line-height:1">×</button>
       </div>`;
     });
@@ -1080,26 +1080,26 @@ function renderMealPlan(c) {
   if (mealLog.length) {
     const showAll = AppState._mealLogShowAll;
     const displayed = showAll ? mealLog.slice().reverse() : mealLog.slice().reverse().slice(0,5);
-    html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:16px 0 10px">Logged History (${mealLog.length})</div>`;
+    html += `<div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:16px 0 10px">Logged History (${mealLog.length})</div>`;
     displayed.forEach(entry => {
       html += `<div class="meal-log-entry">
         <div class="meal-log-date">${new Date(entry.date).toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div>
         <div class="meal-log-macros">
           <span class="meal-log-macro" style="color:var(--accent)">${entry.calories||0} kcal</span>
           <span class="meal-log-macro" style="color:#ff9f7a">${entry.protein||0}g P</span>
-          <span class="meal-log-macro" style="color:#e8ff47">${entry.carbs||0}g C</span>
+          <span class="meal-log-macro" style="color:#3B9EFF">${entry.carbs||0}g C</span>
           <span class="meal-log-macro" style="color:var(--muted)">${entry.fat||0}g F</span>
         </div>
         ${entry.note?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">${esc(entry.note)}</div>`:''}
       </div>`;
     });
     if (mealLog.length > 5) {
-      html += `<button onclick="AppState._mealLogShowAll=!AppState._mealLogShowAll;renderFeature('meals',currentClient)" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:2px">${showAll?'Show Less ↑':'Show All '+mealLog.length+' Entries ↓'}</button>`;
+      html += `<button onclick="AppState._mealLogShowAll=!AppState._mealLogShowAll;renderFeature('meals',currentClient)" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:2px">${showAll?'Show Less ↑':'Show All '+mealLog.length+' Entries ↓'}</button>`;
     }
   }
 
   // Log today's totals button
-  html += `<button onclick="logMealDay('${c.id}')" style="width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:12px">📋 Log Today's Totals</button>`;
+  html += `<button onclick="logMealDay('${c.id}')" style="width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:12px">📋 Log Today's Totals</button>`;
 
   return html;
 }
@@ -1111,7 +1111,7 @@ function addMealItem(cid, day, slot) {
   modal.className = 'app-overlay app-overlay--dim';
   modal.style.zIndex = '3000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:480px">
-    <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;margin-bottom:16px">Add Food — ${slot}</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:1px;margin-bottom:16px">Add Food — ${slot}</div>
     <div class="ob-field"><label class="ob-label">Food Item</label>
       <input class="ob-input" id="mi-name" type="text" placeholder="e.g. Chicken breast 150g" autofocus></div>
     <div class="ob-input-row" style="margin-top:10px">
@@ -1193,7 +1193,7 @@ function renderCheckin(c) {
     html += `<div style="background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
       <span style="font-size:18px">✅</span>
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:#2ecc71;letter-spacing:1px">CHECKED IN</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#2ecc71;letter-spacing:1px">CHECKED IN</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">${daysSince===0?'Today':daysSince+' day'+(daysSince===1?'':'s')+' ago'}</div>
       </div>
     </div>`;
@@ -1201,7 +1201,7 @@ function renderCheckin(c) {
 
   // Check-in form
   html += `<div class="checkin-card">
-    <div style="font-family:var(--display);font-size:20px;letter-spacing:2px;margin-bottom:16px;color:var(--text)">Weekly Check-In</div>`;
+    <div style="font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:2px;margin-bottom:16px;color:var(--text)">Weekly Check-In</div>`;
 
   const questions = [
     ['sleep',    'Sleep Quality',      '😴', '1 = terrible · 5 = great'],
@@ -1212,7 +1212,7 @@ function renderCheckin(c) {
   questions.forEach(([key, label, emoji, desc]) => {
     html += `<div style="margin-bottom:16px">
       <div class="checkin-q">${emoji} ${label}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:8px">${desc}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:8px">${desc}</div>
       <div class="checkin-scale">`;
     [1,2,3,4,5].forEach(n => {
       html += `<button class="checkin-scale-btn${AppState.checkinState[key]===n?' selected':''}" onclick="AppState.checkinState.${key}=${n};renderFeature('checkin',currentClient)">${n}</button>`;
@@ -1238,7 +1238,7 @@ function renderCheckin(c) {
   if (history.length) {
     const showAll = AppState._checkinShowAll;
     const displayed = showAll ? history.slice().reverse() : history.slice().reverse().slice(0, 4);
-    html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:16px 0 10px">History (${history.length})</div>`;
+    html += `<div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:16px 0 10px">History (${history.length})</div>`;
     displayed.forEach((ci, i) => {
       const avg = ((ci.sleep+(ci.stress||0)+ci.energy+ci.adherence) / (ci.stress?4:3)).toFixed(1);
       const col = avg >= 4 ? '#2ecc71' : avg >= 2.5 ? '#f1c40f' : '#e74c3c';
@@ -1246,7 +1246,7 @@ function renderCheckin(c) {
       html += `<div class="checkin-history-item">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div class="checkin-history-date">${new Date(ci.date).toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div>
-          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;background:${col}22;color:${col};font-weight:700">${avg} avg</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;background:${col}22;color:${col};font-weight:700">${avg} avg</span>
         </div>
         <div class="checkin-scores">
           <span class="checkin-score-pill">😴 ${ci.sleep}/5</span>
@@ -1260,7 +1260,7 @@ function renderCheckin(c) {
       </div>`;
     });
     if (history.length > 4) {
-      html += `<button onclick="AppState._checkinShowAll=!AppState._checkinShowAll;renderFeature('checkin',currentClient)" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:4px">${showAll?'Show Less ↑':'Show All '+history.length+' Check-Ins ↓'}</button>`;
+      html += `<button onclick="AppState._checkinShowAll=!AppState._checkinShowAll;renderFeature('checkin',currentClient)" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;margin-top:4px">${showAll?'Show Less ↑':'Show All '+history.length+' Check-Ins ↓'}</button>`;
     }
   }
   return html;
@@ -1406,7 +1406,7 @@ function renderCalendar(c) {
     const isRest     = !schedDay || schedDay.tag === 'Rest';
     const hue        = isStrength && schedDay.title ? _schedHueForTitle(schedDay.title) : null;
     const pillColor  = isRest ? null : hue !== null ? `hsl(${hue},62%,64%)` : isCard ? '#ffb347' : 'var(--accent)';
-    const pillBg     = isRest ? null : hue !== null ? `hsla(${hue},68%,56%,.18)` : isCard ? 'rgba(255,179,71,.15)' : 'rgba(255,107,53,.15)';
+    const pillBg     = isRest ? null : hue !== null ? `hsla(${hue},68%,56%,.18)` : isCard ? 'rgba(255,179,71,.15)' : 'rgba(59,158,255,.15)';
     const barColor   = isRest ? 'transparent' : pillColor;
 
     // Heatmap intensity: more sets = more saturated background
@@ -1444,24 +1444,24 @@ function renderCalendar(c) {
   // Stats row — multi-card grid
   html += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">CURRENT STREAK</div>
-      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:${streak>=3?'#ff6b35':'var(--text)'}">${streak}<span style="font-size:11px;color:var(--muted);margin-left:4px;letter-spacing:1px">DAY${streak===1?'':'S'}</span></div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">Best: ${bestStreak}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">CURRENT STREAK</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:1px;color:${streak>=3?'#3B9EFF':'var(--text)'}">${streak}<span style="font-size:11px;color:var(--muted);margin-left:4px;letter-spacing:1px">DAY${streak===1?'':'S'}</span></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">Best: ${bestStreak}</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">ADHERENCE</div>
-      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:${adhColor}">${adh}%</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${scheduledLogged} of ${scheduledTraining} planned</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">ADHERENCE</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:1px;color:${adhColor}">${adh}%</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${scheduledLogged} of ${scheduledTraining} planned</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">SESSIONS</div>
-      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:var(--text)">${sessionsThisMonth}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">this month</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">SESSIONS</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:1px;color:var(--text)">${sessionsThisMonth}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">this month</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TOTAL SETS</div>
-      <div style="font-family:var(--display);font-size:28px;letter-spacing:1px;color:var(--text)">${setsThisMonth}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${topMuscle ? 'Top: ' + esc(topMuscle[0]) : 'this month'}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TOTAL SETS</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:1px;color:var(--text)">${setsThisMonth}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${topMuscle ? 'Top: ' + esc(topMuscle[0]) : 'this month'}</div>
     </div>
   </div>`;
   return html;
@@ -1515,28 +1515,28 @@ function openCalDayDetail(cid, dateISO) {
     }
   } catch (_) {}
 
-  let body = `<div style="font-family:var(--display);font-size:22px;letter-spacing:2px;margin-bottom:4px">${dayLabel} — ${date.toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
-  <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:16px">${dateStr}</div>`;
+  let body = `<div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:2px;margin-bottom:4px">${dayLabel} — ${date.toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
+  <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:16px">${dateStr}</div>`;
 
   // Scheduled workout
   if (schedDay && schedDay.tag !== 'Rest') {
-    body += `<div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--accent);margin-bottom:4px">SCHEDULED</div>
+    body += `<div style="background:rgba(59,158,255,.08);border:1px solid rgba(59,158,255,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--accent);margin-bottom:4px">SCHEDULED</div>
       <div style="font-size:15px;font-weight:600;color:var(--text)">${esc(schedDay.title || schedDay.tag)}</div>
     </div>`;
   } else if (schedDay?.tag === 'Rest') {
-    body += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Rest Day</div>`;
+    body += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)">Rest Day</div>`;
   }
 
   // Logged sessions
   if (dayLogs.length) {
-    body += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Logged Activity</div>`;
+    body += `<div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Logged Activity</div>`;
     dayLogs.forEach(l => {
       body += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;gap:16px;flex-wrap:wrap">
         <span style="font-size:12px;color:var(--text)">${l.type||'Workout'}</span>
-        ${l.calories?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent)">🔥 ${l.calories} kcal</span>`:''}
-        ${l.duration?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${l.duration} min</span>`:''}
-        ${l.avgHR?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">♥ ${l.avgHR} bpm</span>`:''}
+        ${l.calories?`<span style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--accent)">🔥 ${l.calories} kcal</span>`:''}
+        ${l.duration?`<span style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted)">${l.duration} min</span>`:''}
+        ${l.avgHR?`<span style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted)">♥ ${l.avgHR} bpm</span>`:''}
       </div>`;
     });
   }
@@ -1544,21 +1544,21 @@ function openCalDayDetail(cid, dateISO) {
   // Render every workout-logger session that landed on this date
   let renderedAnySets = false;
   if (wlSessions.length) {
-    body += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:10px 0 8px">Sets Logged</div>`;
+    body += `<div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:10px 0 8px">Sets Logged</div>`;
     wlSessions.forEach(sess => {
       const exRows = Object.entries(sess.exercises).map(([, exData]) => {
         if (!exData?.sets?.length) return '';
         const doneSets = exData.sets.filter(s => s && (s.weight || s.reps));
         if (!doneSets.length) return '';
-        const nameHtml = exData.name ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text);font-weight:600;margin-bottom:6px">${esc(exData.name)}</div>` : '';
+        const nameHtml = exData.name ? `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text);font-weight:600;margin-bottom:6px">${esc(exData.name)}</div>` : '';
         return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px">
-          ${nameHtml}<div style="display:flex;flex-wrap:wrap;gap:8px">${doneSets.map((s,si) => `<span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--surface2);border-radius:4px;padding:3px 8px">S${si+1} ${[s.weight,s.reps].filter(Boolean).join(' × ')}</span>`).join('')}</div>
+          ${nameHtml}<div style="display:flex;flex-wrap:wrap;gap:8px">${doneSets.map((s,si) => `<span style="font-family:'Geist Mono',monospace;font-size:10px;background:var(--surface2);border-radius:4px;padding:3px 8px">S${si+1} ${[s.weight,s.reps].filter(Boolean).join(' × ')}</span>`).join('')}</div>
         </div>`;
       }).filter(Boolean).join('');
       if (exRows) {
         body += exRows;
         if (sess.sessionNotes) {
-          body += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:6px 14px;margin-bottom:8px;border-left:2px solid var(--border)">${esc(sess.sessionNotes)}</div>`;
+          body += `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);padding:6px 14px;margin-bottom:8px;border-left:2px solid var(--border)">${esc(sess.sessionNotes)}</div>`;
         }
         renderedAnySets = true;
       }
@@ -1566,7 +1566,7 @@ function openCalDayDetail(cid, dateISO) {
   }
 
   if (!dayLogs.length && !renderedAnySets) {
-    body += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:24px 0;letter-spacing:1px">No activity logged this day</div>`;
+    body += `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:24px 0;letter-spacing:1px">No activity logged this day</div>`;
   }
 
   const sheet = document.createElement('div');
@@ -1576,7 +1576,7 @@ function openCalDayDetail(cid, dateISO) {
   sheet.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;padding:20px 20px 32px">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
     ${body}
-    <button onclick="document.getElementById('calDaySheet').remove()" style="width:100%;margin-top:16px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:1px">Close</button>
+    <button onclick="document.getElementById('calDaySheet').remove()" style="width:100%;margin-top:16px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:1px">Close</button>
   </div>`;
   sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
   document.body.appendChild(sheet);
@@ -1594,7 +1594,7 @@ function renderComparison() {
     html += `<button class="compare-btn${AppState.compareSelected.includes(cl.id)?' active':''}" onclick="toggleCompare('${cl.id}')">${esc(cl.name)}</button>`;
   });
   html += `</div>`;
-  if (AppState.compareSelected.length < 2) { html += `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:40px 0;letter-spacing:1px">Select 2+ clients to compare</div>`; return html; }
+  if (AppState.compareSelected.length < 2) { html += `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:40px 0;letter-spacing:1px">Select 2+ clients to compare</div>`; return html; }
   const selected = clients.filter(cl => AppState.compareSelected.includes(cl.id));
   const now = Date.now();
   html += `<div style="overflow-x:auto"><table class="compare-table"><thead><tr><th>Metric</th>${selected.map(cl=>`<th style="color:${cl.accent}">${esc(cl.name)}</th>`).join('')}</tr></thead><tbody>`;
@@ -1613,7 +1613,7 @@ function renderComparison() {
     const numVals = vals.map(v => parseFloat(v)||0);
     const best    = row.higher ? Math.max(...numVals) : -1;
     const bestMask = row.bestFn ? row.bestFn(vals) : vals.map((_,i) => row.higher && numVals[i]===best && best>0);
-    html += `<tr><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">${row.label}</td>`;
+    html += `<tr><td style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">${row.label}</td>`;
     vals.forEach((v,i) => { html += `<td class="${bestMask[i]?'compare-best':''}">${v}</td>`; });
     html += `</tr>`;
   });
@@ -1656,12 +1656,12 @@ function buildCheckinSnippet(cid) {
   const replyHtml = existingReply
     ? `<div class="checkin-reply-wrap" style="margin-top:8px"><div class="checkin-reply-label">Your Reply</div><div class="checkin-reply-text">"${esc(existingReply)}"</div></div>`
     : '';
-  return `<div class="coach-workouts"><div class="coach-section-lbl" style="padding-top:12px">Latest Check-In <span style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">${ds}</span></div>
+  return `<div class="coach-workouts"><div class="coach-section-lbl" style="padding-top:12px">Latest Check-In <span style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">${ds}</span></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">
       <span class="checkin-score-pill">😴 ${ci.sleep}/5</span>
       <span class="checkin-score-pill">⚡ ${ci.energy}/5</span>
       <span class="checkin-score-pill">🎯 ${ci.adherence}/5</span>
-      <span style="font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:${col}22;color:${col}">Avg ${avg}</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:${col}22;color:${col}">Avg ${avg}</span>
     </div>${ci.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">"${esc(ci.notes)}"</div>`:''}${photoHtml}
     ${replyHtml}
     <textarea class="checkin-coach-reply-input" id="ci-reply-${cid}" placeholder="Reply to this check-in…">${esc(existingReply)}</textarea>
@@ -1692,7 +1692,7 @@ function buildNutritionSnippet(cid) {
   const calT = macros?.calories || 0;
   const pct  = calT ? Math.min(100, Math.round((totals.cal / calT) * 100)) : 0;
   const col  = pct >= 85 && pct <= 115 ? '#2ecc71' : pct < 60 || pct > 130 ? '#e74c3c' : '#f1c40f';
-  return `<div class="coach-workouts"><div class="coach-section-lbl" style="padding-top:12px">Nutrition Today <span style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">${itemCount} item${itemCount===1?'':'s'}</span></div>
+  return `<div class="coach-workouts"><div class="coach-section-lbl" style="padding-top:12px">Nutrition Today <span style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">${itemCount} item${itemCount===1?'':'s'}</span></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">
       <span class="checkin-score-pill" style="background:${col}22;color:${col}">${Math.round(totals.cal)}${calT?` / ${calT}`:''} kcal${calT?` · ${pct}%`:''}</span>
       <span class="checkin-score-pill">P ${Math.round(totals.p)}g</span>
@@ -1761,7 +1761,7 @@ function renderMilestonesPanel(c) {
     html += `<div style="background:${done?c.accent+'22':'var(--surface2)'};border:1px solid ${done?c.accent:'var(--border)'};border-radius:8px;padding:12px;opacity:${done?1:0.5}">
       <div style="font-size:22px;margin-bottom:4px">${ms.emoji}</div>
       <div style="font-size:13px;font-weight:600;color:${done?c.accent:'var(--muted)'}">${ms.title}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${ms.desc}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${ms.desc}</div>
     </div>`;
   });
   html += `</div>`;
@@ -1824,7 +1824,7 @@ function buildExSwapList(query) {
     return matchesMuscle && matchesQuery;
   });
 
-  if (!_exSwapItems.length) return '<div style="padding:20px;text-align:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
+  if (!_exSwapItems.length) return '<div style="padding:20px;text-align:center;font-family:\'Geist Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
 
   // Group by muscle, preserving global index for safe onclick
   const groups = {};
@@ -1870,7 +1870,7 @@ function openAddExerciseModal(cid, dayId, blockIdx) {
     <div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column">
       <div style="padding:28px 24px 0;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="font-family:var(--display);font-size:22px;letter-spacing:2px">Add Exercise</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:2px">Add Exercise</div>
           <button onclick="document.getElementById('addExModal').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">×</button>
         </div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch">${chipHtml}</div>
@@ -1879,28 +1879,28 @@ function openAddExerciseModal(cid, dayId, blockIdx) {
       <div id="addExPickerList" style="flex:1;overflow-y:auto;min-height:0">${buildAddExPickerList('')}</div>
       <div style="padding:16px 24px 40px;border-top:1px solid var(--border);flex-shrink:0">
         <div style="margin-bottom:12px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">EXERCISE NAME</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">EXERCISE NAME</div>
           <input class="fit-input" id="addExName" placeholder="e.g. Barbell Squat" style="font-size:15px" oninput="fillAddExDefaults(this.value)">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">SETS</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">SETS</div>
             <input class="fit-input" id="addExSets" placeholder="3" style="font-size:15px">
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REPS</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REPS</div>
             <input class="fit-input" id="addExReps" placeholder="10-12" style="font-size:15px">
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REST</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">REST</div>
             <input class="fit-input" id="addExRest" placeholder="90 sec" style="font-size:15px">
           </div>
         </div>
         <div style="margin-bottom:18px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">COACHING NOTE (optional)</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">COACHING NOTE (optional)</div>
           <input class="fit-input" id="addExNote" placeholder="e.g. Full ROM — control the eccentric" style="font-size:14px">
         </div>
-        <button onclick="saveAddedExercise('${esc(cid)}','${esc(dayId)}',${blockIdx})" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:8px">Add to Workout</button>
+        <button onclick="saveAddedExercise('${esc(cid)}','${esc(dayId)}',${blockIdx})" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:8px">Add to Workout</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -1927,7 +1927,7 @@ function buildAddExPickerList(query) {
     const matchesQuery  = !q || e.name.toLowerCase().includes(q) || e.muscle.toLowerCase().includes(q);
     return matchesMuscle && matchesQuery;
   });
-  if (!_addExPickerItems.length) return '<div style="padding:20px;text-align:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
+  if (!_addExPickerItems.length) return '<div style="padding:20px;text-align:center;font-family:\'Geist Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
   const groups = {};
   _addExPickerItems.forEach((e, idx) => {
     if (!groups[e.muscle]) groups[e.muscle] = [];
@@ -2175,15 +2175,15 @@ function openBroadcast() {
   modal.className = 'app-overlay app-overlay--dark';
   modal.style.zIndex = '4000';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:500px">
-    <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;margin-bottom:4px;color:#e8ff47">📢 Broadcast Message</div>
-    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">Sent to ALL clients on their home screen</div>
-    <textarea id="broadcastInput" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:14px;min-height:100px;font-family:'DM Sans',sans-serif;resize:vertical" maxlength="300" placeholder="e.g. Gym closed Saturday — see you Monday!">${esc(cur)}</textarea>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;text-align:right" id="bcCharCount">${cur.length}/300</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:2px;margin-bottom:4px;color:#3B9EFF">📢 Broadcast Message</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">Sent to ALL clients on their home screen</div>
+    <textarea id="broadcastInput" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:14px;min-height:100px;font-family:'Geist',sans-serif;resize:vertical" maxlength="300" placeholder="e.g. Gym closed Saturday — see you Monday!">${esc(cur)}</textarea>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;text-align:right" id="bcCharCount">${cur.length}/300</div>
     <div style="display:flex;gap:10px;margin-top:14px">
-      <button class="ob-next-btn" style="flex:1;background:#e8ff47;color:#000" onclick="saveBroadcast()">📲 In-App Broadcast</button>
+      <button class="ob-next-btn" style="flex:1;background:#3B9EFF;color:#000" onclick="saveBroadcast()">📲 In-App Broadcast</button>
       <button class="ob-back-btn" onclick="document.getElementById('broadcastModal').remove()">Cancel</button>
     </div>
-    <button class="ob-next-btn" id="bcEmailBtn" style="width:100%;margin-top:8px;background:rgba(255,107,53,.12);color:#ff6b35;border:1px solid #ff6b35" onclick="bcSendEmail()">📧 Email All Clients</button>
+    <button class="ob-next-btn" id="bcEmailBtn" style="width:100%;margin-top:8px;background:rgba(59,158,255,.12);color:#3B9EFF;border:1px solid #3B9EFF" onclick="bcSendEmail()">📧 Email All Clients</button>
     ${cur ? `<button class="ob-back-btn" style="width:100%;margin-top:8px;color:#e74c3c;border-color:#e74c3c" onclick="clearBroadcast()">🗑 Clear Broadcast</button>` : ''}
   </div>`;
   document.body.appendChild(modal);
@@ -2470,7 +2470,7 @@ function _mmFormatMuscle(m) {
 
 function renderMuscleMap(c) {
   const days   = AppState._mmDays || 7;
-  const accent = c.accent || '#ff6b35';
+  const accent = c.accent || '#3B9EFF';
   const vols   = _mmComputeVolumes(c.id, days);
   const intens = _mmNormalize(vols);
   const top    = _mmTopMuscles(vols, 5);
@@ -2551,7 +2551,7 @@ function _mmAfterRender(c) {
   const body = document.getElementById('feature-musclemap-body');
   if (!body) return;
   const days   = AppState._mmDays || 7;
-  const accent = c.accent || '#ff6b35';
+  const accent = c.accent || '#3B9EFF';
   const vols   = _mmComputeVolumes(c.id, days);
   const intens = _mmNormalize(vols);
   body.querySelectorAll('.mm-svg').forEach((svg, idx) => {

@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v56';
+const CACHE = 'crazyy-fit-v57';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
@@ -21,7 +21,7 @@ const ASSETS = [
   './js/ai.js',
   './js/macros.js',
   './js/nutrition.js',
-  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap'
+  'https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap'
 ];
 
 // Install — cache everything except index.html

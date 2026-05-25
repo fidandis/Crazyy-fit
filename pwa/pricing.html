@@ -7,34 +7,42 @@
   <meta name="description" content="Two ways to work with your coach. Pick the level that fits your life." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --bg2: #111111;
-      --bg3: #161616;
-      --border: rgba(255,255,255,0.07);
-      --text: #f0f0f0;
-      --muted: #888;
-      --accent: #ff4500;
-      --accent2: #ff6b35;
-      --mono: 'DM Mono', monospace;
-      --sans: 'DM Sans', sans-serif;
-      --bebas: 'Bebas Neue', sans-serif;
+      --bg: #0a0c0e;
+      --bg2: #131619;
+      --bg3: #1c2024;
+      --border: #262b30;
+      --line-soft: #1e2226;
+      --text: #f4f5f6;
+      --muted: #a1a8b0;
+      --faint: #5a6168;
+      --accent: #3B9EFF;
+      --accent2: #5AAEFF;
+      --accent-dim: #1E6FCC;
+      --mono: 'Geist Mono', monospace;
+      --sans: 'Geist', sans-serif;
+      --bebas: 'Geist', sans-serif;
     }
 
     html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
+      background-image:
+        radial-gradient(at 80% 0%, rgba(59,158,255,0.07) 0%, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(255,77,46,0.03) 0%, transparent 50%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: var(--sans);
       font-size: 16px;
       line-height: 1.6;
       overflow-x: hidden;
       min-height: 100svh;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── NAV ── */
@@ -46,13 +54,14 @@
       border-bottom: 1px solid var(--border);
     }
     .nav-logo {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: 24px;
       letter-spacing: 2px;
       color: var(--text);
       text-decoration: none;
     }
-    .nav-logo span { color: var(--accent); }
+    .nav-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .nav-logo .fit { color: var(--text); }
     .nav-back {
       font-family: var(--mono);
       font-size: 11px;
@@ -90,7 +99,7 @@
       background: var(--accent);
     }
     h1 {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: clamp(52px, 10vw, 96px);
       line-height: 0.93;
       letter-spacing: 1px;
@@ -110,7 +119,7 @@
     .cards-wrap {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2px;
+      gap: 14px;
       max-width: 860px;
       margin: 0 auto;
       padding: 0 24px 80px;
@@ -119,6 +128,7 @@
     .tier-card {
       background: var(--bg2);
       border: 1px solid var(--border);
+      border-radius: 20px;
       padding: 48px 36px 40px;
       display: flex;
       flex-direction: column;
@@ -132,7 +142,7 @@
     }
     .featured-badge {
       position: absolute;
-      top: -1px;
+      top: -11px;
       left: 50%;
       transform: translateX(-50%);
       font-family: var(--mono);
@@ -140,8 +150,10 @@
       letter-spacing: 2px;
       text-transform: uppercase;
       background: var(--accent);
-      color: #fff;
+      color: var(--bg);
+      font-weight: 600;
       padding: 5px 16px;
+      border-radius: 100px;
       white-space: nowrap;
     }
 
@@ -159,7 +171,7 @@
       margin-bottom: 10px;
     }
     .tier-name {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: 52px;
       letter-spacing: 1px;
       line-height: 1;
@@ -180,7 +192,7 @@
       border-bottom: 1px solid var(--border);
     }
     .price-amount {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: 72px;
       line-height: 1;
       color: var(--text);
@@ -234,7 +246,7 @@
       letter-spacing: 2px;
       text-transform: uppercase;
       padding: 17px 24px;
-      border-radius: 3px;
+      border-radius: 12px;
       text-decoration: none;
       transition: all 0.2s;
       border: 1px solid var(--border);
@@ -273,7 +285,7 @@
       margin: 0 auto;
     }
     .faq-title {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: 36px;
       letter-spacing: 1px;
       margin-bottom: 32px;
@@ -304,12 +316,13 @@
       text-align: center;
     }
     .footer-logo {
-      font-family: var(--bebas);
+      font-family: var(--bebas); font-weight: 800;
       font-size: 20px;
       letter-spacing: 2px;
       margin-bottom: 8px;
     }
-    .footer-logo span { color: var(--accent); }
+    .footer-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .footer-logo .fit { color: var(--text); }
     .footer-note {
       font-family: var(--mono);
       font-size: 11px;
@@ -328,7 +341,7 @@
 <body>
 
   <nav>
-    <a href="/landing.html" class="nav-logo">CRAZYY<span>FIT</span></a>
+    <a href="/landing.html" class="nav-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></a>
     <a href="/landing.html" class="nav-back">← Back</a>
   </nav>
 
@@ -420,7 +433,7 @@
   </div>
 
   <footer>
-    <div class="footer-logo">CRAZYY<span>FIT</span></div>
+    <div class="footer-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></div>
     <div class="footer-note">Real coaching. Real accountability. Real results.</div>
   </footer>
 

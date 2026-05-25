@@ -752,7 +752,7 @@ function _nutrRing(val, target, label, unit, color) {
       <text x="42" y="40" text-anchor="middle" dominant-baseline="middle"
         font-family="var(--display)" font-size="16" fill="${color}">${esc(disp)}</text>
       <text x="42" y="55" text-anchor="middle" dominant-baseline="middle"
-        font-family="'DM Mono',monospace" font-size="7" fill="var(--muted)">${esc(unit)}</text>
+        font-family="'Geist Mono',monospace" font-size="7" fill="var(--muted)">${esc(unit)}</text>
     </svg>
     <div class="nutr-ring-label">${esc(label)}</div>
     <div class="nutr-ring-pct" style="color:${color}">${esc(pctLbl)}</div>
@@ -838,7 +838,7 @@ function _nutrWaterSection(cid, date, glasses, accent) {
       <span class="nutr-water-count" style="color:${accent}">${glasses} / ${GOAL} glasses</span>
     </div>
     <div class="nutr-water-dots">${dots}</div>
-    ${glasses >= GOAL ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:#2ecc71;letter-spacing:1px;margin-top:6px">Daily goal reached</div>` : ''}
+    ${glasses >= GOAL ? `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:#2ecc71;letter-spacing:1px;margin-top:6px">Daily goal reached</div>` : ''}
   </div>`;
 }
 
@@ -883,7 +883,7 @@ function _nutrMealSection(cid, meal, label, items, accent, date) {
         <span class="nutr-meal-icon">${_MEAL_ICONS[meal] || '🍽'}</span>
         <span>${esc(label)}</span>
       </div>
-      <div class="nutr-meal-totals" style="font-family:'DM Mono',monospace;font-size:10px">${totalsHtml}</div>
+      <div class="nutr-meal-totals" style="font-family:'Geist Mono',monospace;font-size:10px">${totalsHtml}</div>
     </div>
     <div class="nutr-meal-foods">${foodRows}</div>
     ${freqChips}
@@ -912,7 +912,7 @@ function _nutrHistory(cid, calTarget, accent) {
   const vals  = last7.map(valOf);
   const maxV  = Math.max(...vals, mode === 'cal' ? (calTarget || 1) : 1);
   const daysHit = mode === 'cal' ? last7.filter(d => d.cal > 0 && calTarget > 0 && d.cal >= calTarget * 0.9).length : 0;
-  const modeColor = mode === 'p' ? '#ff9f7a' : mode === 'c' ? '#e8ff47' : mode === 'f' ? '#7adfff' : accent;
+  const modeColor = mode === 'p' ? '#ff9f7a' : mode === 'c' ? '#3B9EFF' : mode === 'f' ? '#7adfff' : accent;
   const modeUnit  = mode === 'cal' ? 'kcal' : 'g';
 
   const bars = last7.map(d => {
@@ -923,16 +923,16 @@ function _nutrHistory(cid, calTarget, accent) {
     const barColor = v === 0 ? 'var(--border)' : hit ? '#2ecc71' : modeColor;
     const lbl      = v > 0 ? (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : String(Math.round(v))) : '';
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;cursor:pointer" onclick="setNutrDate('${esc(cid)}','${esc(d.key)}')">
-      <div style="font-family:'DM Mono',monospace;font-size:7px;color:var(--muted)">${lbl}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:7px;color:var(--muted)">${lbl}</div>
       <div style="width:100%;background:var(--surface2);border-radius:3px;height:40px;display:flex;align-items:flex-end;overflow:hidden">
         <div style="width:100%;height:${pct}%;background:${barColor};border-radius:3px 3px 0 0;transition:height .3s"></div>
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:7px;color:${isToday ? accent : 'var(--muted)'};font-weight:${isToday ? '700' : '400'}">${esc(d.label)}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:7px;color:${isToday ? accent : 'var(--muted)'};font-weight:${isToday ? '700' : '400'}">${esc(d.label)}</div>
     </div>`;
   }).join('');
 
-  const modeBtns = [['cal','Kcal',accent],['p','Protein','#ff9f7a'],['c','Carbs','#e8ff47'],['f','Fat','#7adfff']].map(([m, lbl, col]) =>
-    `<button onclick="AppState._nutrHistoryMode='${m}';const c=(getAllClients().find(x=>x.id==='${esc(cid)}')||AppState.currentClient);if(c){const el=document.getElementById('panel-nutrition');if(el)el.innerHTML=renderNutritionTracker(c);}" style="padding:3px 8px;border-radius:4px;border:1px solid ${mode===m?col:' var(--border)'};background:${mode===m?col+'22':'none'};color:${mode===m?col:'var(--muted)'};font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.5px;cursor:pointer">${lbl}</button>`
+  const modeBtns = [['cal','Kcal',accent],['p','Protein','#ff9f7a'],['c','Carbs','#3B9EFF'],['f','Fat','#7adfff']].map(([m, lbl, col]) =>
+    `<button onclick="AppState._nutrHistoryMode='${m}';const c=(getAllClients().find(x=>x.id==='${esc(cid)}')||AppState.currentClient);if(c){const el=document.getElementById('panel-nutrition');if(el)el.innerHTML=renderNutritionTracker(c);}" style="padding:3px 8px;border-radius:4px;border:1px solid ${mode===m?col:' var(--border)'};background:${mode===m?col+'22':'none'};color:${mode===m?col:'var(--muted)'};font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.5px;cursor:pointer">${lbl}</button>`
   ).join('');
 
   return `<div class="card" style="margin-bottom:12px">
@@ -942,7 +942,7 @@ function _nutrHistory(cid, calTarget, accent) {
         <div style="display:flex;gap:4px">${modeBtns}</div>
       </div>
       <div style="display:flex;gap:5px;align-items:flex-end">${bars}</div>
-      ${mode === 'cal' && calTarget ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTarget} kcal</div></div>` : ''}
+      ${mode === 'cal' && calTarget ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><div style="width:10px;height:3px;background:#2ecc71;border-radius:2px"></div><div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">≥90% of ${calTarget} kcal</div></div>` : ''}
     </div>
   </div>`;
 }
@@ -961,7 +961,7 @@ function openMealTargetModal(cid) {
   modal.id = 'nutrMealTargetModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Targets</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Targets</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Set per-meal calorie goals (0 = no target).</div>
     ${['breakfast','lunch','dinner','snacks'].map(m => `
     <div class="ob-field" style="margin-bottom:10px">
@@ -1029,8 +1029,8 @@ function _nutrWeeklyBalance(cid, baseCal, accent) {
         <div class="nutr-targets-sub">${daysLogged} of 7 days logged</div>
       </div>
       <div style="text-align:right">
-        <div style="font-family:var(--display);font-size:22px;color:${balColor}">${balSign}${Math.abs(balance).toLocaleString()} kcal</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px">${balLabel}</div>
+        <div style="font-family:var(--display);font-weight:700;font-size:22px;color:${balColor}">${balSign}${Math.abs(balance).toLocaleString()} kcal</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px">${balLabel}</div>
       </div>
     </div>
     <div class="nwb-bars">${bars}</div>
@@ -1069,10 +1069,10 @@ function buildTopFoodsSection(cid, accent) {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
         <div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%">${esc(f.name)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${Math.round(f.cal)} kcal · ×${f.count}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${Math.round(f.cal)} kcal · ×${f.count}</div>
       </div>
       <div style="background:var(--surface2);border-radius:3px;height:5px;overflow:hidden">
-        <div style="width:${pct}%;height:100%;background:${i===0?accent:'rgba(255,107,53,.4)'};border-radius:3px;transition:width .3s"></div>
+        <div style="width:${pct}%;height:100%;background:${i===0?accent:'rgba(59,158,255,.4)'};border-radius:3px;transition:width .3s"></div>
       </div>
     </div>`;
   }).join('');
@@ -1126,58 +1126,58 @@ function openMonthlyReport(cid, calTarget, accent) {
     <div style="padding:18px 18px 0">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
         <div>
-          <div style="font-family:var(--display);font-size:24px;letter-spacing:1px">${esc(monthName)}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">${loggedDays} of ${elapsed} days logged</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:1px">${esc(monthName)}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">${loggedDays} of ${elapsed} days logged</div>
         </div>
         <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px">&times;</button>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div style="background:var(--surface2);border-radius:8px;padding:12px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG CALORIES</div>
-          <div style="font-family:var(--display);font-size:28px;color:${accent}">${avgCal || '—'}</div>
-          ${calTarget ? `<div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">target: ${calTarget}</div>` : ''}
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG CALORIES</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:28px;color:${accent}">${avgCal || '—'}</div>
+          ${calTarget ? `<div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">target: ${calTarget}</div>` : ''}
         </div>
         <div style="background:var(--surface2);border-radius:8px;padding:12px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">LOG STREAK</div>
-          <div style="font-family:var(--display);font-size:28px;color:#f1c40f">${streak}d</div>
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">consecutive days</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">LOG STREAK</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:28px;color:#f1c40f">${streak}d</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">consecutive days</div>
         </div>
       </div>
 
       <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:10px">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">AVG DAILY MACROS</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">AVG DAILY MACROS</div>
         <div style="display:flex;gap:16px">
-          <div><div style="font-size:13px;font-weight:600;color:#ff9f7a">${avgP}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Protein</div></div>
-          <div><div style="font-size:13px;font-weight:600;color:#e8ff47">${avgC}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Carbs</div></div>
-          <div><div style="font-size:13px;font-weight:600;color:#7adfff">${avgF}g</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">Fat</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:#ff9f7a">${avgP}g</div><div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">Protein</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:#3B9EFF">${avgC}g</div><div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">Carbs</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:#7adfff">${avgF}g</div><div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">Fat</div></div>
         </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div style="background:var(--surface2);border-radius:8px;padding:10px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">WATER GOAL DAYS</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">WATER GOAL DAYS</div>
           <div style="font-size:16px;font-weight:700;color:#5dade2">${waterDays} / ${elapsed}</div>
         </div>
         <div style="background:var(--surface2);border-radius:8px;padding:10px">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG WATER</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">AVG WATER</div>
           <div style="font-size:16px;font-weight:700;color:#5dade2">${loggedDays ? (totalWater / elapsed).toFixed(1) : '—'} glasses</div>
         </div>
       </div>
 
       ${bestDate ? `<div style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:16px">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">BEST DAY</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">BEST DAY</div>
         <div style="font-size:13px;font-weight:600">${new Date(bestDate+'T12:00:00').toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'})} — ${bestCal} kcal</div>
       </div>` : ''}
 
       ${adherPct > 0 ? `<div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px"><span>Logging adherence</span><span>${adherPct}%</span></div>
+        <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px"><span>Logging adherence</span><span>${adherPct}%</span></div>
         <div style="background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
           <div style="width:${adherPct}%;height:100%;background:${adherPct>=80?'#2ecc71':adherPct>=50?accent:'#e74c3c'};border-radius:4px;transition:width .4s"></div>
         </div>
       </div>` : ''}
 
-      <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px;border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;margin-bottom:18px">Close</button>
+      <button onclick="document.getElementById('nutrMonthlyModal').remove()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px;border-radius:8px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;margin-bottom:18px">Close</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -1198,7 +1198,7 @@ function openNutrRemindersModal(cid) {
   modal.id = 'nutrRemindersModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
-    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Reminders</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;margin-bottom:4px">Meal Reminders</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Push notifications when app is open. Works on Android; iOS requires app installed to home screen.</div>
     ${['breakfast','lunch','dinner'].map(m => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
@@ -1206,7 +1206,7 @@ function openNutrRemindersModal(cid) {
         <div style="font-size:12px;font-weight:500;text-transform:capitalize">${m}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <input type="time" id="rem-time-${m}" value="${rem[m]?.time||'08:00'}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-family:'DM Mono',monospace;font-size:10px">
+        <input type="time" id="rem-time-${m}" value="${rem[m]?.time||'08:00'}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-family:'Geist Mono',monospace;font-size:10px">
         <label style="position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0">
           <input type="checkbox" id="rem-on-${m}" ${rem[m]?.enabled?'checked':''} onchange="this.nextElementSibling.style.background=this.checked?'#2ecc71':'var(--surface2)'" style="opacity:0;width:0;height:0">
           <span onclick="this.previousElementSibling.click()" style="position:absolute;inset:0;background:${rem[m]?.enabled?'#2ecc71':'var(--surface2)'};border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s"></span>
@@ -1341,7 +1341,7 @@ function renderNutritionTracker(c) {
       <span class="nutr-goal-dot">·</span>
       <div class="nutr-goal-cell"><span class="nutr-goal-num" style="color:#ff9f7a">${targets.p}</span><span class="nutr-goal-u">g P</span></div>
       <span class="nutr-goal-dot">·</span>
-      <div class="nutr-goal-cell"><span class="nutr-goal-num" style="color:#e8ff47">${targets.c}</span><span class="nutr-goal-u">g C</span></div>
+      <div class="nutr-goal-cell"><span class="nutr-goal-num" style="color:#3B9EFF">${targets.c}</span><span class="nutr-goal-u">g C</span></div>
       <span class="nutr-goal-dot">·</span>
       <div class="nutr-goal-cell"><span class="nutr-goal-num" style="color:#7adfff">${targets.f}</span><span class="nutr-goal-u">g F</span></div>
     </div>
@@ -1351,7 +1351,7 @@ function renderNutritionTracker(c) {
   html += `<div class="nutr-rings-grid" id="nutr-rings-grid">
     ${_nutrRing(totals.cal, targets.cal, 'Calories', 'kcal', accent)}
     ${_nutrRing(totals.p,   targets.p,   'Protein',  'g',   '#ff9f7a')}
-    ${_nutrRing(totals.c,   targets.c,   'Carbs',    'g',   '#e8ff47')}
+    ${_nutrRing(totals.c,   targets.c,   'Carbs',    'g',   '#3B9EFF')}
     ${_nutrRing(totals.f,   targets.f,   'Fat',      'g',   '#7adfff')}
   </div>`;
 
@@ -1422,7 +1422,7 @@ function renderNutritionTracker(c) {
     <div class="nutr-targets-grid">
       <div class="nutr-target-cell"><div class="nutr-target-val" style="color:${accent}">${targets.cal}</div><div class="nutr-target-lbl">kcal</div></div>
       <div class="nutr-target-cell"><div class="nutr-target-val" style="color:#ff9f7a">${targets.p}<span class="nutr-target-unit">g</span></div><div class="nutr-target-lbl">Protein</div></div>
-      <div class="nutr-target-cell"><div class="nutr-target-val" style="color:#e8ff47">${targets.c}<span class="nutr-target-unit">g</span></div><div class="nutr-target-lbl">Carbs</div></div>
+      <div class="nutr-target-cell"><div class="nutr-target-val" style="color:#3B9EFF">${targets.c}<span class="nutr-target-unit">g</span></div><div class="nutr-target-lbl">Carbs</div></div>
       <div class="nutr-target-cell"><div class="nutr-target-val" style="color:#7adfff">${targets.f}<span class="nutr-target-unit">g</span></div><div class="nutr-target-lbl">Fat</div></div>
     </div>
     ${(n?.trainingDay && n?.restDay) ? `<div class="nutr-targets-split">
@@ -1548,7 +1548,7 @@ function _updateNutrGranular(c, date, mealKey) {
   // Rings
   ringsEl.innerHTML = `${_nutrRing(totals.cal, targets.cal, 'Calories', 'kcal', accent)}
     ${_nutrRing(totals.p, targets.p, 'Protein', 'g', '#ff9f7a')}
-    ${_nutrRing(totals.c, targets.c, 'Carbs',   'g', '#e8ff47')}
+    ${_nutrRing(totals.c, targets.c, 'Carbs',   'g', '#3B9EFF')}
     ${_nutrRing(totals.f, targets.f, 'Fat',     'g', '#7adfff')}`;
 
   // Micro strip
@@ -1604,7 +1604,7 @@ function openNutrSearch(cid, meal, date) {
     <div class="nutr-search-sheet">
       <div class="nutr-search-top">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Add Food</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px">Add Food</div>
           <button class="nutr-barcode-btn" onclick="openNutrBarcodeScanner()" title="Scan barcode">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/>
@@ -1767,7 +1767,7 @@ function openQuickAddKcal(cid, meal, date) {
   modal.id = 'nutrQuickAddModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">Quick Add</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;margin-bottom:4px">Quick Add</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Log calories without a food name. Macros optional.</div>
     <div class="ob-field" style="margin-bottom:10px">
       <label class="ob-label">Calories</label>
@@ -1903,17 +1903,17 @@ function _openWeightModal(food, foodId) {
   popup.id = 'nutrQtyModal';
   popup.style.cssText = 'position:fixed;inset:0;z-index:4100;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   popup.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:340px">
-    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:4px">${esc(food.name)}</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;margin-bottom:4px">${esc(food.name)}</div>
     ${food.brand ? `<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${esc(food.brand)}</div>` : ''}
-    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">${perLabel}: ${food.cal} kcal · ${food.p}g P · ${food.c}g C · ${food.f}g F</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">${perLabel}: ${food.cal} kcal · ${food.p}g P · ${food.c}g C · ${food.f}g F</div>
     <div style="margin-bottom:6px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">${hasWeight ? 'How much?' : 'Servings'}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">${hasWeight ? 'How much?' : 'Servings'}</div>
       <div style="display:flex;gap:8px;align-items:stretch">
         <input class="fit-input" id="nutrQtyInput" type="number" step="any" min="0" value="${defAmt}" inputmode="decimal" style="font-size:20px;text-align:center;flex:1">
         ${hasWeight ? `<div class="nutr-unit-group" id="nutrUnitGroup">${unitBtns}</div>` : ''}
       </div>
     </div>
-    <div id="nutrQtyPreview" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);text-align:center;margin:14px 0 18px;padding:10px;background:var(--surface2);border-radius:8px;min-height:20px"></div>
+    <div id="nutrQtyPreview" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text);text-align:center;margin:14px 0 18px;padding:10px;background:var(--surface2);border-radius:8px;min-height:20px"></div>
     <div style="display:flex;gap:10px">
       <button class="ob-next-btn" style="flex:1" onclick="confirmNutrAddFood('${esc(foodId)}')">Add to ${esc(AppState._nutrSearchMeal)} →</button>
       <button class="ob-back-btn" onclick="document.getElementById('nutrQtyModal').remove()">Cancel</button>
@@ -2032,11 +2032,11 @@ function openNutrCustomFood(mode, barcode) {
   modal.id    = 'nutrCustomFoodModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center';
 
-  const tabStyle = (m) => `padding:6px 14px;border-radius:4px;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;background:${mode===m?'var(--accent)':'var(--surface2)'};color:${mode===m?'#000':'var(--muted)'}`;
+  const tabStyle = (m) => `padding:6px 14px;border-radius:4px;border:none;font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;background:${mode===m?'var(--accent)':'var(--surface2)'};color:${mode===m?'#000':'var(--muted)'}`;
 
   modal.innerHTML = `<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px 28px;width:100%;max-width:500px;box-sizing:border-box;max-height:90vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">Custom Food</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px">Custom Food</div>
       <div style="display:flex;gap:6px">
         <button onclick="openNutrCustomFood('manual')" style="${tabStyle('manual')}">Manual</button>
         <button onclick="openNutrCustomFood('recipe')" style="${tabStyle('recipe')}">Recipe</button>
@@ -2044,7 +2044,7 @@ function openNutrCustomFood(mode, barcode) {
     </div>
 
     ${mode === 'manual' ? `
-    ${window._nutrCustomBarcode ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:6px;margin-bottom:10px;letter-spacing:.5px">Barcode: ${window._nutrCustomBarcode} — this food will be saved for all clients</div>` : ''}
+    ${window._nutrCustomBarcode ? `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:6px;margin-bottom:10px;letter-spacing:.5px">Barcode: ${window._nutrCustomBarcode} — this food will be saved for all clients</div>` : ''}
     <div class="ob-field" style="margin-bottom:10px">
       <label class="ob-label">Food Name</label>
       <input class="ob-input" id="cf-name" type="text" placeholder="e.g. Homemade protein bowl" autofocus>
@@ -2071,7 +2071,7 @@ function openNutrCustomFood(mode, barcode) {
       <div class="ob-field"><label class="ob-label">Sodium (mg) <span style="color:var(--faint)">opt</span></label>
         <input class="ob-input" id="cf-sodium" type="number" placeholder="0" inputmode="numeric"></div>
     </div>
-    <div id="cf-cal-preview" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:14px;letter-spacing:.5px"></div>
+    <div id="cf-cal-preview" style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:14px;letter-spacing:.5px"></div>
     <div style="display:flex;gap:10px">
       <button class="ob-next-btn" style="flex:1" onclick="confirmNutrCustomFood()">Save & Add →</button>
       <button class="ob-back-btn" onclick="document.getElementById('nutrCustomFoodModal').remove()">Cancel</button>
@@ -2085,13 +2085,13 @@ function openNutrCustomFood(mode, barcode) {
       <label class="ob-label">Serves</label>
       <input class="ob-input" id="cf-serves" type="number" placeholder="1" value="1" min="1" inputmode="numeric" oninput="cfRecipeUpdateTotals()">
     </div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">ADD INGREDIENTS</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">ADD INGREDIENTS</div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
       <input class="ob-input" id="cf-ing-search" type="text" placeholder="Search food..." style="flex:1" oninput="cfRecipeSearch(this.value)" autocomplete="off">
     </div>
     <div id="cf-ing-results" style="max-height:120px;overflow-y:auto;margin-bottom:10px;border:1px solid var(--border);border-radius:6px"></div>
     <div id="cf-ing-list" style="margin-bottom:10px"></div>
-    <div id="cf-recipe-totals" style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;min-height:32px"></div>
+    <div id="cf-recipe-totals" style="background:var(--surface2);border-radius:6px;padding:10px 12px;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;min-height:32px"></div>
     <div style="display:flex;gap:10px">
       <button class="ob-next-btn" style="flex:1" onclick="confirmNutrRecipe()">Save Recipe →</button>
       <button class="ob-back-btn" onclick="document.getElementById('nutrCustomFoodModal').remove()">Cancel</button>
@@ -2122,7 +2122,7 @@ function cfRecipeSearch(q) {
   const custom = getCustomFoods(cid).map(f => ({ ...f, _custom: true }));
   const results = [...custom, ...FOOD_DB].filter(f => f.name.toLowerCase().includes(ql)).slice(0, 12);
   el.innerHTML = results.map((f, i) =>
-    `<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:11px" onclick="cfRecipeAddIngredient(${i})" data-idx="${i}">${esc(f.name)} <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${f.cal}kcal/${esc(f.serving)}</span></div>`
+    `<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:11px" onclick="cfRecipeAddIngredient(${i})" data-idx="${i}">${esc(f.name)} <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${f.cal}kcal/${esc(f.serving)}</span></div>`
   ).join('');
   window._cfRecipeSearchResults = results;
 }
@@ -2144,8 +2144,8 @@ function cfRecipeRenderList() {
   el.innerHTML = window._recipeIngredients.map((ing, i) => `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <div style="flex:1;font-size:11px">${esc(ing.name)}</div>
-      <input type="number" value="${ing.qty}" min="0.25" step="0.25" inputmode="decimal" style="width:52px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-family:'DM Mono',monospace;font-size:10px;text-align:center" oninput="window._recipeIngredients[${i}].qty=parseFloat(this.value)||1;cfRecipeUpdateTotals()">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);min-width:36px;text-align:right">${Math.round(ing.cal * ing.qty)} kcal</div>
+      <input type="number" value="${ing.qty}" min="0.25" step="0.25" inputmode="decimal" style="width:52px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-family:'Geist Mono',monospace;font-size:10px;text-align:center" oninput="window._recipeIngredients[${i}].qty=parseFloat(this.value)||1;cfRecipeUpdateTotals()">
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);min-width:36px;text-align:right">${Math.round(ing.cal * ing.qty)} kcal</div>
       <button onclick="window._recipeIngredients.splice(${i},1);cfRecipeRenderList();cfRecipeUpdateTotals()" style="background:none;border:none;color:var(--danger);font-size:14px;cursor:pointer;padding:0 4px">×</button>
     </div>`).join('');
 }
@@ -2387,10 +2387,10 @@ function openNutrBarcodeManual() {
   modal.id = 'nutrBarcodeModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4300;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
   modal.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px 20px;width:100%;max-width:360px">
-    <div style="font-family:var(--display);font-size:22px;letter-spacing:1px;margin-bottom:8px">Enter Barcode</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;margin-bottom:8px">Enter Barcode</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Type the barcode digits from your product.</div>
     <input class="fit-input" id="nutrBarcodeInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 3017620422003" style="font-size:16px;letter-spacing:1px;margin-bottom:14px" autofocus>
-    <div id="nutrBarcodeStatus" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;min-height:14px"></div>
+    <div id="nutrBarcodeStatus" style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;min-height:14px"></div>
     <div style="display:flex;gap:10px">
       <button class="ob-next-btn" style="flex:1" onclick="nutrBarcodeManualLookup()">Look Up →</button>
       <button class="ob-back-btn" onclick="document.getElementById('nutrBarcodeModal').remove()">Cancel</button>
@@ -2437,16 +2437,16 @@ function openNutrBarcodeCameraScanner() {
   modal.style.cssText = 'position:fixed;inset:0;z-index:4400;background:#000;display:flex;flex-direction:column';
   modal.innerHTML = `
     <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.6)">
-      <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;color:#fff">Scan Barcode</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:1px;color:#fff">Scan Barcode</div>
       <button onclick="closeNutrBarcodeCam()" style="background:none;border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:0 8px">×</button>
     </div>
     <div style="flex:1;position:relative;overflow:hidden">
       <video id="nutrBarcodeVideo" style="width:100%;height:100%;object-fit:cover" playsinline muted autoplay></video>
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;max-width:300px;height:110px;border:2px solid var(--accent);border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.4)"></div>
     </div>
-    <div id="nutrBarcodeCamStatus" style="padding:14px 20px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#fff;background:rgba(0,0,0,.6)">Point camera at barcode…</div>
+    <div id="nutrBarcodeCamStatus" style="padding:14px 20px;text-align:center;font-family:'Geist Mono',monospace;font-size:11px;color:#fff;background:rgba(0,0,0,.6)">Point camera at barcode…</div>
     <div style="padding:10px 20px 24px;background:rgba(0,0,0,.6);display:flex;justify-content:center">
-      <button onclick="closeNutrBarcodeCam();openNutrBarcodeManual()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Enter Manually</button>
+      <button onclick="closeNutrBarcodeCam();openNutrBarcodeManual()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 24px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">Enter Manually</button>
     </div>`;
   document.body.appendChild(modal);
 

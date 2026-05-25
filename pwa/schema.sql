@@ -12,7 +12,7 @@ create table if not exists clients (
   name         text not null,
   goal         text,
   pin          text not null,
-  accent       text default '#ff6b35',
+  accent       text default '#3B9EFF',
   program_type text,
   data         jsonb,                      -- full program data blob
   meta         jsonb,                      -- height, weight, bf%, skinfolds etc

@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const idx = existing.findIndex(c => c.id === row.id);
       const client = {
         id: row.id, name: row.name, pin: row.pin || '',
-        goal: row.goal || '', accent: row.accent || '#ff6b35',
+        goal: row.goal || '', accent: row.accent || '#3B9EFF',
         programType: row.program_type || '',
         data: safeJSON(row.data, {}), _meta: safeJSON(row.meta, {}),
         weightLoss: safeJSON(row.weight_loss, null),

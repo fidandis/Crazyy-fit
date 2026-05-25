@@ -136,9 +136,9 @@ function showTabataDetail(workoutId, cid) {
   const w = TABATA_WORKOUTS.find(x => x.id === workoutId);
   if (!w) return;
   const c = CLIENTS.find(cl => cl.id === cid);
-  const accent = c?.accent || '#ff6b35';
+  const accent = c?.accent || '#3B9EFF';
   const levelColor = w.level === 'Beginner' ? '#2ecc71' : w.level === 'Intermediate' ? '#f1c40f' : '#e74c3c';
-  const focusColors = { Push: '#ff6b35', Pull: '#3498db', Legs: '#e8ff47', Core: '#2ecc71' };
+  const focusColors = { Push: '#3B9EFF', Pull: '#3498db', Legs: '#3B9EFF', Core: '#2ecc71' };
   const previewRows = w.exercises.map((ex, i) => `
     <div class="tabata-round-row">
       <div class="tabata-round-num" style="color:${focusColors[ex.focus] || 'var(--muted)'}">
@@ -330,7 +330,7 @@ function tabataStart(workoutId, cid) {
   // Build the full sequence: Push → Pull → Legs → Core × 3 cycles
   const NUM_CYCLES = 3;
   const sequence = [];
-  const focusColors = { Push: '#ff6b35', Pull: '#3498db', Legs: '#e8ff47', Core: '#2ecc71' };
+  const focusColors = { Push: '#3B9EFF', Pull: '#3498db', Legs: '#3B9EFF', Core: '#2ecc71' };
 
   // 15s warmup
   sequence.push({
@@ -392,7 +392,7 @@ function tabataStart(workoutId, cid) {
   };
 
   // Set up UI
-  document.documentElement.style.setProperty('--accent', c?.accent || '#ff6b35');
+  document.documentElement.style.setProperty('--accent', c?.accent || '#3B9EFF');
   const tabActiveView   = document.getElementById('tabataActiveView');
   const tabCompleteView = document.getElementById('tabataCompleteView');
   const tabPauseBtn     = safeGetElement('tabataPauseBtn');
@@ -474,7 +474,7 @@ function tabataRender() {
   const circumference = 553;
   const pct = timeLeft / seg.duration;
   const offset = circumference * (1 - pct);
-  const accent = AppState.tabataState.c?.accent || '#ff6b35';
+  const accent = AppState.tabataState.c?.accent || '#3B9EFF';
 
   // Phase colors
   const phaseColors = { warmup: '#ffb347', rest: '#2ecc71', between: '#3498db' };
@@ -510,7 +510,7 @@ function tabataRender() {
     return `<div class="tabata-dot ${isDone ? 'done' : isActive ? 'active' : ''}" style="width:12px;height:12px"></div>`;
   }).join('');
   // Exercise dots (within cycle)
-  const focusColors = { Push: '#ff6b35', Pull: '#3498db', Legs: '#e8ff47', Core: '#2ecc71' };
+  const focusColors = { Push: '#3B9EFF', Pull: '#3498db', Legs: '#3B9EFF', Core: '#2ecc71' };
   const exDotsHtml = w.exercises.map((ex, i) => {
     const isDone = currentExIdx > i || (currentExIdx === i && seg.type !== 'work' && seg.type !== 'warmup');
     const isActive = currentExIdx === i && seg.type === 'work';
@@ -615,9 +615,9 @@ function closeTabataScreen() {
   if (returnClient) {
     document.documentElement.style.setProperty('--accent', returnClient.accent);
   } else if (_tabataReturnScreen === 'coach') {
-    document.documentElement.style.setProperty('--accent', '#e8ff47');
+    document.documentElement.style.setProperty('--accent', '#3B9EFF');
   } else {
-    document.documentElement.style.setProperty('--accent', '#ff6b35');
+    document.documentElement.style.setProperty('--accent', '#3B9EFF');
   }
   showScreen(_tabataReturnScreen);
 }
@@ -648,7 +648,7 @@ function showTabataDetailStandalone(workoutId) {
   const w = TABATA_WORKOUTS.find(x => x.id === workoutId);
   if (!w) return;
   const levelColor = w.level === 'Beginner' ? '#2ecc71' : w.level === 'Intermediate' ? '#f1c40f' : '#e74c3c';
-  const focusColors = { Push: '#ff6b35', Pull: '#3498db', Legs: '#e8ff47', Core: '#2ecc71' };
+  const focusColors = { Push: '#3B9EFF', Pull: '#3498db', Legs: '#3B9EFF', Core: '#2ecc71' };
 
   const previewRows = w.exercises.map((ex, i) => `
     <div class="tabata-round-row">

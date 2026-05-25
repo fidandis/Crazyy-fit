@@ -40,29 +40,66 @@ function renderHome(c) {
 
   let h = '';
 
-  // Hero greeting — always first
-  const adCol = adherencePct === null ? 'var(--muted)' : adherencePct >= 80 ? '#2ecc71' : adherencePct >= 50 ? '#f1c40f' : '#e74c3c';
-  h += `<div class="home-hero">
-    <div class="home-hero-greeting">${greet}</div>
-    <div class="home-hero-name"><span style="color:${c.accent}">${firstName}</span></div>
-    <div class="home-hero-date">${nowDate.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</div>
+  // ── HERO (reference "Today" layout) ──
+  const streak = getDayStreak(c.id);
+  const heroSub = streak >= 2
+    ? `Day ${streak} of your streak. Keep showing up.`
+    : nowDate.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});
+  h += `<div class="sess-hero">
+    <h1 class="sess-hero-title">${esc(greet)} <em>${esc(firstName)}.</em></h1>
+    <p class="sess-hero-sub">${esc(heroSub)}</p>
   </div>`;
 
-  // Stats row
-  h += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 20px 14px">
-    <div class="home-stat-card" style="--stat-accent:${c.accent}"><div class="home-stat-val" style="color:${c.accent}">${logs.length}</div><div class="home-stat-lbl">Sessions</div></div>
-    <div class="home-stat-card" style="--stat-accent:#ff6b35"><div class="home-stat-val" style="color:#ff6b35">${weekKcal > 0 ? (weekKcal/1000).toFixed(1)+'k' : '—'}</div><div class="home-stat-lbl">Kcal 7d</div></div>
-    <div class="home-stat-card" style="--stat-accent:${adCol}"><div class="home-stat-val" style="color:${adCol}">${adherencePct !== null ? adherencePct+'%' : '—'}</div><div class="home-stat-lbl">Adherence</div></div>
-  </div>`;
+  // ── TODAY FEATURED WORKOUT CARD ──
+  if (todayDay) {
+    const _isRest = todayDay.tag === 'Rest';
+    const _todayLower = todayLabel.toLowerCase();
+    let _exs = [];
+    if (!_isRest && c.data.workouts && c.data.workouts.days) {
+      const _schedTitle = (todayDay.title || '').trim().toLowerCase();
+      let _wDay = _schedTitle ? c.data.workouts.days.find(wd => {
+        const lbl = (wd.label || wd.title || '').toLowerCase();
+        const sep = lbl.indexOf(' — ');
+        return (sep >= 0 ? lbl.slice(sep + 3) : lbl).trim() === _schedTitle;
+      }) : null;
+      if (!_wDay) _wDay = c.data.workouts.days.find(wd =>
+        (wd.id && wd.id.toLowerCase() === _todayLower) ||
+        (wd.label || '').toLowerCase().startsWith(_todayLower + ' '));
+      if (_wDay) {
+        if (_wDay.exercises?.length) _exs = _wDay.exercises;
+        else if (_wDay.blocks?.length) _exs = _wDay.blocks.reduce((a, b) => b.exercises ? [...a, ...b.exercises] : a, []);
+      }
+    }
 
-  // Streak banner
-  const _streak = getDayStreak(c.id);
-  if (_streak >= 2) {
-    h += `<div class="streak-banner">
-      <div class="streak-fire">🔥</div>
-      <div><div class="streak-count">${_streak}</div><div class="streak-label">DAY STREAK</div></div>
-      <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Keep it going!</div>
-    </div>`;
+    const _coach = (typeof COACH !== 'undefined' && COACH && COACH.name) ? COACH.name : 'your coach';
+    const _clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    const _dbSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h2m12 0h2M6 8.5v7M18 8.5v7M2 10.5v3M22 10.5v3M8 12h8"/></svg>';
+
+    if (_isRest) {
+      h += `<div class="sess-wrap">
+        <div class="sess-feature rest">
+          <div class="sess-feature-label">Today · Recovery</div>
+          <div class="sess-feature-title">${esc(todayDay.title || 'Rest day')}</div>
+          <div class="sess-feature-meta"><span>${_clockSvg} Mobility, hydration &amp; sleep</span></div>
+        </div>
+        <div class="sess-card">${buildRestDayContent()}</div>
+      </div>`;
+    } else {
+      const _count = _exs.length;
+      const _mins = _count ? Math.max(15, Math.round(_count * 7.5 / 5) * 5) : 0;
+      const _title = todayDay.title || (todayDay.tag && todayDay.tag !== 'Rest' ? todayDay.tag : "Today's workout");
+      h += `<div class="sess-wrap">
+        <div class="sess-feature">
+          <div class="sess-feature-label">Scheduled · ${esc(_coach)}</div>
+          <div class="sess-feature-title">${esc(_title)}</div>
+          ${_count ? `<div class="sess-feature-meta">
+            <span>${_clockSvg} ~${_mins} min</span>
+            <span>${_dbSvg} ${_count} exercise${_count === 1 ? '' : 's'}</span>
+          </div>` : ''}
+          <button class="sess-feature-btn" onclick="(document.querySelector('[data-tid=&quot;workouts&quot;]')||{click(){}}).click()">Start workout <span class="ar">→</span></button>
+        </div>
+      </div>`;
+    }
   }
 
   // XP widget (after greeting and stats)
@@ -102,105 +139,6 @@ function renderHome(c) {
     <div class="home-wt-last" id="home-wt-last-${c.id}">${_homeLastWt ? _homeLastWt + ' lbs' : 'not logged'}</div>
     <button class="home-wt-btn" onclick="homeLogWeight('${c.id}')">Log</button>
   </div>`;
-
-  // Today card
-  if (todayDay) {
-    const isRest = todayDay.tag === 'Rest';
-    const todayLower = todayLabel.toLowerCase();
-    let todayExercises = [];
-    let todayWorkoutDayId = null;
-    if (!isRest && c.data.workouts && c.data.workouts.days) {
-      const schedTitle = (todayDay?.title || '').trim().toLowerCase();
-      // Priority 1: match by schedule title (most reliable — avoids stale id/label)
-      let wDay = schedTitle ? c.data.workouts.days.find(wd => {
-        const lbl = (wd.label || wd.title || '').toLowerCase();
-        const sep = lbl.indexOf(' — ');
-        const wName = (sep >= 0 ? lbl.slice(sep + 3) : lbl).trim();
-        return wName === schedTitle;
-      }) : null;
-      // Priority 2: fallback to id / label-prefix match
-      if (!wDay) wDay = c.data.workouts.days.find(wd =>
-        (wd.id && wd.id.toLowerCase() === todayLower) ||
-        (wd.label || '').toLowerCase().startsWith(todayLower + ' ')
-      );
-      if (wDay) {
-        todayWorkoutDayId = wDay.id || wDay.label;
-        if (wDay.exercises?.length) {
-          todayExercises = wDay.exercises;
-        } else if (wDay.blocks?.length) {
-          todayExercises = wDay.blocks.reduce((acc, b) => b.exercises ? [...acc, ...b.exercises] : acc, []);
-        }
-      }
-    }
-
-    // Missed workout nudge — only show on training days where nothing has been logged yet today
-    if (!isRest && todayWorkoutDayId) {
-      const _wlToday = getWlData(c.id, todayWorkoutDayId);
-      const _todayStr = nowDate.toDateString();
-      const _loggedToday = logs.some(l => l.date && new Date(l.date).toDateString() === _todayStr);
-      const _wlDoneToday = _wlToday?._countedDate === _todayStr;
-      if (!_loggedToday && !_wlDoneToday) {
-        h += `<div class="wl-nudge-banner" onclick="const btn=document.querySelector('[data-tid=&quot;workouts&quot;]');if(btn)btn.click()">
-          <div class="wl-nudge-icon">💪</div>
-          <div class="wl-nudge-text">
-            <div class="wl-nudge-title">It's ${todayDay.tag} day</div>
-            <div class="wl-nudge-sub">${esc(todayDay.title)} · Tap to log your workout</div>
-          </div>
-          <div class="wl-nudge-arrow">→</div>
-        </div>`;
-      }
-    }
-
-    h += `<span class="home-section-lbl">Today</span>`;
-    h += `<div class="home-today-card">
-      <div class="home-today-header">
-        <div>
-          <div class="home-today-label">${esc(todayLabel)} · ${esc(todayDay.tag)}</div>
-          <div class="home-today-title" style="color:${isRest ? 'var(--muted)' : c.accent}">${esc(todayDay.title)}</div>
-          <div class="home-today-sub">${esc(todayDay.sub || '')}</div>
-        </div>
-        <div style="font-size:28px">${isRest ? '😴' : '💪'}</div>
-      </div>
-      ${isRest ? buildRestDayContent() : ''}`;
-    if (todayExercises.length) {
-      h += `<div style="padding:0 16px 4px;border-top:1px solid var(--border)" id="today-ex-list-${c.id}">`;
-      todayExercises.forEach((ex, exIdx) => {
-        h += `<div class="home-today-ex-row" id="today-ex-row-${c.id}-${exIdx}">
-          <div class="home-today-ex-main">
-            <div class="home-today-ex-name" id="today-ex-name-${c.id}-${exIdx}">${esc(ex.name)}<button class="ex-swap-btn" onclick="openExerciseSwap('${c.id}',${exIdx})" title="Swap exercise">↔</button></div>
-            <div class="home-today-ex-meta" id="today-ex-meta-${c.id}-${exIdx}">${ex.sets ? esc(ex.sets) + (ex.reps ? ' · ' + esc(ex.reps) : '') : ''}</div>
-          </div>
-          <div class="home-today-ex-sets" id="today-ex-sets-${c.id}-${exIdx}">${esc(ex.sets || '')}</div>
-        </div>`;
-      });
-      h += `</div>`;
-    }
-    if (!isRest) {
-      h += `<div class="ql-section">
-        <div class="ql-label" id="ql-label-${c.id}">Log This Workout</div>
-        <div class="ql-grid">
-          <div>
-            <div class="ql-field-label">CALORIES</div>
-            <input class="fit-input" type="number" placeholder="420" id="ql-cal-${c.id}" style="font-size:16px">
-          </div>
-          <div>
-            <div class="ql-field-label">DURATION (min)</div>
-            <input class="fit-input" type="number" placeholder="55" id="ql-dur-${c.id}" style="font-size:16px">
-          </div>
-        </div>
-        <select class="fit-input" id="ql-type-${c.id}" style="width:100%;margin-bottom:8px;font-size:15px">
-          <option>Strength Training</option><option>Running</option><option>Cycling</option>
-          <option>HIIT</option><option>Walk</option><option>Mixed / Other</option>
-        </select>
-        <div style="margin-bottom:10px">
-          <div class="ql-field-label">NOTES (optional)</div>
-          <textarea class="wl-notes-input" id="ql-notes-${c.id}" placeholder="How did it feel? Any PRs?"></textarea>
-        </div>
-        <button data-cid="${esc(c.id)}" onclick="quickLogWorkout(this.dataset.cid)" class="ql-save-btn" style="background:${c.accent};color:#000">Save Workout</button>
-      </div>`;
-    }
-    h += `</div>`;
-  }
 
   // Week Overview — always visible, popped out
   if (c.data && c.data.schedule && c.data.schedule.days) {
@@ -246,7 +184,7 @@ function accToggle(id) {
     // Lazy render
     const c = currentClient;
     if (!c) return;
-    const _sr = (fn) => { try { return fn(); } catch(e) { console.error('Accordion render error ('+id+'):', e); return `<div style="padding:16px;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace">Failed to load</div>`; } };
+    const _sr = (fn) => { try { return fn(); } catch(e) { console.error('Accordion render error ('+id+'):', e); return `<div style="padding:16px;color:var(--muted);font-size:12px;font-family:'Geist Mono',monospace">Failed to load</div>`; } };
     if (id === 'training')     body.innerHTML = _sr(() => renderSchedule(c.data.schedule, c) + (c.data.workouts ? renderWorkouts(c.data.workouts, c) : '') + renderFitnessLog(c));
     if (id === 'nutrition')    body.innerHTML = _sr(() => renderNutrition(c.data.nutrition, c));
     if (id === 'body')         body.innerHTML = renderBodyStats(c);
@@ -371,10 +309,10 @@ function renderIgCard(card, data, accent) {
       <div><div class="home-ig-name">FidCrazyy</div><div class="home-ig-handle">@fidcrazyy · ${dateStr}</div></div>
     </div>
     ${thumbUrl ? `<img class="home-ig-media" src="${esc(thumbUrl)}" alt="Latest post" loading="lazy" onerror="this.style.display='none'">` : ''}
-    ${isVideo ? `<div style="padding:8px 16px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">▶ REEL / VIDEO</div>` : ''}
+    ${isVideo ? `<div style="padding:8px 16px;font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">▶ REEL / VIDEO</div>` : ''}
     ${caption ? `<div class="home-ig-caption">${esc(caption)}</div>` : ''}
     <div class="home-ig-footer">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">Latest post</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">Latest post</div>
       <a href="${esc(p.permalink || 'https://www.instagram.com/fidcrazyy/')}" target="_blank" rel="noopener noreferrer" class="home-ig-open-btn">Open →</a>
     </div>`;
 }
@@ -458,18 +396,18 @@ async function checkWeatherAlert(c) {
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="font-size:18px">${isStorm?'⛈':isSnow?'❄️':isRain?'🌧':'💨'}</span>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:#3498db;text-transform:uppercase">Weather Alert · ${esc(desc)}</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;color:#3498db;text-transform:uppercase">Weather Alert · ${esc(desc)}</div>
             <div style="font-size:13px;font-weight:500;margin-top:2px">${esc(reason)} — skip the outdoor run today</div>
           </div>
         </div>
         <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;border:1px solid var(--border)">
-          <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Treadmill Alternative</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Treadmill Alternative</div>
           <div style="font-size:13px;font-weight:500">Treadmill Run</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px">1 set · 20–30 min at moderate pace · same cardio benefit, all indoors</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px">1 set · 20–30 min at moderate pace · same cardio benefit, all indoors</div>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">Warm-up 5 min easy</div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">20 min Zone 2</div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">Cool-down 5 min</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">Warm-up 5 min easy</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">20 min Zone 2</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px">Cool-down 5 min</div>
           </div>
         </div>
       </div>`;
@@ -649,9 +587,9 @@ function openClientNotifLog() {
   const items = log.length ? log.slice().reverse().map(n =>
     `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:14px">${esc(n.msg)}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">${new Date(n.ts).toLocaleDateString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px">${new Date(n.ts).toLocaleDateString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
     </div>`
-  ).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:10px">No messages yet</div>';
+  ).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-family:\'Geist Mono\',monospace;font-size:10px">No messages yet</div>';
   backdrop.innerHTML = `<div class="notif-modal"><div class="notif-handle"></div>
     <div class="notif-header"><div class="notif-title">Messages from Coach</div></div>
     <div class="notif-body">${items}</div>

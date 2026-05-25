@@ -10,7 +10,7 @@ function selectCoach() {
     const pinName = safeGetElement('pinName');
     if (pinName) {
       pinName.textContent = 'Coach';
-      pinName.style.color = '#e8ff47';
+      pinName.style.color = '#3B9EFF';
     }
     const pinError = safeGetElement('pinError');
     if (pinError) pinError.textContent = '';
@@ -98,10 +98,10 @@ async function coachSilentRefresh() {
       name:        row.name,
       pin:         row.pin         || '',
       goal:        row.goal        || '',
-      accent:      row.accent      || '#ff6b35',
+      accent:      row.accent      || '#3B9EFF',
       initials:    clientInitials(row.name),
-      avatarBg:    (row.accent || '#ff6b35') + '22',
-      avatarColor: row.accent || '#ff6b35',
+      avatarBg:    (row.accent || '#3B9EFF') + '22',
+      avatarColor: row.accent || '#3B9EFF',
       programType: row.program_type || '',
       data:        safeJSON(row.data,        {}),
       _meta:       safeJSON(row.meta,        {}),
@@ -152,7 +152,7 @@ function updateSyncBadge() {
 
 function launchCoach() {
   try {
-    document.documentElement.style.setProperty('--accent', '#e8ff47');
+    document.documentElement.style.setProperty('--accent', '#3B9EFF');
     // On a fresh device with no cached clients, show skeletons until the first
     // Supabase pull lands — otherwise renderCoachDashboard paints normally.
     if (getAllClients().length === 0) renderCoachSkeleton();
@@ -184,7 +184,7 @@ function renderCoachSkeleton() {
       <div class="skel-block skel-line short"></div>
     </div>`;
   const el = document.getElementById('coachContent');
-  if (el) el.innerHTML = `<div style="padding:14px 16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">SYNCING CLIENTS…</div>${card.repeat(3)}`;
+  if (el) el.innerHTML = `<div style="padding:14px 16px;font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">SYNCING CLIENTS…</div>${card.repeat(3)}`;
 }
 
 function renderCoachOfflineState() {
@@ -196,10 +196,10 @@ function renderCoachOfflineState() {
     ? 'We couldn\'t fetch your clients. Check your connection or try again.'
     : 'Clients will load as soon as you\'re back online.';
   el.innerHTML = `
-    <div style="padding:48px 24px;text-align:center;font-family:'DM Mono',monospace;">
+    <div style="padding:48px 24px;text-align:center;font-family:'Geist Mono',monospace;">
       <div style="font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:8px">${title}</div>
       <div style="font-size:13px;line-height:1.5;color:var(--muted);max-width:320px;margin:0 auto 20px">${sub}</div>
-      <button onclick="coachSilentRefresh()" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:4px;padding:9px 18px;cursor:pointer;text-transform:uppercase">↻ Retry</button>
+      <button onclick="coachSilentRefresh()" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:4px;padding:9px 18px;cursor:pointer;text-transform:uppercase">↻ Retry</button>
     </div>`;
 }
 
@@ -256,7 +256,7 @@ function buildClientCard(c) {
     return `
     <div class="coach-card" data-longpress="client:${esc(c.id)}" style="--cc-accent:${c.accent};opacity:${_isPaused?0.65:1};border-top:${_isPaused?'3px solid #f1c40f':''}">
       <div class="coach-card-header">
-        <div class="coach-avatar" style="background:${c.avatarBg || (c.accent || '#ff6b35') + '22'};color:${c.avatarColor || c.accent || '#ff6b35'}">${c.initials || clientInitials(c.name)}</div>
+        <div class="coach-avatar" style="background:${c.avatarBg || (c.accent || '#3B9EFF') + '22'};color:${c.avatarColor || c.accent || '#3B9EFF'}">${c.initials || clientInitials(c.name)}</div>
         <div style="flex:1">
           <div class="coach-client-name">${esc(c.name)}${_unreadMsgs > 0 ? '' : ''}</div>
           <div class="coach-client-goal">${esc(c.goal)}</div>
@@ -267,7 +267,7 @@ function buildClientCard(c) {
             <button class="mode-btn ${_mode==='remote'?'active-remote':''}" onclick="setClientMode('${c.id}','remote');renderCoachDashboard()">📡 Remote</button>
             <button class="mode-btn ${_mode==='blueprint'?'active-blueprint':''}" onclick="setClientMode('${c.id}','blueprint');renderCoachDashboard()">⚡ Crazyy Blueprint</button>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:${c.accent};margin-top:2px">${unlockedMs.length} milestone${unlockedMs.length !== 1 ? 's' : ''} unlocked</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:${c.accent};margin-top:2px">${unlockedMs.length} milestone${unlockedMs.length !== 1 ? 's' : ''} unlocked</div>
         </div>
       </div>
 
@@ -278,7 +278,7 @@ function buildClientCard(c) {
           <div class="coach-stat-lbl">Sessions</div>
         </div>
         <div class="coach-stat">
-          <div class="coach-stat-val" style="color:#ff6b35">${calThisWeek > 0 ? calThisWeek.toLocaleString() : '—'}</div>
+          <div class="coach-stat-val" style="color:#3B9EFF">${calThisWeek > 0 ? calThisWeek.toLocaleString() : '—'}</div>
           <div class="coach-stat-lbl">Kcal / 7d</div>
         </div>
         <div class="coach-stat">
@@ -318,7 +318,7 @@ function buildClientCard(c) {
       ${buildNutritionSnippet(c.id)}
       <!-- Coach notes log -->
       <div class="coach-notes-section">
-        <div class="coach-section-lbl">Coach Notes (private)${(() => { const _nl = getCoachNotesLog(c.id); if (!_nl.length) return ''; const _last = _nl[_nl.length - 1]; const _flagged = _nl.filter(n => n.flagged).length; const _daysAgo = Math.floor((Date.now() - _last.ts) / 86400000); const _when = _daysAgo === 0 ? 'today' : _daysAgo === 1 ? 'yesterday' : _daysAgo + 'd ago'; const _stale = _daysAgo > 14 ? ';color:#e74c3c' : _daysAgo > 7 ? ';color:#f1c40f' : ''; return ` <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);font-weight:400${_stale}">${_nl.length} note${_nl.length===1?'':'s'} · last ${_when}${_flagged ? ` · <span style="color:#f1c40f">⚑ ${_flagged}</span>` : ''}</span>`; })()}</div>
+        <div class="coach-section-lbl">Coach Notes (private)${(() => { const _nl = getCoachNotesLog(c.id); if (!_nl.length) return ''; const _last = _nl[_nl.length - 1]; const _flagged = _nl.filter(n => n.flagged).length; const _daysAgo = Math.floor((Date.now() - _last.ts) / 86400000); const _when = _daysAgo === 0 ? 'today' : _daysAgo === 1 ? 'yesterday' : _daysAgo + 'd ago'; const _stale = _daysAgo > 14 ? ';color:#e74c3c' : _daysAgo > 7 ? ';color:#f1c40f' : ''; return ` <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);font-weight:400${_stale}">${_nl.length} note${_nl.length===1?'':'s'} · last ${_when}${_flagged ? ` · <span style="color:#f1c40f">⚑ ${_flagged}</span>` : ''}</span>`; })()}</div>
         <div class="coach-notes-log" id="coach-notes-log-${c.id}">${buildCoachNotesLogHtml(c.id)}</div>
         <div class="coach-note-add-row">
           <textarea id="coach-note-input-${c.id}" placeholder="Add a session note, flag, or reminder…" maxlength="500"></textarea>
@@ -339,12 +339,12 @@ function buildClientCard(c) {
               const ts = new Date(n.ts).toLocaleDateString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
               return `<div style="padding:7px 10px;border-bottom:1px solid var(--faint);background:${bg}">
                 <div style="font-size:12px">${esc(n.msg)}</div>
-                <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${label} · ${ts}</div>
+                <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${label} · ${ts}</div>
               </div>`;
             }).join('')
           }</div>`;
         })()}
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px">Sends push + email notification to ${esc(c.name.split(' ')[0])}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px">Sends push + email notification to ${esc(c.name.split(' ')[0])}</div>
         <div class="coach-send-msg-wrap">
           <textarea id="coachmsg-${c.id}" maxlength="300" placeholder="Great work this week! Focus on..."></textarea>
           <button class="coach-send-msg-btn" onclick="saveCoachMessage('${c.id}')">Send →</button>
@@ -363,7 +363,7 @@ function buildClientCard(c) {
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openPeriodizationScreen(this.dataset.cid)" style="color:#9b59b6;border-color:#9b59b6">📅 Periodize</button>
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="renderBadgesInCard(this.dataset.cid)" style="color:#f1c40f;border-color:rgba(241,196,15,.4)">🏅 Badges</button>
         <button class="ai-review-btn" data-cid="${esc(c.id)}" onclick="openAIReview(this.dataset.cid)" style="grid-column:1/-1">🤖 AI Program Review</button>
-        <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openAIBuildWorkout(this.dataset.cid)" style="grid-column:1/-1;color:var(--accent);border-color:rgba(232,255,71,.4)">AI Build Workout</button>
+        <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openAIBuildWorkout(this.dataset.cid)" style="grid-column:1/-1;color:var(--accent);border-color:rgba(59,158,255,.4)">AI Build Workout</button>
         <button class="coach-action-btn danger" data-cid="${esc(c.id)}" onclick="openTerminateModal(this.dataset.cid)" style="grid-column:1/-1">Terminate</button>
       </div>
     </div>`;
@@ -392,11 +392,11 @@ function buildActivityFeed(clients) {
   clients.forEach(c => {
     getFitnessLogs(c.id).forEach(l => {
       const ts = l.date ? new Date(l.date).getTime() : 0;
-      if (ts >= cutoff) events.push({ ts, icon: '🏋️', text: `${esc(c.name)} logged a workout`, sub: l.type || 'Workout', accent: c.accent || '#ff6b35' });
+      if (ts >= cutoff) events.push({ ts, icon: '🏋️', text: `${esc(c.name)} logged a workout`, sub: l.type || 'Workout', accent: c.accent || '#3B9EFF' });
     });
     getCheckins(c.id).forEach(ci => {
       const ts = ci.date ? new Date(ci.date).getTime() : 0;
-      if (ts >= cutoff) events.push({ ts, icon: '📋', text: `${esc(c.name)} submitted a check-in`, sub: `Energy ${ci.energy || '—'} · Sleep ${ci.sleep || '—'} · Adherence ${ci.adherence || '—'}`, accent: c.accent || '#ff6b35' });
+      if (ts >= cutoff) events.push({ ts, icon: '📋', text: `${esc(c.name)} submitted a check-in`, sub: `Energy ${ci.energy || '—'} · Sleep ${ci.sleep || '—'} · Adherence ${ci.adherence || '—'}`, accent: c.accent || '#3B9EFF' });
     });
   });
 
@@ -407,15 +407,15 @@ function buildActivityFeed(clients) {
       <div style="font-size:16px;flex-shrink:0;margin-top:1px">${e.icon}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;color:var(--text)">${e.text}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${e.sub} · ${timeAgo(e.ts)}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${e.sub} · ${timeAgo(e.ts)}</div>
       </div>
       <div style="width:3px;flex-shrink:0;align-self:stretch;background:${e.accent};border-radius:2px;opacity:.6"></div>
     </div>`).join('');
 
   return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:0 16px 16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;color:var(--text)">Recent Activity <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">— last 48h</span></div>
-      <button onclick="triggerWeeklyDigest()" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;background:rgba(255,107,53,.1);color:#ff6b35;border:1px solid rgba(255,107,53,.3);border-radius:6px;padding:3px 8px;cursor:pointer">📧 Send Digest</button>
+      <div style="font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:1px;color:var(--text)">Recent Activity <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px">— last 48h</span></div>
+      <button onclick="triggerWeeklyDigest()" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;background:rgba(59,158,255,.1);color:#3B9EFF;border:1px solid rgba(59,158,255,.3);border-radius:6px;padding:3px 8px;cursor:pointer">📧 Send Digest</button>
     </div>
     ${rows}
   </div>`;
@@ -443,20 +443,20 @@ function renderCoachDashboard() {
       <div style="display:flex;align-items:center;gap:10px">
         <div class="coach-client-count">${allClients.length} client${allClients.length !== 1 ? 's' : ''}</div>
         <span id="coachSyncBadge" onclick="coachSilentRefresh()" title="Click to refresh now"
-          style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(46,204,113,.12);color:#2ecc71;cursor:pointer;user-select:none">
+          style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(46,204,113,.12);color:#2ecc71;cursor:pointer;user-select:none">
           ● LIVE
         </span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
         <input id="dashSearchInput" type="search" placeholder="Search clients…" value="${esc(searchQuery)}"
           oninput="AppState._dashSearch=this.value;renderCoachDashboard()"
-          style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);width:140px;outline:none">
+          style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);width:140px;outline:none">
         <button class="coach-add-btn" onclick="startOnboarding()">+ Add Client</button>
-        <button class="coach-add-btn" onclick="openLeads()" style="background:rgba(255,107,53,.1);color:#ff6b35;border-color:#ff6b35" title="Signup leads">📥 Leads${getLS('signups',[]).filter(s=>!s.converted).length > 0 ? ' ('+getLS('signups',[]).filter(s=>!s.converted).length+')' : ''}</button>
-        <button class="coach-add-btn" onclick="openBroadcast()" style="background:rgba(232,255,71,.08);color:#e8ff47;border-color:rgba(232,255,71,.3)" title="Broadcast message">📢 Broadcast</button>
+        <button class="coach-add-btn" onclick="openLeads()" style="background:rgba(59,158,255,.1);color:#3B9EFF;border-color:#3B9EFF" title="Signup leads">📥 Leads${getLS('signups',[]).filter(s=>!s.converted).length > 0 ? ' ('+getLS('signups',[]).filter(s=>!s.converted).length+')' : ''}</button>
+        <button class="coach-add-btn" onclick="openBroadcast()" style="background:rgba(59,158,255,.08);color:#3B9EFF;border-color:rgba(59,158,255,.3)" title="Broadcast message">📢 Broadcast</button>
         <button class="coach-add-btn" onclick="openCompare()" style="background:rgba(155,89,182,.1);color:#9b59b6;border-color:#9b59b6" title="Compare clients">⚖ Compare</button>
         <button class="coach-add-btn" onclick="openSBSettings()" style="background:${sbConnected?'rgba(46,204,113,.1)':'rgba(255,255,255,.05)'};color:${sbConnected?'#2ecc71':'var(--muted)'};border-color:${sbConnected?'#2ecc71':'var(--border)'}" title="Supabase sync">☁ Sync</button>
-        <button class="coach-add-btn" onclick="triggerWeeklyDigest()" style="background:rgba(255,107,53,.08);color:#ff6b35;border-color:rgba(255,107,53,.3)" title="Send weekly digest email">📧 Digest</button>
+        <button class="coach-add-btn" onclick="triggerWeeklyDigest()" style="background:rgba(59,158,255,.08);color:#3B9EFF;border-color:rgba(59,158,255,.3)" title="Send weekly digest email">📧 Digest</button>
         <button id="analyticsPanelBtn" class="coach-add-btn" onclick="toggleAnalyticsPanel()" style="background:${AppState._analyticsOpen?'rgba(52,152,219,.2)':'rgba(52,152,219,.1)'};color:#3498db;border-color:#3498db" title="Analytics overview">📊 Analytics</button>
         <button class="coach-add-btn" onclick="openMovementLibrary()" style="background:rgba(155,89,182,.1);color:#9b59b6;border-color:#9b59b6" title="Movement library">📚 Library</button>
         <button class="coach-add-btn" onclick="exportAllData()" style="background:rgba(52,152,219,.1);color:#3498db;border-color:#3498db" title="Download all data">⬇ Export</button>
@@ -480,9 +480,9 @@ function renderCoachDashboard() {
       return `
         <div class="archived-card">
           <div class="archived-card-header">
-            <div class="coach-avatar" style="background:${c.avatarBg||'#222'};color:${c.avatarColor||'#888'};width:36px;height:36px;font-size:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);flex-shrink:0">${c.initials||'??'}</div>
+            <div class="coach-avatar" style="background:${c.avatarBg||'#222'};color:${c.avatarColor||'#888'};width:36px;height:36px;font-size:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;flex-shrink:0">${c.initials||'??'}</div>
             <div>
-              <div style="font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--muted)">${c.name||'Unknown'}</div>
+              <div style="font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:1px;color:var(--muted)">${c.name||'Unknown'}</div>
               <div class="archived-badge">Archived</div>
             </div>
           </div>
@@ -552,7 +552,7 @@ function buildCoachWeightSection(c) {
           <div class="coach-wt-num" style="color:${c.accent}">${current}</div>
           <div class="coach-wt-pct">${pct}%</div>
         </div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px">
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px">
           Goal: ${wl.goal} ${wl.unit} · ${lost > 0 ? `▼ ${lost.toFixed(1)} lost` : 'No progress logged yet'}
         </div>
       </div>`;
@@ -722,7 +722,7 @@ function showNextMilestone() {
   try {
     if (AppState.milestoneQueue.length === 0) return;
     const ms = AppState.milestoneQueue.shift();
-    const accent = AppState.milestoneQueueClient?.accent || '#ff6b35';
+    const accent = AppState.milestoneQueueClient?.accent || '#3B9EFF';
 
     document.documentElement.style.setProperty('--accent', accent);
     const backdrop = safeGetElement('milestoneBackdrop');
@@ -895,12 +895,12 @@ function renderMilestones(c) {
           <div style="display:flex;align-items:center;gap:14px">
             <div style="font-size:32px">${next.emoji}</div>
             <div style="flex:1">
-              <div style="font-family:var(--display);font-size:20px;letter-spacing:1px;margin-bottom:4px">${next.title}</div>
+              <div style="font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:1px;margin-bottom:4px">${next.title}</div>
               <div style="display:flex;align-items:center;gap:8px">
                 <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
                   <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;transition:width .6s ease"></div>
                 </div>
-                <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">${label}</div>
+                <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">${label}</div>
               </div>
             </div>
           </div>

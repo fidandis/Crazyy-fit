@@ -80,8 +80,8 @@ async function openAIReview(cid) {
     <div class="ai-review-body" id="aiReviewBody">
       <div class="ai-review-loading">
         <div class="ai-review-loading-spinner"></div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">ANALYZING TRAINING DATA</div>
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--faint);margin-top:6px">This takes 5–10 seconds</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">ANALYZING TRAINING DATA</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--faint);margin-top:6px">This takes 5–10 seconds</div>
       </div>
     </div>
     <div class="ai-review-footer" id="aiReviewFooter" style="display:none"></div>
@@ -126,8 +126,8 @@ function renderAIReviewError(cid, msg) {
   const body = document.getElementById('aiReviewBody');
   if (body) body.innerHTML = `<div class="ai-review-error">⚠ ${esc(msg)}<br><br>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button onclick="closeAIReviewModal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:8px 20px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer">Close</button>
-      <button onclick="closeAIReviewModal();setTimeout(()=>openAIReview('${esc(cid)}'),50)" style="background:var(--accent);border:none;color:#000;border-radius:6px;padding:8px 20px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;font-weight:600">Retry</button>
+      <button onclick="closeAIReviewModal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:8px 20px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer">Close</button>
+      <button onclick="closeAIReviewModal();setTimeout(()=>openAIReview('${esc(cid)}'),50)" style="background:var(--accent);border:none;color:#000;border-radius:6px;padding:8px 20px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;font-weight:600">Retry</button>
     </div></div>`;
 }
 
@@ -205,7 +205,7 @@ function renderAIReviewResults(cid, accent) {
   body.innerHTML = `
     <div class="ai-review-summary">${esc(state.summary)}</div>
     ${recs.length === 0
-      ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:20px 0">No changes recommended — program looks solid.</div>`
+      ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:20px 0">No changes recommended — program looks solid.</div>`
       : recCards
     }`;
 
@@ -374,17 +374,17 @@ function buildAIProgramUpdateEmailHtml(clientName, changes, appUrl) {
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
   <div style="text-align:center;margin-bottom:28px;">
-    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff">CRAZYY<span style="color:#ff6b35">FIT</span></div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff">CRAZYY<span style="color:#3B9EFF">FIT</span></div>
   </div>
   <div style="background:#111;border:1px solid #222;border-radius:16px;padding:32px;margin-bottom:20px;">
     <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Hey ${esc(firstName)},</div>
-    <div style="font-size:11px;letter-spacing:2px;color:#e8ff47;text-transform:uppercase;margin-bottom:14px">Program Update</div>
+    <div style="font-size:11px;letter-spacing:2px;color:#3B9EFF;text-transform:uppercase;margin-bottom:14px">Program Update</div>
     <div style="font-size:15px;color:#ccc;line-height:1.7;margin-bottom:20px">
       Your coach has updated your training program based on your recent performance and progress data.
     </div>
     ${changes ? `<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-family:monospace;font-size:12px;color:#aaa;line-height:1.6">Changes include: ${esc(changes)}</div>` : ''}
     <div style="font-size:13px;color:#888;margin-bottom:24px">Open the app to see your updated workout plan.</div>
-    ${appUrl ? `<a href="${esc(appUrl)}" style="display:block;text-align:center;background:#ff6b35;color:#000;font-weight:700;font-size:15px;letter-spacing:2px;text-decoration:none;padding:16px;border-radius:10px;text-transform:uppercase">Open CrazyyFit →</a>` : ''}
+    ${appUrl ? `<a href="${esc(appUrl)}" style="display:block;text-align:center;background:#3B9EFF;color:#000;font-weight:700;font-size:15px;letter-spacing:2px;text-decoration:none;padding:16px;border-radius:10px;text-transform:uppercase">Open CrazyyFit →</a>` : ''}
   </div>
   <div style="text-align:center;font-size:11px;color:#444;line-height:1.7">CrazyyFit · ${yr}</div>
 </div>
@@ -413,7 +413,7 @@ function saveCoachNotesLog(cid, log) {
 }
 function buildCoachNotesLogHtml(cid) {
   const log = getCoachNotesLog(cid);
-  if (!log.length) return '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);padding:4px 0 8px">No notes yet. Add one below.</div>';
+  if (!log.length) return '<div style="font-family:\'Geist Mono\',monospace;font-size:10px;color:var(--muted);padding:4px 0 8px">No notes yet. Add one below.</div>';
   return [...log].reverse().map(n => `
     <div class="coach-note-entry${n.flagged ? ' flagged' : ''}">
       <div class="coach-note-ts">${new Date(n.ts).toLocaleString('en',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
@@ -457,7 +457,7 @@ function toggleAnalyticsPanel() {
   renderCoachDashboard();
 }
 function buildAnalyticsPanel(clients) {
-  if (!clients.length) return '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);padding:8px 0">No clients yet.</div>';
+  if (!clients.length) return '<div style="font-family:\'Geist Mono\',monospace;font-size:11px;color:var(--muted);padding:8px 0">No clients yet.</div>';
   const now = Date.now();
   const week = 7 * 86400000;
   const month = 30 * 86400000;
@@ -480,7 +480,7 @@ function buildAnalyticsPanel(clients) {
   });
   const avgAdherence = adherenceCount > 0 ? (totalAdherence / adherenceCount).toFixed(1) : null;
   const leaders = clients.map(c => ({
-    name: c.name, accent: c.accent || '#ff6b35',
+    name: c.name, accent: c.accent || '#3B9EFF',
     count: getFitnessLogs(c.id).filter(l => l.date && (now - new Date(l.date).getTime()) < month).length
   })).filter(x => x.count > 0).sort((a, b) => b.count - a.count).slice(0, 3);
   const totalMilestones = clients.reduce((sum, c) => sum + getUnlockedMilestones(c.id).length, 0);
@@ -494,21 +494,21 @@ function buildAnalyticsPanel(clients) {
       <div class="analytics-stat"><div class="analytics-stat-val" style="color:#9b59b6">${totalPRs}</div><div class="analytics-stat-lbl">Total PRs</div></div>
       <div class="analytics-stat"><div class="analytics-stat-val" style="color:#f1c40f">${totalMilestones}</div><div class="analytics-stat-lbl">Milestones</div></div>
       ${avgMacro !== null ? `<div class="analytics-stat"><div class="analytics-stat-val" style="color:${avgMacro>=70?'#2ecc71':avgMacro>=50?'#f1c40f':'#e74c3c'}">${avgMacro}</div><div class="analytics-stat-lbl">Avg Macro Score</div></div>` : ''}
-      ${avgAdherence !== null ? `<div class="analytics-stat"><div class="analytics-stat-val" style="color:#e8ff47">${avgAdherence}</div><div class="analytics-stat-lbl">Avg Adherence</div></div>` : ''}
+      ${avgAdherence !== null ? `<div class="analytics-stat"><div class="analytics-stat-val" style="color:#3B9EFF">${avgAdherence}</div><div class="analytics-stat-lbl">Avg Adherence</div></div>` : ''}
     </div>
     ${atRisk.length > 0 ? `
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:#e74c3c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">⚠ At-Risk Clients</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#e74c3c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">⚠ At-Risk Clients</div>
     ${atRisk.map(c => {
       const ls = localStorage.getItem('last_seen_' + c.id);
       const days = ls ? Math.floor((now - parseInt(ls)) / 86400000) : null;
-      return `<div class="analytics-risk-item"><div class="analytics-risk-dot" style="background:${c.accent||'#e74c3c'}"></div><span style="flex:1">${esc(c.name)}</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${days!==null?days+'d inactive':'Never logged in'}</span></div>`;
+      return `<div class="analytics-risk-item"><div class="analytics-risk-dot" style="background:${c.accent||'#e74c3c'}"></div><span style="flex:1">${esc(c.name)}</span><span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted)">${days!==null?days+'d inactive':'Never logged in'}</span></div>`;
     }).join('')}` : ''}
     ${leaders.length > 0 ? `
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:14px;margin-bottom:8px">🏆 Top Sessions This Month</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:14px;margin-bottom:8px">🏆 Top Sessions This Month</div>
     ${leaders.map((l, i) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--faint)">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);width:14px">${i+1}.</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);width:14px">${i+1}.</span>
       <span style="flex:1;font-size:12px">${esc(l.name)}</span>
-      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${l.accent}">${l.count} sessions</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;color:${l.accent}">${l.count} sessions</span>
     </div>`).join('')}` : ''}`;
 }
 
@@ -524,7 +524,7 @@ function renderBadgesScreen(c) {
           <div class="badge-chip-icon">${m.emoji}</div>
           <div class="badge-chip-name">${esc(m.label)}</div>
         </div>`).join('')}</div>`
-    : `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:12px 0">No badges yet — complete workouts, hit PRs, and track your macros!</div>`;
+    : `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);padding:12px 0">No badges yet — complete workouts, hit PRs, and track your macros!</div>`;
   const lockedHtml = locked.length > 0
     ? `<div class="badges-grid">${locked.map(m => `
         <div class="badge-chip locked">
@@ -551,10 +551,10 @@ function renderBadgesInCard(cid) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   overlay.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:24px 20px 32px;max-height:80vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:var(--display);font-size:22px;letter-spacing:1px">${esc(c.name)}'s Badges</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px">${esc(c.name)}'s Badges</div>
       <button onclick="this.closest('[style]').remove()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer">✕</button>
     </div>
-    ${earned.length === 0 ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">No badges unlocked yet.</div>` : `
+    ${earned.length === 0 ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)">No badges unlocked yet.</div>` : `
     <div class="badges-grid">${earned.map(m => `
       <div class="badge-chip earned">
         <div class="badge-chip-icon">${m.emoji}</div>
@@ -580,7 +580,7 @@ function shareMilestone() {
   ctx.fillRect(0, 0, 600, 600);
 
   // Accent border
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff6b35';
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3B9EFF';
   ctx.strokeStyle = accent;
   ctx.lineWidth = 6;
   ctx.strokeRect(3, 3, 594, 594);
@@ -600,7 +600,7 @@ function shareMilestone() {
 
   // Label
   ctx.fillStyle = accent;
-  ctx.font = 'bold 14px "DM Mono", monospace';
+  ctx.font = 'bold 14px "Geist Mono", monospace';
   ctx.letterSpacing = '4px';
   ctx.fillText(label.toUpperCase(), 300, 270);
 
@@ -751,14 +751,14 @@ function renderMovementLibrary() {
       </div>
     </div>`;
   const listHtml = filtered.length === 0
-    ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:32px 0">${lib.length===0?'Library is empty — add your first exercise above.':'No results for "'+esc(q)+'"'}</div>`
+    ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:32px 0">${lib.length===0?'Library is empty — add your first exercise above.':'No results for "'+esc(q)+'"'}</div>`
     : filtered.map(e => `
       <div class="library-item">
         <div class="library-item-info">
           <div class="library-item-name">${esc(e.name)}</div>
           <div class="library-item-meta">${[e.muscleGroups,e.equipment].filter(Boolean).join(' · ')}</div>
           ${e.coachNotes ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">${esc(e.coachNotes)}</div>` : ''}
-          ${e.videoUrl ? `<a href="${esc(e.videoUrl)}" target="_blank" rel="noopener noreferrer" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);margin-top:4px;display:inline-block">▶ Watch</a>` : ''}
+          ${e.videoUrl ? `<a href="${esc(e.videoUrl)}" target="_blank" rel="noopener noreferrer" style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--accent);margin-top:4px;display:inline-block">▶ Watch</a>` : ''}
         </div>
         <div class="library-item-btns">
           <button class="library-item-btn" onclick="editLibraryExercise('${e.id}')">Edit</button>
@@ -873,7 +873,7 @@ function renderPeriodizationScreen() {
   }
 
   const listHtml = phases.length === 0
-    ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:8px 0">No phases yet. Add one below.</div>`
+    ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);padding:8px 0">No phases yet. Add one below.</div>`
     : phases.map(p => `
       <div class="period-list-item">
         <div class="period-list-dot" style="background:${p.color||'#555'}"></div>
@@ -881,10 +881,10 @@ function renderPeriodizationScreen() {
           <div class="period-list-name">${esc(p.name)}</div>
           <div class="period-list-dates">${p.phase?esc(p.phase)+' · ':''}${p.startDate||'?'} → ${p.endDate||'?'}${p.notes?' · '+esc(p.notes):''}</div>
         </div>
-        <button onclick="deletePeriodPhase('${p.id}')" style="background:none;border:1px solid rgba(231,76,60,.3);border-radius:5px;padding:4px 8px;font-size:9px;color:#e74c3c;cursor:pointer;font-family:'DM Mono',monospace">✕</button>
+        <button onclick="deletePeriodPhase('${p.id}')" style="background:none;border:1px solid rgba(231,76,60,.3);border-radius:5px;padding:4px 8px;font-size:9px;color:#e74c3c;cursor:pointer;font-family:'Geist Mono',monospace">✕</button>
       </div>`).join('');
 
-  const phaseColors = ['#e8ff47','#ff6b35','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f'];
+  const phaseColors = ['#3B9EFF','#3B9EFF','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f'];
   body.innerHTML = `
     <div class="panel-title">${c ? esc(c.name)+"'s " : ''}Periodization</div>
     <p class="panel-desc">Map out mesocycles and training phases. Clients see the current phase in their workout tab.</p>
@@ -939,7 +939,7 @@ function addPeriodPhase() {
     phase: document.getElementById('periodPhase')?.value?.trim() || '',
     startDate: document.getElementById('periodStart')?.value || '',
     endDate: document.getElementById('periodEnd')?.value || '',
-    color: document.getElementById('periodColorVal')?.value || '#e8ff47',
+    color: document.getElementById('periodColorVal')?.value || '#3B9EFF',
     notes: document.getElementById('periodNotes')?.value?.trim() || '',
   });
   savePeriodization(_periodCid, phases);
@@ -1034,7 +1034,7 @@ function buildProgressionSuggestionsHtml(c) {
   const suggestions = getProgressionSuggestions(c.id).filter(s => !s.createdAt || (Date.now() - s.createdAt) < STALE_MS);
   if (!suggestions.length) return '';
   return `<div style="margin-bottom:14px">
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:#2ecc71;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Progressive Overload Ready</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:#2ecc71;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Progressive Overload Ready</div>
     ${suggestions.map(s => `
       <div class="prog-suggestion">
         <div class="prog-suggestion-text"><strong>${esc(s.exerciseName)}</strong> — same weight &amp; reps two sessions in a row. Add weight.</div>
@@ -1117,15 +1117,15 @@ function buildCredentialsEmailHtml(name, pin, appUrl, plan) {
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
   <div style="text-align:center;margin-bottom:32px;">
-    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#ff6b35">FIT</span></div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#3B9EFF">FIT</span></div>
     <div style="font-size:11px;color:#555;letter-spacing:2px;margin-top:4px;">YOUR PERSONAL TRAINING HUB</div>
   </div>
   <div style="background:#111;border:1px solid #222;border-radius:16px;padding:32px;margin-bottom:20px;">
     <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;">Welcome, ${name}!</div>
-    <div style="font-size:13px;color:#888;margin-bottom:24px;">Your <strong style="color:#ff6b35">${planLabel}</strong> is ready. Here are your login details.</div>
+    <div style="font-size:13px;color:#888;margin-bottom:24px;">Your <strong style="color:#3B9EFF">${planLabel}</strong> is ready. Here are your login details.</div>
     <div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
       <div style="font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-bottom:8px;">Your App PIN</div>
-      <div style="font-size:48px;font-weight:900;letter-spacing:12px;color:#ff6b35;font-family:monospace;">${pin}</div>
+      <div style="font-size:48px;font-weight:900;letter-spacing:12px;color:#3B9EFF;font-family:monospace;">${pin}</div>
       <div style="font-size:11px;color:#555;margin-top:8px;">Keep this private — it's your personal login</div>
     </div>
     <div style="font-size:13px;color:#ccc;line-height:2;margin-bottom:24px;">
@@ -1134,7 +1134,7 @@ function buildCredentialsEmailHtml(name, pin, appUrl, plan) {
       2 · Tap your name on the login screen<br>
       3 · Enter your 4-digit PIN
     </div>
-    <a href="${appUrl}" style="display:block;text-align:center;background:#ff6b35;color:#000;font-weight:700;font-size:15px;letter-spacing:2px;text-decoration:none;padding:16px;border-radius:10px;text-transform:uppercase;">Open CrazyyFit →</a>
+    <a href="${appUrl}" style="display:block;text-align:center;background:#3B9EFF;color:#000;font-weight:700;font-size:15px;letter-spacing:2px;text-decoration:none;padding:16px;border-radius:10px;text-transform:uppercase;">Open CrazyyFit →</a>
   </div>
   <div style="text-align:center;font-size:11px;color:#444;line-height:1.7;">Questions? Reply to this email — your coach is here.<br><span style="color:#333">CrazyyFit · ${yr}</span></div>
 </div>
@@ -1148,10 +1148,10 @@ function buildBroadcastEmailHtml(message) {
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
   <div style="text-align:center;margin-bottom:28px;">
-    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#ff6b35">FIT</span></div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#3B9EFF">FIT</span></div>
   </div>
   <div style="background:#111;border:1px solid #222;border-radius:16px;padding:32px;margin-bottom:20px;">
-    <div style="font-size:11px;letter-spacing:2px;color:#e8ff47;text-transform:uppercase;margin-bottom:14px;">Message from your coach</div>
+    <div style="font-size:11px;letter-spacing:2px;color:#3B9EFF;text-transform:uppercase;margin-bottom:14px;">Message from your coach</div>
     <div style="font-size:16px;color:#fff;line-height:1.8;white-space:pre-wrap;">${message}</div>
   </div>
   <div style="text-align:center;font-size:11px;color:#444;">Reply to this email if you have questions.<br><span style="color:#333">CrazyyFit · ${yr}</span></div>
@@ -1167,13 +1167,13 @@ function buildCoachMsgEmailHtml(clientName, message, appUrl) {
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;">
 <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
   <div style="text-align:center;margin-bottom:28px;">
-    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#ff6b35">FIT</span></div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#fff;">CRAZYY<span style="color:#3B9EFF">FIT</span></div>
   </div>
   <div style="background:#111;border:1px solid #222;border-radius:16px;padding:32px;margin-bottom:20px;">
     <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;">Hey ${firstName},</div>
-    <div style="font-size:11px;letter-spacing:2px;color:#ff6b35;text-transform:uppercase;margin-bottom:14px;">Message from your coach</div>
-    <div style="font-size:15px;color:#e0e0e0;line-height:1.8;white-space:pre-wrap;border-left:3px solid #ff6b35;padding-left:16px;">${message}</div>
-    ${appUrl ? `<a href="${appUrl}" style="display:block;text-align:center;margin-top:24px;background:#ff6b35;color:#000;font-weight:700;font-size:13px;letter-spacing:2px;text-decoration:none;padding:14px;border-radius:10px;text-transform:uppercase;">Open CrazyyFit →</a>` : ''}
+    <div style="font-size:11px;letter-spacing:2px;color:#3B9EFF;text-transform:uppercase;margin-bottom:14px;">Message from your coach</div>
+    <div style="font-size:15px;color:#e0e0e0;line-height:1.8;white-space:pre-wrap;border-left:3px solid #3B9EFF;padding-left:16px;">${message}</div>
+    ${appUrl ? `<a href="${appUrl}" style="display:block;text-align:center;margin-top:24px;background:#3B9EFF;color:#000;font-weight:700;font-size:13px;letter-spacing:2px;text-decoration:none;padding:14px;border-radius:10px;text-transform:uppercase;">Open CrazyyFit →</a>` : ''}
   </div>
   <div style="text-align:center;font-size:11px;color:#444;line-height:1.7;">Reply in the app to message your coach back.<br><span style="color:#333">CrazyyFit · ${yr}</span></div>
 </div>
@@ -1884,17 +1884,17 @@ function openSignup() {
         <option value="other">Other</option>
       </select>
     </div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">Choose Your Plan</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">Choose Your Plan</div>
     <div class="signup-plan-grid" id="suPlans">
       ${SIGNUP_PLANS.map(p => `
         <div class="signup-plan-card${p.id===_signupState.plan?' selected':''}${p.featured?' signup-plan-featured':''}" onclick="selectSignupPlan('${p.id}')">
-          ${p.featured ? '<div style="font-family:\'DM Mono\',monospace;font-size:8px;letter-spacing:2px;color:#ff6b35;margin-bottom:6px;text-transform:uppercase">★ Best Value</div>' : ''}
+          ${p.featured ? '<div style="font-family:\'Geist Mono\',monospace;font-size:8px;letter-spacing:2px;color:#3B9EFF;margin-bottom:6px;text-transform:uppercase">★ Best Value</div>' : ''}
           <div class="signup-plan-price">${p.price}<span style="font-size:12px;color:var(--muted)">${p.per}</span></div>
           <div class="signup-plan-name">${p.name}</div>
           <div class="signup-plan-desc">${p.desc}</div>
         </div>`).join('')}
     </div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;text-align:center">Secure payment via Stripe · Cancel anytime</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;text-align:center">Secure payment via Stripe · Cancel anytime</div>
     <button class="signup-pay-btn" id="suPayBtn" onclick="submitSignup()">Continue to Payment →</button>
     <button class="ob-back-btn" style="width:100%;margin-top:10px" onclick="document.getElementById('signupModal').remove()">Cancel</button>
   </div>`;
@@ -1945,7 +1945,7 @@ function openLeads() {
   modal.id = 'leadsModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center';
   const leadsHtml = leads.length === 0
-    ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:30px">No signups yet</div>`
+    ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:30px">No signups yet</div>`
     : leads.slice().reverse().map((l,i) => {
         const plan = SIGNUP_PLANS.find(p => p.id === l.plan) || {};
         return `<div class="lead-card">
@@ -1957,8 +1957,8 @@ function openLeads() {
               <div class="lead-plan">${plan.name||l.plan} ${plan.price||''}</div>
             </div>
             <div style="text-align:right">
-              <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted)">${new Date(l.created_at).toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
-              ${l.converted ? '<div style="font-family:\'DM Mono\',monospace;font-size:8px;color:#2ecc71;margin-top:4px">✓ Converted</div>' : ''}
+              <div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--muted)">${new Date(l.created_at).toLocaleDateString('en',{month:'short',day:'numeric'})}</div>
+              ${l.converted ? '<div style="font-family:\'Geist Mono\',monospace;font-size:8px;color:#2ecc71;margin-top:4px">✓ Converted</div>' : ''}
             </div>
           </div>
           ${!l.converted ? `<div style="display:flex;gap:8px;margin-top:10px">
@@ -1969,7 +1969,7 @@ function openLeads() {
       }).join('');
   modal.innerHTML = `<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;color:#ff6b35">📥 Signup Leads</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:2px;color:#3B9EFF">📥 Signup Leads</div>
       <button class="ob-back-btn" onclick="document.getElementById('leadsModal').remove()">Close</button>
     </div>
     ${leadsHtml}
@@ -2154,30 +2154,30 @@ function openScheduleDayDetail(cid, dayLabel) {
 
   let exercisesHtml = '';
   if (isRest) {
-    exercisesHtml = `<div style="padding:24px 0;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">😴 Rest day — recovery is part of the program</div>`;
+    exercisesHtml = `<div style="padding:24px 0;text-align:center;font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted)">😴 Rest day — recovery is part of the program</div>`;
   } else if (!allExercises.length) {
-    exercisesHtml = `<div style="padding:16px 0;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">No exercises assigned yet.</div>`;
+    exercisesHtml = `<div style="padding:16px 0;font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)">No exercises assigned yet.</div>`;
   } else {
     exercisesHtml = allExercises.map((ex, ei) => {
       const exData = lastSession?.exercises?.[ei];
       const doneSets = exData?.sets?.filter(s => s && (s.done || s.weight || s.reps)) || [];
       const setsHtml = doneSets.length ? doneSets.map((s, si) =>
         `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--faint)">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);min-width:20px">S${si+1}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text)">${s.weight ? `<span style="color:#ff6b35">${esc(s.weight)}</span>` : '<span style="color:var(--muted)">—</span>'}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">×</div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text)">${s.reps ? `<span style="color:${c.accent}">${esc(s.reps)} reps</span>` : '<span style="color:var(--muted)">—</span>'}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);min-width:20px">S${si+1}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text)">${s.weight ? `<span style="color:#3B9EFF">${esc(s.weight)}</span>` : '<span style="color:var(--muted)">—</span>'}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted)">×</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text)">${s.reps ? `<span style="color:${c.accent}">${esc(s.reps)} reps</span>` : '<span style="color:var(--muted)">—</span>'}</div>
           ${s.done ? '<div style="margin-left:auto;color:#2ecc71;font-size:12px">✓</div>' : ''}
         </div>`
-      ).join('') : `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:4px 0">No sets logged yet</div>`;
+      ).join('') : `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);padding:4px 0">No sets logged yet</div>`;
 
       return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <div>
             <div style="font-size:14px;font-weight:500">${esc(ex.name)}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${esc(ex.sets||'')}${ex.reps?' · '+esc(ex.reps):''}${ex.rest?' · '+esc(ex.rest):''}</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px">${esc(ex.sets||'')}${ex.reps?' · '+esc(ex.reps):''}${ex.rest?' · '+esc(ex.rest):''}</div>
           </div>
-          ${doneSets.length ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:#2ecc71">${doneSets.length} sets done</div>` : ''}
+          ${doneSets.length ? `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:#2ecc71">${doneSets.length} sets done</div>` : ''}
         </div>
         <div style="padding-left:4px">${setsHtml}</div>
       </div>`;
@@ -2186,7 +2186,7 @@ function openScheduleDayDetail(cid, dayLabel) {
 
   const canEdit = !!AppState.isCoachLogin;
   const editBtn = canEdit
-    ? `<button onclick="renameScheduleDayTitle('${esc(cid)}','${esc(dayLabel)}')" title="Rename workout" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 8px;border-radius:6px;cursor:pointer;margin-top:6px">EDIT</button>`
+    ? `<button onclick="renameScheduleDayTitle('${esc(cid)}','${esc(dayLabel)}')" title="Rename workout" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 8px;border-radius:6px;cursor:pointer;margin-top:6px">EDIT</button>`
     : '';
 
   const modal = document.createElement('div');
@@ -2196,15 +2196,15 @@ function openScheduleDayDetail(cid, dayLabel) {
     <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px 48px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">${esc(dayLabel)}</div>
-          <div style="font-family:var(--display);font-size:26px;letter-spacing:1px;color:${isRest ? 'var(--muted)' : c.accent};line-height:1.1;margin-top:2px">${esc(schedDay.title)}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">${esc(dayLabel)}</div>
+          <div style="font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:1px;color:${isRest ? 'var(--muted)' : c.accent};line-height:1.1;margin-top:2px">${esc(schedDay.title)}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${esc(schedDay.sub || '')}</div>
           ${editBtn}
         </div>
         <button onclick="document.getElementById('schedDayModal').remove()" style="background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;margin-top:4px">×</button>
       </div>
-      ${lastDate ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;padding:6px 10px;background:var(--surface2);border-radius:6px;display:inline-block">Last logged: ${lastDate}</div>` : '<div style="margin-bottom:16px"></div>'}
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Exercises</div>
+      ${lastDate ? `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;padding:6px 10px;background:var(--surface2);border-radius:6px;display:inline-block">Last logged: ${lastDate}</div>` : '<div style="margin-bottom:16px"></div>'}
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Exercises</div>
       ${exercisesHtml}
     </div>`;
   document.body.appendChild(modal);
@@ -2550,7 +2550,7 @@ function _sbAutoSyncFlush(cid) {
       name:         c.name,
       pin:          c.pin || '',
       goal:         c.goal || '',
-      accent:       c.accent || '#ff6b35',
+      accent:       c.accent || '#3B9EFF',
       program_type: c.programType || c.program_type || '',
       mode:         getClientMode(c.id),
       data:         JSON.stringify(dataBlob),
@@ -2639,7 +2639,7 @@ async function syncAllClients() {
       name:         c.name,
       pin:          c.pin || '',
       goal:         c.goal || '',
-      accent:       c.accent || '#ff6b35',
+      accent:       c.accent || '#3B9EFF',
       program_type: c.programType || c.program_type || '',
       mode:         getClientMode(c.id),
       data:         JSON.stringify(fullBlob),
@@ -2949,7 +2949,7 @@ async function pullFromCloud() {
       name:        row.name,
       pin:         row.pin || '',
       goal:        row.goal || '',
-      accent:      row.accent || '#ff6b35',
+      accent:      row.accent || '#3B9EFF',
       programType: row.program_type || '',
       data:        safeJSON(row.data, {}),
       _meta:       safeJSON(row.meta, {}),
@@ -2981,9 +2981,9 @@ function openSBSettings() {
   modal.className = 'terminate-backdrop open';
   const tokenOk = !!getAuthToken();
   modal.innerHTML = `<div class="terminate-modal">
-    <div style="font-family:var(--display);font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Cloud Sync</div>
+    <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:2px;margin-bottom:14px">☁ Cloud Sync</div>
     <div style="background:var(--surface2);border:1px solid ${tokenOk ? '#2ecc71' : '#e74c3c'}55;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px">
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">STATUS</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">STATUS</div>
       <div style="color:${tokenOk ? '#2ecc71' : '#e74c3c'};font-weight:600">${tokenOk ? '● Authenticated — sync active' : '○ Not authenticated — log in again'}</div>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px">
@@ -2991,7 +2991,7 @@ function openSBSettings() {
       <button class="fit-log-btn" style="flex:1;font-size:12px;padding:10px;background:var(--surface);color:var(--text);border:1px solid var(--border)" onclick="pullFromCloud()" ${tokenOk?'':'disabled'}>↓ Pull Cloud</button>
     </div>
     <button class="fit-log-btn" style="width:100%;margin-top:8px;font-size:12px;padding:10px;background:rgba(52,152,219,.1);color:#3498db;border:1px solid #3498db" onclick="testSBConnection()" ${tokenOk?'':'disabled'}>⚡ Test Connection</button>
-    <div id="sbTestResult" style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;line-height:1.6;color:var(--muted);word-break:break-all"></div>
+    <div id="sbTestResult" style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:10px;line-height:1.6;color:var(--muted);word-break:break-all"></div>
     <button class="ob-back-btn" style="width:100%;margin-top:14px" onclick="document.getElementById('sbSettingsModal').remove()">Close</button>
   </div>`;
   document.body.appendChild(modal);
@@ -3003,7 +3003,7 @@ function showSyncOverlay(msg) {
     el.id = 'syncOverlay';
     el.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px';
     el.innerHTML = `<div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite"></div>
-      <div id="syncOverlayMsg" style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text)"></div>`;
+      <div id="syncOverlayMsg" style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text)"></div>`;
     document.body.appendChild(el);
   }
   document.getElementById('syncOverlayMsg').textContent = msg || 'Syncing…';
@@ -3227,16 +3227,16 @@ function openAIBuildWorkout(cid) {
         <div class="ai-review-sub">${esc(c.name)} &middot; describe what you want, AI builds it from movements you've logged before</div>
       </div>
       <div class="ai-review-body" id="aiBuildBody">
-        <label style="display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">What do you want to train?</label>
+        <label style="display:block;font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">What do you want to train?</label>
         <textarea id="aiBuildPrompt" maxlength="1000" rows="4"
           placeholder="e.g. 45 min upper body push, focus on shoulders, no bench access today"
           style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;resize:vertical"></textarea>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
           ${['30 min full-body','45 min upper push','60 min legs','30 min conditioning','45 min pull day','recovery / mobility']
-            .map(p => `<button onclick="document.getElementById('aiBuildPrompt').value='${esc(p)}';document.getElementById('aiBuildPrompt').focus()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;padding:6px 10px;border-radius:6px;cursor:pointer;letter-spacing:.5px">${esc(p)}</button>`).join('')}
+            .map(p => `<button onclick="document.getElementById('aiBuildPrompt').value='${esc(p)}';document.getElementById('aiBuildPrompt').focus()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'Geist Mono',monospace;font-size:9px;padding:6px 10px;border-radius:6px;cursor:pointer;letter-spacing:.5px">${esc(p)}</button>`).join('')}
         </div>
         <button id="aiBuildGo" onclick="runAIBuildWorkout('${esc(cid)}')"
-          style="width:100%;margin-top:16px;background:${esc(accent)};border:none;color:#000;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:14px;border-radius:8px;cursor:pointer">GENERATE WORKOUT</button>
+          style="width:100%;margin-top:16px;background:${esc(accent)};border:none;color:#000;font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:14px;border-radius:8px;cursor:pointer">GENERATE WORKOUT</button>
         <div id="aiBuildResult" style="margin-top:18px"></div>
       </div>
     </div>`;
@@ -3258,7 +3258,7 @@ async function runAIBuildWorkout(cid) {
 
   btn.disabled = true;
   btn.textContent = 'GENERATING...';
-  resEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:20px">Building your session...</div>`;
+  resEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;padding:20px">Building your session...</div>`;
 
   try {
     const r = await fetch('/api/ai-build-workout', {
@@ -3277,7 +3277,7 @@ async function runAIBuildWorkout(cid) {
     resEl.innerHTML = _renderAiWorkoutResult(data.workout, cid, logged);
   } catch (e) {
     console.error('AI build workout:', e);
-    resEl.innerHTML = `<div style="color:#e74c3c;font-family:'DM Mono',monospace;font-size:11px;padding:12px;border:1px solid rgba(231,76,60,.3);border-radius:6px;background:rgba(231,76,60,.05)">Error: ${esc(e.message || 'Could not generate workout')}</div>`;
+    resEl.innerHTML = `<div style="color:#e74c3c;font-family:'Geist Mono',monospace;font-size:11px;padding:12px;border:1px solid rgba(231,76,60,.3);border-radius:6px;background:rgba(231,76,60,.05)">Error: ${esc(e.message || 'Could not generate workout')}</div>`;
   } finally {
     btn.disabled = false;
     btn.textContent = 'GENERATE WORKOUT';
@@ -3293,33 +3293,33 @@ function _renderAiWorkoutResult(w, cid, logged) {
     const exHtml = (b.exercises || []).map(e => {
       const isNew = !!e.isNew || !loggedNames.has(String(e.name || '').toLowerCase());
       const newBadge = isNew
-        ? `<span style="display:inline-block;font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:4px;background:rgba(241,196,15,.15);color:#f1c40f;letter-spacing:1px;margin-left:6px">NEW</span>`
+        ? `<span style="display:inline-block;font-family:'Geist Mono',monospace;font-size:8px;padding:2px 6px;border-radius:4px;background:rgba(241,196,15,.15);color:#f1c40f;letter-spacing:1px;margin-left:6px">NEW</span>`
         : '';
       const meta = [e.sets, e.reps, e.rest && ('rest ' + e.rest)].filter(Boolean).join(' &middot; ');
       return `<div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);margin-bottom:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div style="font-weight:600;font-size:14px">${esc(e.name || '')}${newBadge}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">${meta}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">${meta}</div>
         </div>
         ${e.note ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">${esc(e.note)}</div>` : ''}
       </div>`;
     }).join('');
     return `<div style="margin-bottom:14px">
-      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">${esc(b.label || 'Block')}</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">${esc(b.label || 'Block')}</div>
       ${exHtml}
     </div>`;
   }).join('');
 
   return `
     <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px">
-      <div style="font-family:var(--display);font-size:24px;letter-spacing:1px;margin-bottom:4px">${esc(w.title || 'Today\'s Session')}</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:1px;margin-bottom:4px">${esc(w.title || 'Today\'s Session')}</div>
       ${w.summary ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px">${esc(w.summary)}</div>` : ''}
       ${blocksHtml}
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
         <button onclick="aiBuildAddToProgram()"
-          style="flex:1;min-width:140px;background:var(--accent);border:none;color:#000;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">ADD TO PROGRAM</button>
+          style="flex:1;min-width:140px;background:var(--accent);border:none;color:#000;font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">ADD TO PROGRAM</button>
         <button onclick="aiBuildCopyText()"
-          style="flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">COPY TEXT</button>
+          style="flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;padding:12px;border-radius:8px;cursor:pointer">COPY TEXT</button>
       </div>
     </div>`;
 }
@@ -3404,7 +3404,7 @@ function buildModeBadge(mode) {
   var styles = {
     inperson:  ['rgba(46,204,113,.12)', '#2ecc71', '🏋️ In-Person'],
     remote:    ['rgba(52,152,219,.12)', '#3498db', '📡 Remote'],
-    blueprint: ['rgba(255,107,53,.12)', '#ff6b35', '⚡ Blueprint'],
+    blueprint: ['rgba(59,158,255,.12)', '#3B9EFF', '⚡ Blueprint'],
   };
   var s = styles[mode] || styles.inperson;
   return '<span style="font-size:8px;font-weight:600;padding:3px 8px;border-radius:4px;background:' + s[0] + ';color:' + s[1] + '">' + s[2] + '</span>';

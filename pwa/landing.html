@@ -7,22 +7,25 @@
   <meta name="description" content="A real coach is watching your results. Crazyy Fit gives your trainer the tools to see everything — your workouts, macros, check-ins, and progress — so nothing slips through the cracks." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --bg2: #111111;
-      --bg3: #161616;
-      --border: rgba(255,255,255,0.07);
-      --text: #f0f0f0;
-      --muted: #888;
-      --accent: #ff4500;
-      --accent2: #ff6b35;
-      --mono: 'DM Mono', monospace;
-      --sans: 'DM Sans', sans-serif;
-      --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+      --bg: #0a0c0e;
+      --bg2: #131619;
+      --bg3: #1c2024;
+      --border: #262b30;
+      --line-soft: #1e2226;
+      --text: #f4f5f6;
+      --muted: #a1a8b0;
+      --faint: #5a6168;
+      --accent: #3B9EFF;
+      --accent2: #5AAEFF;
+      --accent-dim: #1E6FCC;
+      --mono: 'Geist Mono', monospace;
+      --sans: 'Geist', sans-serif;
+      --display: 'Geist', sans-serif;
       --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     }
 
@@ -30,12 +33,17 @@
 
     body {
       background: var(--bg);
+      background-image:
+        radial-gradient(at 80% 0%, rgba(59,158,255,0.07) 0%, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(255,77,46,0.03) 0%, transparent 50%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: var(--sans);
       font-size: 16px;
       line-height: 1.6;
       overflow-x: hidden;
       position: relative;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── GRAIN OVERLAY ── */
@@ -44,7 +52,7 @@
       inset: 0;
       z-index: 300;
       pointer-events: none;
-      opacity: 0.045;
+      opacity: 0.02;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
@@ -84,7 +92,8 @@
       color: var(--text);
       text-decoration: none;
     }
-    .nav-logo span { color: var(--accent); }
+    .nav-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .nav-logo .fit { color: var(--text); }
     .nav-cta {
       font-family: var(--mono);
       font-size: 12px;
@@ -93,7 +102,7 @@
       color: var(--bg);
       background: var(--text);
       padding: 9px 18px;
-      border-radius: 3px;
+      border-radius: 12px;
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
     }
@@ -107,7 +116,7 @@
       background: transparent;
       padding: 9px 16px;
       border: 1px solid var(--border);
-      border-radius: 3px;
+      border-radius: 12px;
       text-decoration: none;
       transition: border-color 0.2s, color 0.2s;
     }
@@ -208,11 +217,11 @@
       background: var(--accent);
       color: #fff;
       padding: 16px 32px;
-      border-radius: 3px;
+      border-radius: 12px;
       text-decoration: none;
       transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
     }
-    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 30px rgba(255,69,0,0.25); }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 30px rgba(59,158,255,0.25); }
     .btn-secondary {
       font-family: var(--mono);
       font-size: 12px;
@@ -249,7 +258,7 @@
       height: 540px;
       max-width: 90vw;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,69,0,0.18), rgba(255,69,0,0) 68%);
+      background: radial-gradient(circle, rgba(59,158,255,0.18), rgba(59,158,255,0) 68%);
       filter: blur(36px);
       pointer-events: none;
       z-index: 0;
@@ -381,9 +390,9 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--accent);
-      background: rgba(255,69,0,0.1);
+      background: rgba(59,158,255,0.1);
       padding: 4px 10px;
-      border-radius: 2px;
+      border-radius: 8px;
     }
 
     /* ── HOW IT WORKS ── */
@@ -410,12 +419,12 @@
       font-weight: 800;
       font-size: 72px;
       line-height: 1;
-      color: rgba(255,69,0,0.14);
+      color: rgba(59,158,255,0.14);
       margin-bottom: 8px;
       display: block;
       transition: color 0.2s;
     }
-    .step:hover .step-num { color: rgba(255,69,0,0.28); }
+    .step:hover .step-num { color: rgba(59,158,255,0.28); }
     .step-title {
       font-family: var(--display);
       font-weight: 700;
@@ -445,14 +454,14 @@
       text-transform: uppercase;
       padding: 10px 18px;
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       color: var(--muted);
       background: var(--bg2);
       transition: all 0.2s;
       cursor: default;
     }
-    .template-pill:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,69,0,0.05); }
-    .template-pill.highlight { border-color: var(--accent); color: var(--accent); background: rgba(255,69,0,0.08); }
+    .template-pill:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,158,255,0.05); }
+    .template-pill.highlight { border-color: var(--accent); color: var(--accent); background: rgba(59,158,255,0.08); }
 
     /* ── TESTIMONIALS ── */
     .testimonials-grid {
@@ -527,7 +536,7 @@
       width: 700px; height: 700px;
       max-width: 120vw;
       transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(255,69,0,0.10), rgba(255,69,0,0) 65%);
+      background: radial-gradient(circle, rgba(59,158,255,0.10), rgba(59,158,255,0) 65%);
       pointer-events: none;
     }
     .cta-inner { max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
@@ -560,7 +569,8 @@
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
-    .footer-logo span { color: var(--accent); }
+    .footer-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .footer-logo .fit { color: var(--text); }
     .footer-note {
       font-family: var(--mono);
       font-size: 11px;
@@ -634,7 +644,7 @@
       border: 1.5px solid rgba(255,255,255,0.12);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 0 80px rgba(255,69,0,0.12), 0 0 160px rgba(255,69,0,0.04);
+      box-shadow: 0 0 80px rgba(59,158,255,0.12), 0 0 160px rgba(59,158,255,0.04);
     }
     .phone-notch {
       position: absolute;
@@ -665,7 +675,7 @@
     }
     .pscreen-xp {
       background: rgba(255,255,255,0.04);
-      border-radius: 6px;
+      border-radius: 12px;
       padding: 10px 12px;
       border: 1px solid var(--border);
     }
@@ -691,7 +701,7 @@
     }
     .pscreen-card {
       background: rgba(255,255,255,0.04);
-      border-radius: 6px;
+      border-radius: 12px;
       padding: 10px 12px;
       border: 1px solid var(--border);
       flex: 1;
@@ -753,9 +763,9 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255,69,0,0.08);
-      border: 1px solid rgba(255,69,0,0.2);
-      border-radius: 3px;
+      background: rgba(59,158,255,0.08);
+      border: 1px solid rgba(59,158,255,0.2);
+      border-radius: 12px;
       padding: 3px 10px;
       font-family: var(--mono);
       font-size: 10px;
@@ -795,7 +805,7 @@
 
   <!-- NAV -->
   <nav>
-    <a href="#" class="nav-logo">CRAZYY<span>FIT</span></a>
+    <a href="#" class="nav-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></a>
     <div style="display:flex;gap:12px;align-items:center">
       <a href="/login" class="nav-login">Login</a>
       <a href="/pricing.html" class="nav-cta">Buy Your Blueprint</a>
@@ -1054,7 +1064,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-logo">CRAZYY<span>FIT</span></div>
+    <div class="footer-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></div>
     <div class="footer-note">Real coaching. Real accountability. Real results.</div>
   </footer>
 
