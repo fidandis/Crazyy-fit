@@ -1521,8 +1521,14 @@ function renderWorkouts(w, c) {
     }
   }
 
+  // Default to TODAY's workout day (not always day 0) so the tab opens on the
+  // session the client is actually doing today.
+  const _todayWid = (typeof getTodayWorkoutDayId === 'function') ? getTodayWorkoutDayId(c) : null;
+  let _activeIdx = _todayWid ? days.findIndex(d => (d.id || d.label) === _todayWid) : -1;
+  if (_activeIdx < 0) _activeIdx = 0;
+
   const btns = days.map((d, i) =>
-    `<button class="sel-btn${i===0?' active':''}" data-did="${esc(d.id)}" data-cid="${esc(c.id)}" onclick="selDay(this.dataset.did,this,this.dataset.cid)">${esc(d.label)}</button>`
+    `<button class="sel-btn${i===_activeIdx?' active':''}" data-did="${esc(d.id)}" data-cid="${esc(c.id)}" onclick="selDay(this.dataset.did,this,this.dataset.cid)">${esc(d.label)}</button>`
   ).join('');
 
   const panels = days.map((d, i) => {
@@ -1562,7 +1568,7 @@ function renderWorkouts(w, c) {
     const _addExBtn = `<button onclick="openAddExerciseModal('${esc(c.id)}','${esc(d.id||d.label)}',${_mainBlockIdx >= 0 ? _mainBlockIdx : 0})" style="display:flex;align-items:center;gap:6px;margin:12px 24px 4px;padding:8px 14px;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor=this.style.color='${esc(c.accent)}'" onmouseout="this.style.borderColor='';this.style.color=''">+ ADD EXERCISE</button>`;
 
     return `
-      <div id="day-${c.id}-${d.id}" class="day-detail" style="${i>0?'display:none':''}">
+      <div id="day-${c.id}-${d.id}" class="day-detail" style="${i!==_activeIdx?'display:none':''}">
         <div class="card">
           <div class="card-header">
             <div class="card-icon" style="background:${c.accent}22">${d.icon}</div>
@@ -1669,15 +1675,24 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
     const numSets = setMatch ? parseInt(setMatch[0]) : 3;
     const savedSets = savedEx?.sets || [];
 
-    // Backfill exercise name into today's saved data if missing (old entries)
-    if (savedEx && !savedEx.name) savedEx.name = e.name;
+    // Swapped (alternate) movement for this slot, if any — drives the name we
+    // match history against so a swap never inherits the old movement's weights.
+    const altName = activeData?.['alt_' + ei] || saved?.['alt_' + ei] || '';
+    const displayName = altName || e.name;
 
-    // Build "last time" hints: match by exercise name first, fall back to position index
+    // Backfill exercise name into today's saved data if missing (old entries)
+    if (savedEx && !savedEx.name) savedEx.name = displayName;
+
+    // Build "last time" hints: match the CURRENT movement by name. Only fall back
+    // to the positional entry when it is unnamed (legacy data) or the same
+    // movement — never borrow a different exercise's history into a swapped slot.
     let prevSets = [];
     if (prevSession?.exercises) {
-      const prevExByName = Object.values(prevSession.exercises).find(ex => ex?.name === e.name);
-      const prevExByIdx  = prevSession.exercises[ei];
-      const prevEx = prevExByName || prevExByIdx;
+      let prevEx = Object.values(prevSession.exercises).find(ex => ex?.name === displayName);
+      if (!prevEx) {
+        const byIdx = prevSession.exercises[ei];
+        if (byIdx && (!byIdx.name || byIdx.name === displayName)) prevEx = byIdx;
+      }
       // Guard against null/undefined entries — sparse arrays from wlUpdate
       // serialise as JSON nulls and would throw when we read s.weight.
       prevSets = (prevEx?.sets || []).filter(s => s && (s.weight || s.reps));
@@ -1721,8 +1736,6 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
       </div>${prevHint}<div class="wl-drops-wrap" id="wl-drops-${cid}-${dayId}-${ei}-${si}">${dropRowsHtml}</div>`;
     }).join('');
 
-    const altName = activeData?.['alt_' + ei] || saved?.['alt_' + ei] || '';
-    const displayName = altName || e.name;
     return `<div class="wl-ex-block">
       <div class="wl-ex-header">
         <div class="wl-ex-info">

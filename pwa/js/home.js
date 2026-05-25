@@ -53,21 +53,14 @@ function renderHome(c) {
   // ── TODAY FEATURED WORKOUT CARD ──
   if (todayDay) {
     const _isRest = todayDay.tag === 'Rest';
-    const _todayLower = todayLabel.toLowerCase();
     let _exs = [];
-    if (!_isRest && c.data.workouts && c.data.workouts.days) {
-      const _schedTitle = (todayDay.title || '').trim().toLowerCase();
-      let _wDay = _schedTitle ? c.data.workouts.days.find(wd => {
-        const lbl = (wd.label || wd.title || '').toLowerCase();
-        const sep = lbl.indexOf(' — ');
-        return (sep >= 0 ? lbl.slice(sep + 3) : lbl).trim() === _schedTitle;
-      }) : null;
-      if (!_wDay) _wDay = c.data.workouts.days.find(wd =>
-        (wd.id && wd.id.toLowerCase() === _todayLower) ||
-        (wd.label || '').toLowerCase().startsWith(_todayLower + ' '));
-      if (_wDay) {
-        if (_wDay.exercises?.length) _exs = _wDay.exercises;
-        else if (_wDay.blocks?.length) _exs = _wDay.blocks.reduce((a, b) => b.exercises ? [...a, ...b.exercises] : a, []);
+    if (!_isRest) {
+      const _wid = (typeof getTodayWorkoutDayId === 'function') ? getTodayWorkoutDayId(c) : null;
+      const _wd = _wid && c.data.workouts && c.data.workouts.days
+        ? c.data.workouts.days.find(w => (w.id || w.label) === _wid) : null;
+      if (_wd) {
+        if (_wd.exercises?.length) _exs = _wd.exercises;
+        else if (_wd.blocks?.length) _exs = _wd.blocks.reduce((a, b) => b.exercises ? [...a, ...b.exercises] : a, []);
       }
     }
 

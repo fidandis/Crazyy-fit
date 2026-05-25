@@ -16,6 +16,37 @@ function saveWlData(cid, dayId, data) {
   localStorage.setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
 }
 
+// Resolve TODAY's workout day id from the client's schedule + program.
+// Matches the schedule day for today's weekday to a workout day by name
+// (title, then tag), then falls back to a weekday-keyed id/label. Returns
+// the workout day's id (or label) so callers can select the right panel.
+// Returns null on a rest day or when nothing matches. Shared by the Workouts
+// tab default selection and the home "today" card so they always agree.
+function getTodayWorkoutDayId(c) {
+  try {
+    const days7 = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const tl = days7[new Date().getDay()];
+    const sched = c && c.data && c.data.schedule && c.data.schedule.days ? c.data.schedule.days : [];
+    const today = sched.find(s => s.label === tl);
+    if (!today || today.tag === 'Rest') return null;
+    const wds = c && c.data && c.data.workouts && c.data.workouts.days ? c.data.workouts.days : [];
+    if (!wds.length) return null;
+    const nameOf = wd => {
+      const lbl = (wd.label || wd.title || '').toLowerCase();
+      const sep = lbl.indexOf(' — ');
+      return (sep >= 0 ? lbl.slice(sep + 3) : lbl).trim();
+    };
+    const title = (today.title || '').trim().toLowerCase();
+    const tag   = (today.tag || '').trim().toLowerCase();
+    const low   = tl.toLowerCase();
+    const wd = (title && wds.find(w => nameOf(w) === title))
+            || (tag && wds.find(w => nameOf(w) === tag))
+            || wds.find(w => (w.id && w.id.toLowerCase() === low) || (w.label || '').toLowerCase().startsWith(low + ' '))
+            || null;
+    return wd ? (wd.id || wd.label) : null;
+  } catch (_) { return null; }
+}
+
 function _wlExName(cid, dayId, exIdx) {
   const el = document.getElementById('wl-ex-name-' + cid + '-' + dayId + '-' + exIdx);
   return (el?.firstChild?.textContent || el?.textContent || '').replace(/\(alt\)/g,'').trim();

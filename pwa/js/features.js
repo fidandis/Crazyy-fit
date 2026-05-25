@@ -724,6 +724,60 @@ function shareMonthlySummary(txt) {
 }
 
 /* ── PROGRESS CHARTS ─────────────────────────────────────────── */
+// Strength progression — pulls top-set weight per session from the workout
+// logger history (+ today's counted session) for every lift, and shows how the
+// working weight has climbed over time. This is real logged-weight progress.
+function buildStrengthProgressHtml(c) {
+  const days = (c.data && c.data.workouts && c.data.workouts.days) ? c.data.workouts.days : [];
+  const byEx = {};
+  const sessionTop = ex => { let m = 0; ((ex && ex.sets) || []).forEach(s => { const w = parseFloat(s && s.weight); if (w > m) m = w; }); return m; };
+  const addPoint = (name, t, w) => {
+    if (!name || !(w > 0) || !t) return;
+    const k = String(name).trim(); if (!k) return;
+    (byEx[k] = byEx[k] || []).push({ t: new Date(t).getTime(), w });
+  };
+  days.forEach(d => {
+    const dayId = d.id || d.label; if (!dayId) return;
+    const hist = (typeof getWlHistory === 'function') ? getWlHistory(c.id, dayId) : [];
+    hist.forEach(h => { const t = h.date || h._countedDate; Object.values(h.exercises || {}).forEach(ex => addPoint(ex && ex.name, t, sessionTop(ex))); });
+    const live = getWlData(c.id, dayId);
+    if (live && live._countedDate && live.exercises) Object.values(live.exercises).forEach(ex => addPoint(ex && ex.name, live.savedAt || live._countedDate, sessionTop(ex)));
+  });
+  let items = Object.keys(byEx).map(name => {
+    const byDay = {};
+    byEx[name].forEach(p => { const k = new Date(p.t).toDateString(); byDay[k] = Math.max(byDay[k] || 0, p.w); });
+    const series = Object.keys(byDay).map(k => ({ t: new Date(k).getTime(), w: byDay[k] })).sort((a, b) => a.t - b.t);
+    return { name, series };
+  }).filter(it => it.series.length >= 2);
+  items.forEach(it => { it.delta = +(it.series[it.series.length - 1].w - it.series[0].w).toFixed(1); });
+  items.sort((a, b) => b.delta - a.delta || b.series.length - a.series.length);
+  items = items.slice(0, 8);
+
+  let h = `<div class="chart-card"><div class="chart-title">Strength Progress</div>`;
+  if (!items.length) {
+    h += `<div class="chart-empty">Log your working weights in the workout logger — once you've trained a lift twice, your climb shows up here.</div></div>`;
+    return h;
+  }
+  h += `<div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin:-4px 0 10px">TOP SET PER SESSION · ${items.length} ${items.length === 1 ? 'lift' : 'lifts'}</div>`;
+  items.forEach((it, idx) => {
+    const s = it.series, first = s[0].w, last = s[s.length - 1].w, delta = it.delta;
+    const dCol = delta > 0 ? '#2ecc71' : delta < 0 ? '#e74c3c' : 'var(--muted)';
+    const maxW = Math.max(...s.map(p => p.w)), minW = Math.min(...s.map(p => p.w)), range = (maxW - minW) || 1;
+    const W = 110, H = 30, pad = 3, xs = (W - pad * 2) / Math.max(s.length - 1, 1), toY = v => H - pad - ((v - minW) / range) * (H - pad * 2);
+    const path = s.map((p, i) => `${i === 0 ? 'M' : 'L'}${(pad + i * xs).toFixed(1)},${toY(p.w).toFixed(1)}`).join(' ');
+    h += `<div style="display:flex;align-items:center;gap:12px;padding:9px 0${idx < items.length - 1 ? ';border-bottom:1px solid var(--line-soft)' : ''}">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.name)}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px">${first} → <span style="color:var(--text)">${last}</span> lb</div>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:110px;height:30px;flex-shrink:0;overflow:visible"><path d="${path}" fill="none" stroke="${c.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${(pad + (s.length - 1) * xs).toFixed(1)}" cy="${toY(last).toFixed(1)}" r="2.5" fill="${c.accent}"/></svg>
+      <div style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:${dCol};flex-shrink:0;width:44px;text-align:right">${delta > 0 ? '+' : ''}${delta}</div>
+    </div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
 function renderProgressCharts(c) {
   const logs = getFitnessLogs(c.id);
   const xp   = getXP(c.id);
@@ -757,6 +811,9 @@ function renderProgressCharts(c) {
     }).join('');
   }
   html += `</div>`;
+
+  // Strength progression (real logged-weight gains) — headline of this page
+  html += buildStrengthProgressHtml(c);
 
   html += `<div class="chart-card"><div class="chart-title">Weight Over Time</div>`;
   if (wtLogs.length < 2) {
@@ -2096,11 +2153,18 @@ function selectAlternateExercise(cid, exIdx, newName, sets, reps) {
       // Update exercise name in DOM
       const wlNameEl = document.getElementById('wl-ex-name-' + cid + '-' + dayId + '-' + exIdx);
       if (wlNameEl) wlNameEl.innerHTML = esc(newName) + '<span style="font-size:9px;color:var(--muted);margin-left:6px">(alt)</span>';
-      // Clear input values and check states in DOM
+      // Clear input values, check states, prev placeholders, and "Last:" hints in
+      // the DOM so none of the previous movement's weights linger under the swap.
       const grid = document.getElementById('wl-grid-' + cid + '-' + dayId + '-' + exIdx);
       if (grid) {
+        grid.querySelectorAll('.wl-set-row').forEach(row => {
+          const inputs = row.querySelectorAll('.wl-set-input');
+          if (inputs[0]) inputs[0].placeholder = 'lbs / kg';
+          if (inputs[1]) inputs[1].placeholder = 'reps';
+        });
         grid.querySelectorAll('.wl-set-input, .wl-drop-input').forEach(inp => { inp.value = ''; inp.classList.remove('completed'); });
         grid.querySelectorAll('.wl-set-check, .wl-drop-check').forEach(btn => { btn.classList.remove('done'); btn.textContent = ''; });
+        grid.querySelectorAll('.wl-prev-hint').forEach(h => h.remove());
         grid.querySelectorAll('.wl-drops-wrap').forEach(w => { w.innerHTML = ''; });
       }
       wlUpdateProgress(cid, dayId);
