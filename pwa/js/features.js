@@ -1831,14 +1831,84 @@ function renderMilestonesPanel(c) {
 //          'tab'   = workout tab (uses schedule.days blocks, needs dayId + blockIdx)
 let _exSwapState = { cid: null, exIdx: null, context: 'today', dayId: null, blockIdx: 0 };
 
+/* ── SMART SUBSTITUTION ENGINE ───────────────────────────────────
+   Classify a movement by its joint action / pattern so swaps preserve the
+   program's rotation: same joint action > same muscle different angle > avoid.
+   "Same muscle" is not enough — a Chest Press should swap to another press,
+   not a fly; an RDL (hip hinge) should not swap to a leg curl (knee flexion). */
+const _EX_PATTERN_MUSCLE = {
+  'chest-press':'Chest','chest-fly':'Chest',
+  'back-row':'Back','back-pulldown':'Back','back-straightarm':'Back',
+  'side-delt':'Shoulders','front-delt-press':'Shoulders','rear-delt':'Shoulders',
+  'biceps':'Biceps','biceps-lengthened':'Biceps','biceps-preacher':'Biceps',
+  'triceps-pressdown':'Triceps','triceps-overhead':'Triceps',
+  'quad-compound':'Quads','quad-isolation':'Quads',
+  'hip-hinge':'Hamstrings','knee-flexion':'Hamstrings',
+  'glute-hipext':'Glutes','glute-squat':'Glutes','hip-abduction':'Glutes',
+  'calf-standing':'Calves','calf-seated':'Calves',
+};
+const _EX_PATTERN_LABEL = {
+  'chest-press':'Pressing (chest)','chest-fly':'Fly / adduction (chest)',
+  'back-row':'Row — horizontal pull','back-pulldown':'Vertical pull (lat width)','back-straightarm':'Straight-arm / pullover (lats)',
+  'side-delt':'Lateral raise (side delts)','front-delt-press':'Overhead press (front delts)','rear-delt':'Rear delt (horizontal abduction)',
+  'biceps':'Curl (biceps)','biceps-lengthened':'Lengthened curl (incline/Bayesian)','biceps-preacher':'Preacher / shortened curl',
+  'triceps-pressdown':'Pressdown (triceps)','triceps-overhead':'Overhead extension (long head)',
+  'quad-compound':'Heavy knee extension (quad compound)','quad-isolation':'Leg extension (quad isolation)',
+  'hip-hinge':'Hip hinge (hamstrings / glutes)','knee-flexion':'Leg curl (knee flexion)',
+  'glute-hipext':'Hip thrust / extension (glutes)','glute-squat':'Squat / lunge (glutes)','hip-abduction':'Hip abduction (glute med)',
+  'calf-standing':'Standing calf (gastrocnemius)','calf-seated':'Seated calf (soleus)',
+};
+function _exPattern(name) {
+  const n = (name || '').toLowerCase().replace(/\(alt\)/g, '').trim();
+  if (!n) return '';
+  const has = (...kw) => kw.some(k => n.includes(k));
+  if (has('calf','calves')) return has('seat') ? 'calf-seated' : 'calf-standing';
+  if (has('leg curl','hamstring curl','nordic','lying curl','ham curl')) return 'knee-flexion';
+  if (n.includes('curl')) {
+    if (has('preacher','spider')) return 'biceps-preacher';
+    if (has('incline','bayesian')) return 'biceps-lengthened';
+    return 'biceps';
+  }
+  if (has('pressdown','push-down','pushdown','push down','rope extension')) return 'triceps-pressdown';
+  if (has('skull','french') || (n.includes('overhead') && n.includes('extension')) || (n.includes('tricep') && n.includes('extension'))) return 'triceps-overhead';
+  if (n.includes('kickback') && n.includes('tricep')) return 'triceps-pressdown';
+  if (has('hip thrust','glute bridge','thrust') || (n.includes('kickback') && !n.includes('tricep'))) return 'glute-hipext';
+  if (has('abduction','abductor')) return 'hip-abduction';
+  if (has('rdl','romanian','stiff','good morning','back extension','hyperextension','deadlift','sldl')) return 'hip-hinge';
+  if (has('leg extension','sissy','knee extension')) return 'quad-isolation';
+  if (has('lunge','split squat','step-up','step up','stepup')) return 'glute-squat';
+  if (has('squat','leg press','hack','pendulum')) return 'quad-compound';
+  if (has('lateral raise','side delt','lat raise','laterals')) return 'side-delt';
+  if (has('rear delt','reverse pec','rear fly','rear-delt','face pull')) return 'rear-delt';
+  if (has('shoulder press','overhead press','military','arnold','ohp','db press' /*overhead*/) && !has('chest','bench','incline','decline')) return 'front-delt-press';
+  if (has('straight-arm','straight arm','pullover')) return 'back-straightarm';
+  if (has('pulldown','pull-down','pull down','pull-up','pull up','pullup','chin-up','chin up','chinup')) return 'back-pulldown';
+  if (n.includes('row')) return 'back-row';
+  if (has('fly','pec deck','pec-deck','pec dec')) return 'chest-fly';
+  if (has('bench','chest press','incline press','decline','dip','push-up','pushup','chest','press')) return 'chest-press';
+  return '';
+}
+
 function openExerciseSwap(cid, exIdx, context, dayId, blockIdx) {
   const existing = document.getElementById('exSwapModal');
   if (existing) existing.remove();
 
   _exSwapState = { cid, exIdx, context: context || 'today', dayId: dayId || null, blockIdx: blockIdx || 0 };
   _exSwapMuscleFilter = 'All';
-  const nameEl = document.getElementById('today-ex-name-' + cid + '-' + exIdx);
-  const currentName = nameEl ? nameEl.textContent : 'Exercise';
+  // Resolve the current movement name — the logger uses a different element id
+  // than the home/tab cards.
+  const nameEl = (context === 'wl')
+    ? document.getElementById('wl-ex-name-' + cid + '-' + (dayId || '') + '-' + exIdx)
+    : document.getElementById('today-ex-name-' + cid + '-' + exIdx);
+  const currentName = nameEl
+    ? ((nameEl.firstChild && nameEl.firstChild.textContent) || nameEl.textContent || 'Exercise').replace(/\(alt\)/g, '').trim()
+    : 'Exercise';
+  const origPattern = _exPattern(currentName);
+  _exSwapState.origPattern = origPattern;
+  _exSwapState.origName = currentName;
+  const patternNote = origPattern
+    ? `<div class="ex-swap-pattern" style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:.5px;color:var(--accent);margin-top:6px">↻ Keeps: ${esc(_EX_PATTERN_LABEL[origPattern] || '')}</div>`
+    : '';
 
   const overlay = document.createElement('div');
   overlay.className = 'ex-swap-overlay';
@@ -1854,7 +1924,8 @@ function openExerciseSwap(cid, exIdx, context, dayId, blockIdx) {
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
             <div class="ex-swap-title">Swap Exercise</div>
-            <div class="ex-swap-sub">Replacing: ${currentName}</div>
+            <div class="ex-swap-sub">Replacing: ${esc(currentName)}</div>
+            ${patternNote}
           </div>
           <button onclick="document.getElementById('exSwapModal').remove()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--muted);cursor:pointer;font-size:13px">✕</button>
         </div>
@@ -1883,24 +1954,54 @@ function buildExSwapList(query) {
 
   if (!_exSwapItems.length) return '<div style="padding:20px;text-align:center;font-family:\'Geist Mono\',monospace;font-size:11px;color:var(--muted)">No exercises found</div>';
 
-  // Group by muscle, preserving global index for safe onclick
+  const origKey    = (_exSwapState && _exSwapState.origPattern) || '';
+  const origMuscle = origKey ? _EX_PATTERN_MUSCLE[origKey] : '';
+  const origName   = ((_exSwapState && _exSwapState.origName) || '').toLowerCase();
+  const bestBadge  = ' <span style="font-family:\'Geist Mono\',monospace;font-size:8px;letter-spacing:1px;background:var(--accent);color:var(--bg);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle">BEST</span>';
+  const renderItem = (e, idx, badge) => `<div class="ex-swap-item" onclick="applyExSwapByIdx(${idx})">
+      <div>
+        <div class="ex-swap-item-name">${esc(e.name)}${badge || ''}</div>
+        <div class="ex-swap-item-meta">${esc(e.sets)} sets · ${esc(e.reps)}</div>
+      </div>
+      <div class="ex-swap-item-tag">${esc(e.muscle)}</div>
+    </div>`;
+
+  let html = '';
+
+  // ── Recommended swaps (default view only) — keep the same joint action so
+  //    the program's regional/joint-action rotation stays intact.
+  if (origKey && !q && muscleFilter === 'All') {
+    const best = [], ok = [];
+    _exSwapItems.forEach((e, idx) => {
+      if (e.name.toLowerCase() === origName) return;
+      const k = _exPattern(e.name);
+      if (k && k === origKey) best.push({ e, idx });
+      else if (origMuscle && _EX_PATTERN_MUSCLE[k] === origMuscle) ok.push({ e, idx });
+    });
+    if (best.length) {
+      html += `<div class="ex-swap-group" style="color:var(--accent)">✓ Best swaps — same movement</div>`;
+      best.slice(0, 14).forEach(({ e, idx }) => html += renderItem(e, idx, bestBadge));
+    }
+    if (ok.length) {
+      html += `<div class="ex-swap-group">Same muscle — changes the angle</div>`;
+      html += `<div style="font-family:'Geist Mono',monospace;font-size:8px;color:var(--faint);letter-spacing:.5px;padding:0 0 6px">Fine occasionally — using these every time breaks the split's rotation.</div>`;
+      ok.slice(0, 10).forEach(({ e, idx }) => html += renderItem(e, idx));
+    }
+    if (best.length || ok.length) html += `<div class="ex-swap-group">All exercises</div>`;
+  }
+
+  // ── Full list grouped by muscle (still searchable/filterable), with BEST
+  //    badges on movements that match the original joint action.
   const groups = {};
   _exSwapItems.forEach((e, idx) => {
     if (!groups[e.muscle]) groups[e.muscle] = [];
     groups[e.muscle].push({ e, idx });
   });
-
-  let html = '';
   Object.keys(groups).forEach(muscle => {
-    html += `<div class="ex-swap-group">${muscle}</div>`;
+    html += `<div class="ex-swap-group">${esc(muscle)}</div>`;
     groups[muscle].forEach(({ e, idx }) => {
-      html += `<div class="ex-swap-item" onclick="applyExSwapByIdx(${idx})">
-        <div>
-          <div class="ex-swap-item-name">${esc(e.name)}</div>
-          <div class="ex-swap-item-meta">${esc(e.sets)} sets · ${esc(e.reps)}</div>
-        </div>
-        <div class="ex-swap-item-tag">${esc(muscle)}</div>
-      </div>`;
+      const badge = (origKey && _exPattern(e.name) === origKey && e.name.toLowerCase() !== origName) ? bestBadge : '';
+      html += renderItem(e, idx, badge);
     });
   });
   return html;

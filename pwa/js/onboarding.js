@@ -1,6 +1,16 @@
 /* ══════════════════════════════════════════════════════════════
    PROGRAM TEMPLATES
 ══════════════════════════════════════════════════════════════ */
+// Universal hypertrophy rules — attached as schedule "principles" on the
+// evidence-based split templates below so coaches and clients see the guidance.
+const HYP_RULES = [
+  'Volume: 8–14 hard sets per muscle per week (12–18 for weak points, 4–6 to maintain).',
+  'Each muscle per session: one main joint action, 2–3 hard sets, 0–2 reps in reserve.',
+  'The first movement and first 2–3 hard sets give the highest-quality stimulus — bring real effort early.',
+  'Push isolations close to failure (machines, cables, laterals, curls, triceps, calves, leg curls). Leave 1–2 RIR on squats, deadlifts, RDLs, heavy presses, and free-weight rows.',
+  'What drives results most: weekly hard sets, proximity to failure, recovery, and consistency.',
+];
+
 const PROGRAM_TEMPLATES = {
   strength: {
     name: 'Strength / Muscle Gain',
@@ -188,6 +198,366 @@ const PROGRAM_TEMPLATES = {
         {name:'Seated Calf Raise',sets:'5 sets',reps:'15-20 reps',rest:'60 sec',note:'Soleus focus — slow and controlled.'},
       ]},
       { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover — eat, sleep, repeat', exercises:[] },
+    ]
+  },
+  fullbody: {
+    name: 'Full Body (A/B/C)',
+    emoji: '🔁',
+    desc: 'High-frequency full body — each muscle 2–3x/week, lower junk volume',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Full Body', title:'Full Body A', sub:'Press + Squat + Row', exercises:[
+        {name:'Chest Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Main press — 1–2 RIR.'},
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Hack Squat / Leg Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Leg Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Hamstring isolation.'},
+        {name:'Triceps Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+        {name:'Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'wed', label:'Wed', tag:'Full Body', title:'Full Body B', sub:'Fly + Hinge + Pulldown', exercises:[
+        {name:'Cable Fly / Pec Deck',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Hinge — 1–2 RIR.'},
+        {name:'Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Overhead Triceps Extension',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+        {name:'Preacher Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'fri', label:'Fri', tag:'Full Body', title:'Full Body C', sub:'Incline + Glutes + Rear Delts', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Upper chest.'},
+        {name:'Seated Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Bulgarian Split Squat',sets:'3 sets',reps:'8-12 / leg',rest:'90 sec',note:'Drive through heel.'},
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Lateral Raise',sets:'2 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Rest', title:'Rest', sub:'Optional weak-point work', exercises:[] },
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+    ]
+  },
+  upperlower: {
+    name: 'Upper / Lower',
+    emoji: '⚖️',
+    desc: 'Best all-round 4-day split — everything 2x/week, easy recovery',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Upper', title:'Upper A', sub:'Press + Row bias', exercises:[
+        {name:'Chest Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Main press — 1–2 RIR.'},
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Dumbbell / Cable Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+        {name:'Triceps Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Lower', title:'Lower A', sub:'Quad + Hinge bias', exercises:[
+        {name:'Hack Squat / Leg Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Hinge — 1–2 RIR.'},
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Standing Calf Raise',sets:'3 sets',reps:'8-15 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Cable Crunch',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Round the spine.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'thu', label:'Thu', tag:'Upper', title:'Upper B', sub:'Fly + Pulldown bias', exercises:[
+        {name:'Cable Fly / Pec Deck',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Lat Pulldown / Pull-Up',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Preacher Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Overhead Triceps Extension',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+        {name:'Rear Delt Fly',sets:'2 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+      ]},
+      { id:'fri', label:'Fri', tag:'Lower', title:'Lower B', sub:'Squat/Lunge + Curl bias', exercises:[
+        {name:'Bulgarian Split Squat / Front Squat',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Control the descent.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Leg Extension',sets:'2 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Hip Abduction',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Glute medius.'},
+        {name:'Adductor Machine',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Full range.'},
+        {name:'Seated Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Soleus focus.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Rest', title:'Rest', sub:'Optional weak-point work', exercises:[] },
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+    ]
+  },
+  ppl: {
+    name: 'Push / Pull / Legs',
+    emoji: '🔻',
+    desc: '6-day PPL with A/B variation — intermediate to advanced',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Push', title:'Push A', sub:'Press bias', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Flat Machine Press',sets:'2 sets',reps:'8-12 reps',rest:'90 sec',note:'Full stretch.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Triceps Pressdown',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+        {name:'Overhead Triceps Extension',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Pull', title:'Pull A', sub:'Row bias', exercises:[
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Neutral-Grip Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Incline Dumbbell Curl',sets:'3 sets',reps:'8-12 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Hammer Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Brachialis.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Legs', title:'Legs A', sub:'Quad bias', exercises:[
+        {name:'Hack Squat / Leg Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Standing Calf Raise',sets:'3 sets',reps:'8-15 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Push', title:'Push B', sub:'Fly + Delt bias', exercises:[
+        {name:'Cable Fly / Pec Deck',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Machine Chest Press',sets:'2 sets',reps:'8-12 reps',rest:'90 sec',note:'Controlled.'},
+        {name:'Cable Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Dip / Triceps Extension',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full ROM.'},
+      ]},
+      { id:'fri', label:'Fri', tag:'Pull', title:'Pull B', sub:'Lat width bias', exercises:[
+        {name:'Lat Pulldown / Pull-Up',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full hang.'},
+        {name:'Seated Cable Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Hold 1 sec.'},
+        {name:'Straight-Arm Pulldown',sets:'2 sets',reps:'12-15 reps',rest:'60 sec',note:'Lat isolation.'},
+        {name:'Preacher Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Reverse Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Forearms.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Legs', title:'Legs B', sub:'Hamstring / Glute bias', exercises:[
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Bulgarian Split Squat',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Drive through heel.'},
+        {name:'Lying / Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Seated Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Soleus focus.'},
+      ]},
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover (or run Legs B here on 6-day)', exercises:[] },
+    ]
+  },
+  arnold: {
+    name: 'Arnold Split',
+    emoji: '🏛️',
+    desc: 'Chest/Back · Shoulders/Arms · Legs ×2 — advanced, high frequency',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Chest/Back', title:'Chest/Back A', sub:'Press + Row', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Cable Fly',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Straight-Arm Pulldown',sets:'2 sets',reps:'12-15 reps',rest:'60 sec',note:'Lat isolation.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Shoulders/Arms', title:'Shoulders/Arms A', sub:'Delts + biceps + triceps', exercises:[
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Cable Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Triceps Pressdown',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+        {name:'Dumbbell Curl',sets:'3 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Legs', title:'Legs A', sub:'Quad bias', exercises:[
+        {name:'Hack Squat / Leg Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Standing Calf Raise',sets:'3 sets',reps:'8-15 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'fri', label:'Fri', tag:'Chest/Back', title:'Chest/Back B', sub:'Fly + Pulldown', exercises:[
+        {name:'Pec Deck / Cable Fly',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Pull-Up / Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full hang.'},
+        {name:'Machine Chest Press',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Controlled.'},
+        {name:'Seated Cable Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Hold 1 sec.'},
+        {name:'Rear Delt Row',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows high.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Shoulders/Arms', title:'Shoulders/Arms B', sub:'Delts + arms volume', exercises:[
+        {name:'Lateral Raise Machine',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Overhead Triceps Extension',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+        {name:'Preacher Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Hammer Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Brachialis.'},
+      ]},
+      { id:'sun', label:'Sun', tag:'Legs', title:'Legs B', sub:'Hamstring / Glute bias', exercises:[
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Bulgarian Split Squat',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Drive through heel.'},
+        {name:'Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Seated Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Soleus focus.'},
+      ]},
+    ]
+  },
+  brosplit: {
+    name: 'Bro Split (optimized)',
+    emoji: '🎯',
+    desc: 'One muscle focus + mid-week touch-ups so nothing is trained only 1x',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Chest', title:'Chest + Side Delts', sub:'', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Cable Fly',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Machine Press',sets:'2 sets',reps:'8-12 reps',rest:'90 sec',note:'Controlled.'},
+        {name:'Cable Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Triceps Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Back', title:'Back + Rear Delts', sub:'', exercises:[
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Seated Row',sets:'2 sets',reps:'8-12 reps',rest:'90 sec',note:'Hold 1 sec.'},
+        {name:'Straight-Arm Pulldown',sets:'2 sets',reps:'12-15 reps',rest:'60 sec',note:'Lat isolation.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Legs', title:'Legs', sub:'', exercises:[
+        {name:'Hack Squat',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Calf Raise',sets:'4 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Shoulders', title:'Shoulders + Arms', sub:'', exercises:[
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Overhead Triceps Extension',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+        {name:'Preacher Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Hammer Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Brachialis.'},
+      ]},
+      { id:'fri', label:'Fri', tag:'Touch-Up', title:'Weak Point / Touch-Up', sub:'Pick 3–4', exercises:[
+        {name:'Chest Fly',sets:'2 sets',reps:'12-15 reps',rest:'60 sec',note:'Touch-up exposure.'},
+        {name:'Lat Pulldown',sets:'2 sets',reps:'10-12 reps',rest:'60 sec',note:'Touch-up exposure.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Side delts.'},
+        {name:'Leg Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Hamstrings.'},
+        {name:'Calves',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+    ]
+  },
+  threeday: {
+    name: '3-Day Full Body',
+    emoji: '📅',
+    desc: 'Busy / beginner schedule — full body Mon/Wed/Fri, multiple exposures',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Full Body', title:'Full Body A', sub:'', exercises:[
+        {name:'Chest Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Leg Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Lateral Raise',sets:'2 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+        {name:'Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'wed', label:'Wed', tag:'Full Body', title:'Full Body B', sub:'', exercises:[
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Cable Fly',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Calves',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'fri', label:'Fri', tag:'Full Body', title:'Full Body C', sub:'', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Upper chest.'},
+        {name:'Seated Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Bulgarian Split Squat',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Drive through heel.'},
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+    ]
+  },
+  fivedayhybrid: {
+    name: '5-Day Hybrid',
+    emoji: '🔀',
+    desc: 'Upper/Lower + PPL focus — excellent balance of frequency and enjoyment',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Upper', title:'Upper A', sub:'', exercises:[
+        {name:'Chest Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+        {name:'Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Lower', title:'Lower A', sub:'', exercises:[
+        {name:'Hack Squat',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Push', title:'Push', sub:'', exercises:[
+        {name:'Cable Fly',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Machine Chest Press',sets:'2 sets',reps:'8-12 reps',rest:'90 sec',note:'Controlled.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Overhead Triceps Extension',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Pull', title:'Pull', sub:'', exercises:[
+        {name:'Lat Pulldown',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Lead with elbows.'},
+        {name:'Chest-Supported Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Preacher Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Hammer Curl',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Brachialis.'},
+      ]},
+      { id:'fri', label:'Fri', tag:'Legs', title:'Legs B', sub:'Hamstring / Glute bias', exercises:[
+        {name:'Bulgarian Split Squat',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Drive through heel.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Leg Extension',sets:'2 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Hip Abduction',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Glute medius.'},
+        {name:'Seated Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Soleus focus.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
+    ]
+  },
+  sixday: {
+    name: '6-Day High Frequency',
+    emoji: '🚀',
+    desc: 'Advanced / high-recovery only — needs sleep, food, smart exercise choices',
+    accent: '#3B9EFF', fixed: true, principles: HYP_RULES,
+    days: [
+      { id:'mon', label:'Mon', tag:'Upper', title:'Upper A', sub:'', exercises:[
+        {name:'Chest Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Full retraction.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Curl',sets:'2 sets',reps:'8-12 reps',rest:'60 sec',note:'No swing.'},
+        {name:'Pressdown',sets:'2 sets',reps:'10-15 reps',rest:'60 sec',note:'Elbows pinned.'},
+      ]},
+      { id:'tue', label:'Tue', tag:'Lower', title:'Lower A', sub:'', exercises:[
+        {name:'Hack Squat',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Full depth.'},
+        {name:'Romanian Deadlift',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'1–2 RIR.'},
+        {name:'Standing Calf Raise',sets:'3 sets',reps:'8-15 reps',rest:'60 sec',note:'Full ROM.'},
+        {name:'Abs',sets:'3 sets',reps:'10-15 reps',rest:'45 sec',note:'Brace hard.'},
+      ]},
+      { id:'wed', label:'Wed', tag:'Pump', title:'Push/Pull Pump', sub:'', exercises:[
+        {name:'Cable Fly',sets:'3 sets',reps:'12-15 reps',rest:'60 sec',note:'Squeeze at peak.'},
+        {name:'Lat Pulldown',sets:'3 sets',reps:'10-12 reps',rest:'60 sec',note:'Lead with elbows.'},
+        {name:'Rear Delt Fly',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Constant tension.'},
+        {name:'Lateral Raise',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Push close to failure.'},
+        {name:'Arms Superset',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Curl + pressdown back to back.'},
+      ]},
+      { id:'thu', label:'Thu', tag:'Lower', title:'Lower B', sub:'Hamstring / Glute bias', exercises:[
+        {name:'Hip Thrust',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Squeeze at top.'},
+        {name:'Seated Leg Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Full stretch.'},
+        {name:'Leg Extension',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Pause at top.'},
+        {name:'Hip Abduction',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Glute medius.'},
+        {name:'Seated Calf Raise',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Soleus focus.'},
+      ]},
+      { id:'fri', label:'Fri', tag:'Upper', title:'Upper B', sub:'', exercises:[
+        {name:'Incline Press',sets:'3 sets',reps:'8-12 reps',rest:'2 min',note:'Upper chest.'},
+        {name:'Seated Cable Row',sets:'3 sets',reps:'8-12 reps',rest:'90 sec',note:'Hold 1 sec.'},
+        {name:'Shoulder Press',sets:'3 sets',reps:'6-10 reps',rest:'2 min',note:'Strict.'},
+        {name:'Preacher Curl',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Controlled.'},
+        {name:'Overhead Triceps Extension',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Long-head stretch.'},
+      ]},
+      { id:'sat', label:'Sat', tag:'Weak Points', title:'Weak Points', sub:'Pick 3–5', exercises:[
+        {name:'Side Delts',sets:'3 sets',reps:'12-20 reps',rest:'60 sec',note:'Lateral raise variation.'},
+        {name:'Upper Chest',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Incline fly or press.'},
+        {name:'Lats',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Pulldown or pullover.'},
+        {name:'Hamstrings',sets:'3 sets',reps:'10-15 reps',rest:'60 sec',note:'Leg curl variation.'},
+        {name:'Calves',sets:'3 sets',reps:'10-20 reps',rest:'60 sec',note:'Full ROM.'},
+      ]},
+      { id:'sun', label:'Sun', tag:'Rest', title:'Rest', sub:'Recover', exercises:[] },
     ]
   },
   custom: {
@@ -636,12 +1006,21 @@ function obNextStep0() {
 /* ── STEP 1: Program Type ── */
 function renderObStep1() {
   const types = [
-    { key:'strength',    emoji:'🏋️', name:'Strength / Muscle Gain', desc:'Progressive overload, hypertrophy focus' },
-    { key:'weightloss',  emoji:'🔥', name:'Weight Loss',             desc:'Full-body circuits, caloric deficit focus' },
-    { key:'hybrid',      emoji:'⚡', name:'Hybrid Athlete',          desc:'Strength + endurance concurrent training' },
-    { key:'bodybuilder', emoji:'🥇', name:'Bodybuilder',             desc:'Push/Pull/Legs classic bro split' },
-    { key:'general',     emoji:'💪', name:'General Fitness',         desc:'Beginner-friendly 3-day full body' },
-    { key:'custom',      emoji:'✏️', name:'Custom',                  desc:'Build every day from scratch' },
+    { key:'strength',      emoji:'🏋️', name:'Strength / Muscle Gain', desc:'Progressive overload, hypertrophy focus' },
+    { key:'weightloss',    emoji:'🔥', name:'Weight Loss',             desc:'Full-body circuits, caloric deficit focus' },
+    { key:'hybrid',        emoji:'⚡', name:'Hybrid Athlete',          desc:'Strength + endurance concurrent training' },
+    { key:'general',       emoji:'💪', name:'General Fitness',         desc:'Beginner-friendly 3-day full body' },
+    // Evidence-based hypertrophy splits
+    { key:'upperlower',    emoji:'⚖️', name:'Upper / Lower',           desc:'Best all-round 4-day — everything 2x/week' },
+    { key:'fullbody',      emoji:'🔁', name:'Full Body (A/B/C)',       desc:'High frequency — each muscle 2–3x/week' },
+    { key:'threeday',      emoji:'📅', name:'3-Day Full Body',         desc:'Busy / beginner — Mon · Wed · Fri' },
+    { key:'fivedayhybrid', emoji:'🔀', name:'5-Day Hybrid',            desc:'Upper/Lower + PPL — frequency and focus' },
+    { key:'ppl',           emoji:'🔻', name:'Push / Pull / Legs',      desc:'6-day PPL with A/B variation' },
+    { key:'arnold',        emoji:'🏛️', name:'Arnold Split',            desc:'Chest/Back · Shoulders/Arms · Legs ×2' },
+    { key:'sixday',        emoji:'🚀', name:'6-Day High Frequency',    desc:'Advanced, high-recovery clients only' },
+    { key:'brosplit',      emoji:'🎯', name:'Bro Split (optimized)',   desc:'One muscle/day + mid-week touch-ups' },
+    { key:'bodybuilder',   emoji:'🥇', name:'Bodybuilder',             desc:'Push/Pull/Legs ×2 classic' },
+    { key:'custom',        emoji:'✏️', name:'Custom',                  desc:'Build every day from scratch' },
   ];
 
   const cards = types.map(t => {
@@ -766,6 +1145,12 @@ function obCloneFromClient(cid) {
 function obSelectProgram(key) {
   AppState.obState.programType = key;
   AppState.obState.accent = PROGRAM_TEMPLATES[key]?.accent || '#3B9EFF';
+  // Fixed splits (Upper/Lower, PPL, etc.) have a designed day count — match the
+  // client's training-days to it so the structure is never reshaped.
+  const _tpl = PROGRAM_TEMPLATES[key];
+  if (_tpl && _tpl.fixed) {
+    AppState.obState.trainingDays = _tpl.days.filter(d => d.exercises && d.exercises.length > 0).length;
+  }
   // Always reset days when selecting a program so training day count is applied fresh on Next
   AppState.obState.days = null;
   AppState.obState._cloneFromName = null;
@@ -778,8 +1163,12 @@ function obNextStep1() {
   if (!AppState.obState.programType) return;
   // If user cloned from another client, days are already set — don't rebuild from template
   if (!AppState.obState.days) {
-    const templateDays = JSON.parse(JSON.stringify(PROGRAM_TEMPLATES[AppState.obState.programType].days));
-    AppState.obState.days = applyTrainingDayCount(templateDays, AppState.obState.trainingDays, AppState.obState.programType);
+    const _tpl = PROGRAM_TEMPLATES[AppState.obState.programType];
+    const templateDays = JSON.parse(JSON.stringify(_tpl.days));
+    // Fixed splits keep their designed structure; goal templates flex to the day count.
+    AppState.obState.days = _tpl.fixed
+      ? templateDays
+      : applyTrainingDayCount(templateDays, AppState.obState.trainingDays, AppState.obState.programType);
   }
   AppState.obState.editDay = 0;
   _obDraftSave();
@@ -1291,7 +1680,7 @@ async function obSaveClient(btn) {
       schedule: {
         desc: `${AppState.obState.trainingDays}-day ${template?.name || 'custom'} program for ${AppState.obState.name}.`,
         days: scheduleDays,
-        principles: [
+        principles: template?.principles || [
           'Progressive overload every session — add reps or weight when you hit the top of your range.',
           'Track every session. You can\'t improve what you don\'t measure.',
           'Sleep 7–9 hours. Recovery is where adaptation happens.',
