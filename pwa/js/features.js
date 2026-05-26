@@ -1895,11 +1895,19 @@ function openExerciseSwap(cid, exIdx, context, dayId, blockIdx) {
 
   _exSwapState = { cid, exIdx, context: context || 'today', dayId: dayId || null, blockIdx: blockIdx || 0 };
   _exSwapMuscleFilter = 'All';
-  // Resolve the current movement name — the logger uses a different element id
-  // than the home/tab cards.
-  const nameEl = (context === 'wl')
-    ? document.getElementById('wl-ex-name-' + cid + '-' + (dayId || '') + '-' + exIdx)
-    : document.getElementById('today-ex-name-' + cid + '-' + exIdx);
+  // Resolve the current movement name. The logger uses a unique id including
+  // dayId; the Workouts tab renders ALL day panels with colliding ids
+  // (today-ex-name-{cid}-{idx}), so we scope by the day panel to pick the right
+  // one — otherwise getElementById returns the first day's exercise.
+  let nameEl;
+  if (context === 'wl') {
+    nameEl = document.getElementById('wl-ex-name-' + cid + '-' + (dayId || '') + '-' + exIdx);
+  } else if (dayId) {
+    nameEl = document.querySelector('#day-' + cid + '-' + dayId + ' #today-ex-name-' + cid + '-' + exIdx)
+          || document.getElementById('today-ex-name-' + cid + '-' + exIdx);
+  } else {
+    nameEl = document.getElementById('today-ex-name-' + cid + '-' + exIdx);
+  }
   const currentName = nameEl
     ? ((nameEl.firstChild && nameEl.firstChild.textContent) || nameEl.textContent || 'Exercise').replace(/\(alt\)/g, '').trim()
     : 'Exercise';
