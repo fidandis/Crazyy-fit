@@ -1944,3 +1944,86 @@ input[type=button],input[type=submit]{touch-action:manipulation;}
 .nrd-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
 .nrd-fill{height:100%;border-radius:3px;transition:width .4s ease;}
 .nrd-val{font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.5px;text-align:right;}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM POLISH LAYER — lifts every screen to the ocean-blue
+   premium feel: rounder corners, ocean focus rings, softer
+   internal dividers, cleaner coach/feature/onboarding chrome.
+══════════════════════════════════════════════════════════════ */
+
+/* Inputs / selects / textareas — consistent rounded with ocean focus */
+input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="tel"], input[type="search"], input[type="date"], select, textarea { border-radius:10px; }
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent)!important; box-shadow:0 0 0 3px rgba(59,158,255,.14); }
+
+/* Utility / secondary buttons — soften corners */
+.sel-btn, .day-sel-btn, .goal-type-btn, .ob-back-btn, .ob-pin-regen, .coach-action-btn, .coach-note-btn, .coach-goal-manage-btn, .fit-clear-btn, .library-add-btn, .library-form-cancel, .library-item-btn, .prog-rule-save, .prog-dismiss-btn, .ai-rec-approve, .ai-rec-reject, .ex-add-btn, .home-ig-open-btn { border-radius:12px; }
+
+/* Primary action buttons */
+.fit-log-btn, .meas-log-btn, .ob-next-btn, .ai-apply-btn, .goal-log-btn, .ql-save-btn, .wt-save, .terminate-confirm-btn, .notif-send-btn, .tabata-complete-btn, .tabata-ctrl-btn, .coach-add-btn, .coach-notes-save, .milestone-dismiss, .library-form-save, .home-msg-send-btn, .prog-apply-btn, .update-btn { border-radius:14px; }
+.tabata-start-btn { border-radius:16px; }
+
+/* Pill buttons — backs, nav backs, dismissals */
+.feature-back, .tabata-back-btn, .ob-back-btn, .pin-back, .terminate-cancel-btn, .ai-close-btn, .notif-cancel-btn, .app-logout, .offline-pill { border-radius:100px; }
+.app-logout { padding:7px 14px; }
+
+/* Modals / sheets */
+.ex-swap-sheet, .ai-review-sheet { border-radius:24px 24px 0 0; }
+.notif-modal, .terminate-modal, .pr-celebrate { border-radius:22px; }
+.notif-header, .ai-review-header, .terminate-modal-top, .terminate-checklist, .terminate-confirm-row, .ai-review-footer, .terminate-actions, .notif-footer { border-color:var(--line-soft)!important; }
+
+/* Coach dashboard — cleaner cards, drop the colored top stripe */
+.coach-title { font-family:'Geist',sans-serif; font-weight:700; letter-spacing:-.025em; font-size:30px; }
+.coach-header { border-bottom-color:var(--line-soft); }
+.coach-card { border-radius:20px; }
+.coach-card::before { display:none; }
+.coach-card-header, .coach-wt-section, .coach-workouts, .coach-macro-section, .coach-notes-section, .coach-card-actions { border-color:var(--line-soft); }
+.coach-stats { background:var(--line-soft); }
+.coach-stat-val, .coach-client-name { font-family:'Geist',sans-serif; font-weight:700; letter-spacing:-.02em; }
+
+/* App / feature / onboarding / tabata headers — softer */
+.app-header, .feature-header, .onboard-header, .tabata-screen-header { border-bottom-color:var(--line-soft); }
+.app-client-name, .panel-title, .feature-title, .onboard-step-title { font-family:'Geist',sans-serif; font-weight:700; letter-spacing:-.025em; }
+.feature-title, .panel-title { font-size:30px; }
+
+/* Onboarding program-type cards */
+.program-type-card { border-radius:16px; }
+.program-type-card.selected { border-color:var(--accent); background:rgba(59,158,255,.05); }
+
+/* Schedule tiles — rounder, softer accent stripe */
+.wk { border-radius:14px; }
+.wk::before { height:2px; }
+.wk.wk-today { box-shadow:0 0 0 4px rgba(59,158,255,.12); }
+
+/* Cards across features (uniformly rounder) */
+.fit-stat, .fit-entry, .fit-chart-wrap, .fit-log-form, .fit-shortcut-banner, .meas-stat, .meas-log-form, .meas-history-card, .meas-history-entry, .ms-card, .badge-chip, .home-stat-card, .macro-card, .phase-card, .tabata-card, .ai-rec-card, .chart-card, .home-today-card, .home-msg-card, .home-ig-card, .ql-section, .analytics-panel, .period-current-banner { border-radius:16px; }
+.card { border-radius:18px; }
+
+/* Form inputs */
+.fit-form-input, .fit-form-select, .ob-input, .ob-select, .ex-add-input, .meas-input, .goal-log-input, .goal-field input, .goal-field select, .wt-input, .home-wt-input, .library-search, .library-form-input, .period-input, .prog-rule-input, .coach-notes-area, .notif-textarea, .terminate-confirm-input, .ex-swap-search { border-radius:12px; }
+
+/* Pills / chips / tiles */
+.ex-swap-chip, .more-tile { border-radius:14px; }
+.more-tile { padding:18px 14px; }
+.fit-cal-badge, .fit-hr-badge, .fit-dur-badge, .fit-zone-badge, .badge, .b-sets, .b-reps, .b-rest, .ex-swap-item-tag, .coach-macro-score, .prog-suggestion-badge { border-radius:6px; }
+.ai-rec-priority { border-radius:100px; padding:3px 10px; }
+
+/* Subtle dividers / track surfaces (line-soft is the premium tone) */
+.ex-row, .home-today-ex-row, .home-msg-item, .meas-history-entry, .acc-section, .ai-rec-card { border-color:var(--line-soft); }
+.zone-bar-track, .coach-wt-track, .coach-goal-mini-track, .wt-track, .bar, .nrd-bar { background:var(--line-soft); }
+
+/* Period / phase / library items */
+.period-phase-bar { border-radius:100px; }
+.period-list-item, .library-item { border-radius:14px; }
+
+/* PIN keypad — clean dark keys */
+.pin-key { border:1px solid var(--line); }
+.pin-key:hover { background:var(--surface-2); }
+
+/* Update banner — full bleed pill button inside */
+.update-btn { padding:10px 18px; }
+
+/* XP toast */
+.xp-toast { border-radius:14px; }
+
+/* Feature screen body — tighter top padding so the title breathes */
+.feature-body { padding-top:12px; }
