@@ -430,6 +430,110 @@ async function triggerWeeklyDigest() {
   } catch { showFitToast('✗ Could not reach server'); }
 }
 
+// ── EVIDENCE-BASED PROGRAM REASSIGNMENT ─────────────────────────
+// Pick the split that matches a client's training-day count / experience.
+//   ≤3 days        → Full Body (A/B/C)
+//   4 days         → Upper/Lower (best all-round)
+//   5 days         → 5-Day Hybrid
+//   6+ days        → PPL (or 6-Day HF when Advanced)
+function _pickEvidenceBasedKey(c) {
+  const td = parseInt((c && c._meta && c._meta.trainingDays) || (c && c.data && c.data.hero && c.data.hero.days) || 4, 10) || 4;
+  const exp = ((c && c._meta && c._meta.experience) || '').toLowerCase();
+  if (td <= 3) return 'fullbody';
+  if (td === 4) return 'upperlower';
+  if (td === 5) return 'fivedayhybrid';
+  if (exp === 'advanced') return 'sixday';
+  return 'ppl';
+}
+
+// Destructive: replaces every active client's program with the matching
+// evidence-based split. Triggers an exportAllData() backup first and requires
+// two confirmations. Logged history (wl_hist_*, fit_logs_*, PRs, milestones)
+// stays — only the prescriptions (schedule + workouts + _meta.days) change.
+async function applyEvidenceBasedDefaults() {
+  const dyn = getDynamicClients();
+  const terminated = new Set(getLS('terminated_clients', []));
+  const active = dyn.filter(c => !terminated.has(c.id));
+  if (!active.length) { if (typeof showFitToast === 'function') showFitToast('No active clients to update'); return; }
+
+  const preview = active.map(c => {
+    const k = _pickEvidenceBasedKey(c);
+    return '• ' + c.name + ' (' + ((c._meta && c._meta.trainingDays) || '?') + ' days' + ((c._meta && c._meta.experience) ? ', ' + c._meta.experience : '') + ') → ' + ((PROGRAM_TEMPLATES[k] && PROGRAM_TEMPLATES[k].name) || k);
+  }).join('\n');
+
+  if (!confirm('Apply evidence-based programming to ' + active.length + ' client(s)?\n\nA JSON backup will download first. Each client\'s program will be REPLACED by the template that matches their training days / experience. Logged history (workouts, weights, PRs) is preserved.\n\nPreview:\n' + preview + '\n\nContinue?')) return;
+
+  try { exportAllData(); } catch (_) {}
+  await new Promise(r => setTimeout(r, 900));
+
+  if (!confirm('Backup downloaded. Final confirmation — apply the new programs now?')) return;
+
+  const FULL_DAY = { Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday' };
+  let updated = 0, skipped = 0;
+  const log = [];
+
+  const next = dyn.map(function (c) {
+    if (terminated.has(c.id)) return c;
+    try {
+      const key = _pickEvidenceBasedKey(c);
+      const tpl = PROGRAM_TEMPLATES[key];
+      if (!tpl) { skipped++; return c; }
+      const days = JSON.parse(JSON.stringify(tpl.days));
+      const trainingCount = days.filter(function (d) { return d.exercises.length > 0; }).length;
+      const workoutDays = days.filter(function (d) { return d.exercises.length > 0; }).map(function (d) {
+        return {
+          id: d.id,
+          label: d.label + ' — ' + d.title,
+          icon: d.tag === 'Push' ? '💪' : d.tag === 'Pull' ? '🏋️' : d.tag === 'Legs' ? '🦵' : '🔥',
+          title: (FULL_DAY[d.label] || d.label) + ' — ' + d.title,
+          sub: d.sub || (d.exercises.length + ' exercises'),
+          blocks: [{ label: 'Exercises', exercises: d.exercises }]
+        };
+      });
+      const scheduleDays = days.map(function (d) {
+        return {
+          label: d.label,
+          type: d.exercises.length > 0 ? (d.tag === 'Cardio' || d.tag === 'Endurance' ? 'wk-card' : 'wk-a') : (d.tag === 'Active' ? 'wk-active' : 'wk-rest'),
+          tag: d.tag, title: d.title, sub: d.sub || ''
+        };
+      });
+      const cc = JSON.parse(JSON.stringify(c));
+      cc.data = cc.data || {};
+      cc.data.schedule = Object.assign({}, cc.data.schedule || {}, {
+        desc: trainingCount + '-day ' + tpl.name + ' for ' + cc.name + '.',
+        days: scheduleDays,
+        principles: tpl.principles || (cc.data.schedule && cc.data.schedule.principles)
+      });
+      cc.data.workouts = { days: workoutDays };
+      cc._meta = cc._meta || {};
+      cc._meta.programType = key;
+      cc._meta.days = days;
+      cc._meta.trainingDays = trainingCount;
+      cc._updated_at = new Date().toISOString();
+      log.push(cc.name + ' → ' + tpl.name);
+      updated++;
+      return cc;
+    } catch (e) {
+      console.error('Reassign failed for', c.id, e);
+      skipped++;
+      return c;
+    }
+  });
+
+  saveDynamicClients(next);
+  if (typeof invalidateClientsCache === 'function') invalidateClientsCache();
+
+  next.forEach(function (c) {
+    if (terminated.has(c.id)) return;
+    try { if (typeof sbAutoSync === 'function') sbAutoSync(c.id); } catch (_) {}
+    try { if (typeof syncClientData === 'function') syncClientData(c.id); } catch (_) {}
+  });
+
+  if (typeof renderCoachDashboard === 'function') renderCoachDashboard();
+  if (typeof showFitToast === 'function') showFitToast('Updated ' + updated + ' client(s)' + (skipped ? ' · ' + skipped + ' skipped' : ''));
+  alert('Done. Updated ' + updated + ' client(s).\n\n' + log.join('\n'));
+}
+
 function renderCoachDashboard() {
   const allClients = getAllClients();
   const sbConnected = true;
@@ -460,6 +564,7 @@ function renderCoachDashboard() {
         <button id="analyticsPanelBtn" class="coach-add-btn" onclick="toggleAnalyticsPanel()" style="background:${AppState._analyticsOpen?'rgba(52,152,219,.2)':'rgba(52,152,219,.1)'};color:#3498db;border-color:#3498db" title="Analytics overview">📊 Analytics</button>
         <button class="coach-add-btn" onclick="openMovementLibrary()" style="background:rgba(155,89,182,.1);color:#9b59b6;border-color:#9b59b6" title="Movement library">📚 Library</button>
         <button class="coach-add-btn" onclick="exportAllData()" style="background:rgba(52,152,219,.1);color:#3498db;border-color:#3498db" title="Download all data">⬇ Export</button>
+        <button class="coach-add-btn" onclick="applyEvidenceBasedDefaults()" style="background:rgba(255,77,46,.10);color:#ff4d2e;border-color:rgba(255,77,46,.45)" title="Reassign every active client to the evidence-based split matching their training days (backup downloaded first)">⚡ Evidence-Based</button>
         <button class="coach-add-btn" style="position:relative;overflow:hidden;background:rgba(52,152,219,.05);color:var(--muted);border-color:var(--border)" title="Restore from backup">
           <input type="file" accept=".json" onchange="restoreFromBackup(this.files[0])" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
           ⬆ Restore
