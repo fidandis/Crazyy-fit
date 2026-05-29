@@ -2042,29 +2042,13 @@ function renderNutrition(n, c) {
 }
 
 function renderProgression(p, hero, c) {
-  const phases = p.phases.map(ph => `
-    <div class="phase-card" data-n="${ph.n}">
-      <div class="ph-num">// Phase ${ph.n}</div>
-      <div class="ph-title">${esc(ph.title)}</div>
-      <div class="ph-weeks">${esc(ph.weeks)}</div>
-      <div class="ph-body">${esc(ph.body)}</div>
-    </div>`).join('');
-
-  const rules = p.rules.map(r => `<li>${esc(r)}</li>`).join('');
-  const stats = Object.entries(hero).map(([k,v]) => `
-    <div class="macro-card" style="text-align:center">
-      <div class="macro-val" style="color:var(--accent)">${v}</div>
-      <div class="macro-lbl">${k}</div>
-    </div>`).join('');
-
+  const charts = (typeof renderProgressCharts === 'function')
+    ? renderProgressCharts(c)
+    : '<div class="panel-desc">Progress charts unavailable.</div>';
   return `
-    <div class="panel-title">Progression Plan</div>
-    <p class="panel-desc">Structured phases to maximise results while keeping training sustainable.</p>
-    <div class="macro-grid">${stats}</div>
-    <div class="phase-grid">${phases}</div>
-    <div class="card">
-      <div class="card-block"><div class="block-label">Overload Rules for ${c.name}</div><ul class="tip-list">${rules}</ul></div>
-    </div>`;
+    <div class="panel-title">Progress</div>
+    <p class="panel-desc">Goals, strength gains, weight and XP over time.</p>
+    ${charts}`;
 }
 
 /* ══════════════════════════════════════════════════════════════

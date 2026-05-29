@@ -364,6 +364,7 @@ function buildClientCard(c) {
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="renderBadgesInCard(this.dataset.cid)" style="color:#f1c40f;border-color:rgba(241,196,15,.4)">🏅 Badges</button>
         <button class="ai-review-btn" data-cid="${esc(c.id)}" onclick="openAIReview(this.dataset.cid)" style="grid-column:1/-1">🤖 AI Program Review</button>
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openAIBuildWorkout(this.dataset.cid)" style="grid-column:1/-1;color:var(--accent);border-color:rgba(59,158,255,.4)">AI Build Workout</button>
+        <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openEvidenceBasedPicker(this.dataset.cid)" style="grid-column:1/-1;color:#ff4d2e;border-color:rgba(255,77,46,.45);background:rgba(255,77,46,.08)" title="Replace this client's program with an evidence-based split">Evidence-Based Program</button>
         <button class="coach-action-btn danger" data-cid="${esc(c.id)}" onclick="openTerminateModal(this.dataset.cid)" style="grid-column:1/-1">Terminate</button>
       </div>
     </div>`;
@@ -430,8 +431,13 @@ async function triggerWeeklyDigest() {
   } catch { showFitToast('✗ Could not reach server'); }
 }
 
-// ── EVIDENCE-BASED PROGRAM REASSIGNMENT ─────────────────────────
-// Pick the split that matches a client's training-day count / experience.
+// ── EVIDENCE-BASED PROGRAM PICKER (per-client) ──────────────────
+// The 8 evidence-based hypertrophy splits defined in PROGRAM_TEMPLATES
+// (onboarding.js). Order = how they appear in the picker.
+const EVIDENCE_BASED_KEYS = ['fullbody','upperlower','ppl','fivedayhybrid','sixday','arnold','brosplit','threeday'];
+
+// Suggest the best-fit split for a client based on their training-day count
+// and experience level. Used to flag a "Recommended" badge in the picker.
 //   ≤3 days        → Full Body (A/B/C)
 //   4 days         → Upper/Lower (best all-round)
 //   5 days         → 5-Day Hybrid
@@ -446,92 +452,140 @@ function _pickEvidenceBasedKey(c) {
   return 'ppl';
 }
 
-// Destructive: replaces every active client's program with the matching
-// evidence-based split. Triggers an exportAllData() backup first and requires
-// two confirmations. Logged history (wl_hist_*, fit_logs_*, PRs, milestones)
-// stays — only the prescriptions (schedule + workouts + _meta.days) change.
-async function applyEvidenceBasedDefaults() {
+// Open a per-client picker listing every evidence-based split. The split that
+// matches the client's current training-day count / experience is flagged
+// "Recommended". Selecting one calls applyEvidenceBasedToClient.
+function openEvidenceBasedPicker(cid) {
+  const c = getAllClients().find(x => x.id === cid);
+  if (!c) { if (typeof showFitToast === 'function') showFitToast('Client not found'); return; }
+  const recKey = _pickEvidenceBasedKey(c);
+  const td = (c._meta && c._meta.trainingDays) || (c.data && c.data.hero && c.data.hero.days) || '?';
+  const exp = (c._meta && c._meta.experience) || '';
+
+  closeEvidenceBasedPicker();
+  const wrap = document.createElement('div');
+  wrap.id = 'evbPickerBackdrop';
+  wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  wrap.addEventListener('click', e => { if (e.target === wrap) closeEvidenceBasedPicker(); });
+
+  const cards = EVIDENCE_BASED_KEYS.map(k => {
+    const tpl = (typeof PROGRAM_TEMPLATES !== 'undefined') && PROGRAM_TEMPLATES[k];
+    if (!tpl) return '';
+    const trainingCount = tpl.days.filter(d => d.exercises && d.exercises.length > 0).length;
+    const isRec = k === recKey;
+    return `
+      <button data-key="${esc(k)}" class="evb-card" style="text-align:left;background:var(--surface);border:1px solid ${isRec?'rgba(255,77,46,.55)':'var(--border)'};border-radius:14px;padding:14px;cursor:pointer;color:var(--text);display:flex;flex-direction:column;gap:6px;transition:all .15s ease;position:relative">
+        ${isRec ? '<span style="position:absolute;top:8px;right:8px;font-family:\'Geist Mono\',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:10px;background:rgba(255,77,46,.15);color:#ff4d2e">RECOMMENDED</span>' : ''}
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">${tpl.emoji || ''}</span>
+          <span style="font-family:var(--display),sans-serif;font-weight:700;font-size:14px">${esc(tpl.name)}</span>
+        </div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px">${trainingCount}-DAY SPLIT</div>
+        <div style="font-size:12px;color:var(--text-2);line-height:1.4">${esc(tpl.desc || '')}</div>
+      </button>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:18px;max-width:780px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div>
+          <div style="font-family:var(--display),sans-serif;font-weight:700;font-size:18px">Prescribe Evidence-Based Program</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.5px">
+            ${esc(c.name)} · ${esc(String(td))} TRAINING DAYS${exp ? ' · ' + esc(exp.toUpperCase()) : ''}
+          </div>
+        </div>
+        <button onclick="closeEvidenceBasedPicker()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px 8px">×</button>
+      </div>
+      <div style="padding:16px 20px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+        ${cards}
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid var(--line-soft);font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.4px">
+        A JSON BACKUP DOWNLOADS BEFORE WRITING. LOGGED HISTORY (WORKOUTS, PRS, MILESTONES) IS PRESERVED.
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  document.body.style.overflow = 'hidden';
+
+  wrap.querySelectorAll('.evb-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const k = btn.getAttribute('data-key');
+      applyEvidenceBasedToClient(cid, k);
+    });
+  });
+}
+
+function closeEvidenceBasedPicker() {
+  const el = document.getElementById('evbPickerBackdrop');
+  if (el) el.remove();
+  document.body.style.overflow = '';
+}
+
+// Apply ONE evidence-based template to ONE client. Downloads a JSON backup
+// first, then writes data.schedule + data.workouts + _meta.{programType,days,
+// trainingDays}. Logged history (wl_hist_*, fit_logs_*, PRs, milestones) is
+// untouched. Syncs the updated client via sbAutoSync + syncClientData.
+async function applyEvidenceBasedToClient(cid, tplKey) {
+  const tpl = (typeof PROGRAM_TEMPLATES !== 'undefined') && PROGRAM_TEMPLATES[tplKey];
+  if (!tpl) { if (typeof showFitToast === 'function') showFitToast('Template not found'); return; }
+
   const dyn = getDynamicClients();
-  const terminated = new Set(getLS('terminated_clients', []));
-  const active = dyn.filter(c => !terminated.has(c.id));
-  if (!active.length) { if (typeof showFitToast === 'function') showFitToast('No active clients to update'); return; }
+  const idx = dyn.findIndex(x => x.id === cid);
+  if (idx < 0) { if (typeof showFitToast === 'function') showFitToast('Client not found'); return; }
+  const c = dyn[idx];
 
-  const preview = active.map(c => {
-    const k = _pickEvidenceBasedKey(c);
-    return '• ' + c.name + ' (' + ((c._meta && c._meta.trainingDays) || '?') + ' days' + ((c._meta && c._meta.experience) ? ', ' + c._meta.experience : '') + ') → ' + ((PROGRAM_TEMPLATES[k] && PROGRAM_TEMPLATES[k].name) || k);
-  }).join('\n');
+  if (!confirm('Prescribe "' + tpl.name + '" to ' + c.name + '?\n\nA JSON backup will download first, then their schedule + workout days will be REPLACED with this template. Logged history (weights, PRs, milestones) is preserved.\n\nContinue?')) return;
 
-  if (!confirm('Apply evidence-based programming to ' + active.length + ' client(s)?\n\nA JSON backup will download first. Each client\'s program will be REPLACED by the template that matches their training days / experience. Logged history (workouts, weights, PRs) is preserved.\n\nPreview:\n' + preview + '\n\nContinue?')) return;
+  closeEvidenceBasedPicker();
 
   try { exportAllData(); } catch (_) {}
   await new Promise(r => setTimeout(r, 900));
 
-  if (!confirm('Backup downloaded. Final confirmation — apply the new programs now?')) return;
+  if (!confirm('Backup downloaded. Final confirmation — apply "' + tpl.name + '" to ' + c.name + ' now?')) return;
 
   const FULL_DAY = { Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday' };
-  let updated = 0, skipped = 0;
-  const log = [];
 
-  const next = dyn.map(function (c) {
-    if (terminated.has(c.id)) return c;
-    try {
-      const key = _pickEvidenceBasedKey(c);
-      const tpl = PROGRAM_TEMPLATES[key];
-      if (!tpl) { skipped++; return c; }
-      const days = JSON.parse(JSON.stringify(tpl.days));
-      const trainingCount = days.filter(function (d) { return d.exercises.length > 0; }).length;
-      const workoutDays = days.filter(function (d) { return d.exercises.length > 0; }).map(function (d) {
-        return {
-          id: d.id,
-          label: d.label + ' — ' + d.title,
-          icon: d.tag === 'Push' ? '💪' : d.tag === 'Pull' ? '🏋️' : d.tag === 'Legs' ? '🦵' : '🔥',
-          title: (FULL_DAY[d.label] || d.label) + ' — ' + d.title,
-          sub: d.sub || (d.exercises.length + ' exercises'),
-          blocks: [{ label: 'Exercises', exercises: d.exercises }]
-        };
-      });
-      const scheduleDays = days.map(function (d) {
-        return {
-          label: d.label,
-          type: d.exercises.length > 0 ? (d.tag === 'Cardio' || d.tag === 'Endurance' ? 'wk-card' : 'wk-a') : (d.tag === 'Active' ? 'wk-active' : 'wk-rest'),
-          tag: d.tag, title: d.title, sub: d.sub || ''
-        };
-      });
-      const cc = JSON.parse(JSON.stringify(c));
-      cc.data = cc.data || {};
-      cc.data.schedule = Object.assign({}, cc.data.schedule || {}, {
-        desc: trainingCount + '-day ' + tpl.name + ' for ' + cc.name + '.',
-        days: scheduleDays,
-        principles: tpl.principles || (cc.data.schedule && cc.data.schedule.principles)
-      });
-      cc.data.workouts = { days: workoutDays };
-      cc._meta = cc._meta || {};
-      cc._meta.programType = key;
-      cc._meta.days = days;
-      cc._meta.trainingDays = trainingCount;
-      cc._updated_at = new Date().toISOString();
-      log.push(cc.name + ' → ' + tpl.name);
-      updated++;
-      return cc;
-    } catch (e) {
-      console.error('Reassign failed for', c.id, e);
-      skipped++;
-      return c;
-    }
-  });
+  try {
+    const days = JSON.parse(JSON.stringify(tpl.days));
+    const trainingCount = days.filter(d => d.exercises.length > 0).length;
+    const workoutDays = days.filter(d => d.exercises.length > 0).map(d => ({
+      id: d.id,
+      label: d.label + ' — ' + d.title,
+      icon: d.tag === 'Push' ? '💪' : d.tag === 'Pull' ? '🏋️' : d.tag === 'Legs' ? '🦵' : '🔥',
+      title: (FULL_DAY[d.label] || d.label) + ' — ' + d.title,
+      sub: d.sub || (d.exercises.length + ' exercises'),
+      blocks: [{ label: 'Exercises', exercises: d.exercises }]
+    }));
+    const scheduleDays = days.map(d => ({
+      label: d.label,
+      type: d.exercises.length > 0 ? (d.tag === 'Cardio' || d.tag === 'Endurance' ? 'wk-card' : 'wk-a') : (d.tag === 'Active' ? 'wk-active' : 'wk-rest'),
+      tag: d.tag, title: d.title, sub: d.sub || ''
+    }));
+    const cc = JSON.parse(JSON.stringify(c));
+    cc.data = cc.data || {};
+    cc.data.schedule = Object.assign({}, cc.data.schedule || {}, {
+      desc: trainingCount + '-day ' + tpl.name + ' for ' + cc.name + '.',
+      days: scheduleDays,
+      principles: tpl.principles || (cc.data.schedule && cc.data.schedule.principles)
+    });
+    cc.data.workouts = { days: workoutDays };
+    cc._meta = cc._meta || {};
+    cc._meta.programType = tplKey;
+    cc._meta.days = days;
+    cc._meta.trainingDays = trainingCount;
+    cc._updated_at = new Date().toISOString();
 
-  saveDynamicClients(next);
-  if (typeof invalidateClientsCache === 'function') invalidateClientsCache();
+    dyn[idx] = cc;
+    saveDynamicClients(dyn);
+    if (typeof invalidateClientsCache === 'function') invalidateClientsCache();
+    try { if (typeof sbAutoSync === 'function') sbAutoSync(cc.id); } catch (_) {}
+    try { if (typeof syncClientData === 'function') syncClientData(cc.id); } catch (_) {}
 
-  next.forEach(function (c) {
-    if (terminated.has(c.id)) return;
-    try { if (typeof sbAutoSync === 'function') sbAutoSync(c.id); } catch (_) {}
-    try { if (typeof syncClientData === 'function') syncClientData(c.id); } catch (_) {}
-  });
-
-  if (typeof renderCoachDashboard === 'function') renderCoachDashboard();
-  if (typeof showFitToast === 'function') showFitToast('Updated ' + updated + ' client(s)' + (skipped ? ' · ' + skipped + ' skipped' : ''));
-  alert('Done. Updated ' + updated + ' client(s).\n\n' + log.join('\n'));
+    if (typeof renderCoachDashboard === 'function') renderCoachDashboard();
+    if (typeof showFitToast === 'function') showFitToast(cc.name + ' → ' + tpl.name);
+  } catch (e) {
+    console.error('Evidence-based apply failed', e);
+    if (typeof showFitToast === 'function') showFitToast('✗ Apply failed — check console');
+  }
 }
 
 function renderCoachDashboard() {
@@ -564,7 +618,6 @@ function renderCoachDashboard() {
         <button id="analyticsPanelBtn" class="coach-add-btn" onclick="toggleAnalyticsPanel()" style="background:${AppState._analyticsOpen?'rgba(52,152,219,.2)':'rgba(52,152,219,.1)'};color:#3498db;border-color:#3498db" title="Analytics overview">📊 Analytics</button>
         <button class="coach-add-btn" onclick="openMovementLibrary()" style="background:rgba(155,89,182,.1);color:#9b59b6;border-color:#9b59b6" title="Movement library">📚 Library</button>
         <button class="coach-add-btn" onclick="exportAllData()" style="background:rgba(52,152,219,.1);color:#3498db;border-color:#3498db" title="Download all data">⬇ Export</button>
-        <button class="coach-add-btn" onclick="applyEvidenceBasedDefaults()" style="background:rgba(255,77,46,.10);color:#ff4d2e;border-color:rgba(255,77,46,.45)" title="Reassign every active client to the evidence-based split matching their training days (backup downloaded first)">⚡ Evidence-Based</button>
         <button class="coach-add-btn" style="position:relative;overflow:hidden;background:rgba(52,152,219,.05);color:var(--muted);border-color:var(--border)" title="Restore from backup">
           <input type="file" accept=".json" onchange="restoreFromBackup(this.files[0])" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
           ⬆ Restore
