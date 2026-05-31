@@ -24,6 +24,9 @@ function openFeature(id) {
   } else if (id === 'anabolics') {
     const body = document.getElementById('feature-anabolics-body');
     if (body) body.innerHTML = renderAnabolicsRef();
+  } else if (id === 'bloodwork') {
+    const body = document.getElementById('feature-bloodwork-body');
+    if (body) body.innerHTML = renderBloodWork();
   } else if (currentClient) {
     renderFeature(id, currentClient);
   }
@@ -2583,44 +2586,57 @@ function _mmColor(intensity, accent) {
   return accent || '#ff3e3e';                          // peak
 }
 
-// Build the front + back silhouette SVGs. Each muscle region is a path
-// with an id like `mm-{key}-{f|b}`; the renderer just sets `fill`.
-function _mmBuildSilhouette(side) {
-  // Coordinates are hand-tuned for a 200×420 viewBox. Regions overlap
-  // body outline slightly so fills look filled-in rather than outlined.
-  const F = side === 'front';
-  // Common outline path (silhouette body shape, same front/back)
-  const outline = `M100 6c-13 0-22 9-22 22 0 9 4 16 10 20-8 4-14 11-16 22l-5 24c-1 6-4 11-8 14L42 122c-6 4-10 11-10 19v8c0 6 2 11 6 15l4 4-2 32c-1 11-4 22-9 32l-10 22c-3 7-5 14-5 22v44c0 6 2 11 5 15l8 12c4 6 6 13 6 20v18c0 8 4 15 11 19 7 4 16 4 23-1l4-3c4-3 7-7 7-13v-18c1-8 4-16 8-23l11-20c4-7 6-15 6-23v-26h6v26c0 8 2 16 6 23l11 20c4 7 7 15 8 23v18c0 6 3 10 7 13l4 3c7 5 16 5 23 1 7-4 11-11 11-19v-18c0-7 2-14 6-20l8-12c3-4 5-9 5-15v-44c0-8-2-15-5-22l-10-22c-5-10-8-21-9-32l-2-32 4-4c4-4 6-9 6-15v-8c0-8-4-15-10-19l-17-14c-4-3-7-8-8-14l-5-24c-2-11-8-18-16-22 6-4 10-11 10-20 0-13-9-22-22-22z`;
-  const regions = F ? `
-    <path id="mm-chest-f"      d="M70 64 q30 -8 60 0 q-2 22 -30 24 q-28 -2 -30 -24 z"/>
-    <path id="mm-shoulders-f"  d="M55 56 q15 -10 30 -4 q-4 12 -16 18 q-10 -4 -14 -14 z M145 56 q-15 -10 -30 -4 q4 12 16 18 q10 -4 14 -14 z"/>
-    <path id="mm-biceps-f"     d="M44 96 q8 -2 14 6 q-2 18 -10 30 q-10 -4 -10 -18 q0 -10 6 -18 z M156 96 q-8 -2 -14 6 q2 18 10 30 q10 -4 10 -18 q0 -10 -6 -18 z"/>
-    <path id="mm-forearms-f"   d="M34 138 q8 -4 16 4 q-2 24 -10 38 q-10 -4 -12 -22 q-1 -12 6 -20 z M166 138 q-8 -4 -16 4 q2 24 10 38 q10 -4 12 -22 q1 -12 -6 -20 z"/>
-    <path id="mm-abs-f"        d="M82 96 q18 -2 36 0 q-1 60 -18 70 q-17 -10 -18 -70 z"/>
-    <path id="mm-obliques-f"   d="M64 100 q10 -2 16 4 q-2 50 -12 56 q-12 -4 -10 -30 q0 -18 6 -30 z M136 100 q-10 -2 -16 4 q2 50 12 56 q12 -4 10 -30 q0 -18 -6 -30 z"/>
-    <path id="mm-quads-f"      d="M70 188 q12 -4 22 0 q2 60 -8 90 q-18 -8 -22 -50 q-2 -22 8 -40 z M130 188 q-12 -4 -22 0 q-2 60 8 90 q18 -8 22 -50 q2 -22 -8 -40 z"/>
-    <path id="mm-calves-f"     d="M68 308 q14 -2 22 4 q2 38 -10 60 q-16 -10 -16 -36 q0 -16 4 -28 z M132 308 q-14 -2 -22 4 q-2 38 10 60 q16 -10 16 -36 q0 -16 -4 -28 z"/>
-  ` : `
-    <path id="mm-traps-b"      d="M76 44 q24 -6 48 0 q-4 20 -24 24 q-20 -4 -24 -24 z"/>
-    <path id="mm-upperBack-b"  d="M64 68 q36 -10 72 0 q-2 26 -16 36 q-20 6 -40 0 q-14 -10 -16 -36 z"/>
-    <path id="mm-lats-b"       d="M56 90 q14 -4 22 4 q4 40 -2 64 q-22 -8 -26 -36 q-2 -16 6 -32 z M144 90 q-14 -4 -22 4 q-4 40 2 64 q22 -8 26 -36 q2 -16 -6 -32 z"/>
-    <path id="mm-triceps-b"    d="M44 96 q8 -2 14 6 q-2 18 -10 30 q-10 -4 -10 -18 q0 -10 6 -18 z M156 96 q-8 -2 -14 6 q2 18 10 30 q10 -4 10 -18 q0 -10 -6 -18 z"/>
-    <path id="mm-forearms-b"   d="M34 138 q8 -4 16 4 q-2 24 -10 38 q-10 -4 -12 -22 q-1 -12 6 -20 z M166 138 q-8 -4 -16 4 q2 24 10 38 q10 -4 12 -22 q1 -12 -6 -20 z"/>
-    <path id="mm-lowerBack-b"  d="M78 156 q22 -4 44 0 q-2 22 -22 28 q-20 -6 -22 -28 z"/>
-    <path id="mm-glutes-b"     d="M70 184 q14 -6 30 -2 q14 -4 30 2 q4 22 -10 36 q-20 8 -40 0 q-14 -14 -10 -36 z"/>
-    <path id="mm-hamstrings-b" d="M70 220 q14 -4 24 2 q4 50 -6 80 q-22 -8 -26 -42 q-2 -22 8 -40 z M130 220 q-14 -4 -24 2 q-4 50 6 80 q22 -8 26 -42 q2 -22 -8 -40 z"/>
-    <path id="mm-calves-b"     d="M68 308 q14 -2 22 4 q2 38 -10 60 q-16 -10 -16 -36 q0 -16 4 -28 z M132 308 q-14 -2 -22 4 q-2 38 10 60 q16 -10 16 -36 q0 -16 -4 -28 z"/>
-  `;
-  return `<svg viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg" class="mm-svg" aria-hidden="true">
-    <path class="mm-outline" d="${outline}"/>
-    <g class="mm-regions">${regions}</g>
-  </svg>`;
+// Build the composite anatomy image + region overlay.
+// The image (pwa/icons/muscle-map.png) shows front + back figures side by side.
+// We overlay one SVG with region paths positioned over each muscle on the image.
+// IDs are `mm-{key}` (single region per muscle, may union front+back sub-paths).
+// viewBox is 480x320 — matches the image aspect for full overlay alignment.
+function _mmBuildComposite() {
+  return `
+    <div class="mm-composite">
+      <img class="mm-img" src="./icons/muscle-map.png" alt="" decoding="async">
+      <svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" class="mm-svg" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+        <g class="mm-regions">
+          <!-- ───── FRONT figure (centered ~x=145) ───── -->
+          <path id="mm-shoulders"  d="M108 62 q12 -4 20 2 q-2 14 -12 18 q-14 -4 -14 -14 q0 -4 6 -6 z
+                                     M182 62 q-12 -4 -20 2 q2 14 12 18 q14 -4 14 -14 q0 -4 -6 -6 z"/>
+          <path id="mm-chest"      d="M120 70 q24 -8 48 0 q-2 22 -24 28 q-22 -6 -24 -28 z"/>
+          <path id="mm-biceps"     d="M100 86 q10 -2 14 8 q-2 20 -10 32 q-12 -4 -12 -22 q0 -10 8 -18 z
+                                     M190 86 q-10 -2 -14 8 q2 20 10 32 q12 -4 12 -22 q0 -10 -8 -18 z"/>
+          <path id="mm-abs"        d="M132 102 q14 -2 28 0 q-1 44 -14 76 q-13 -32 -14 -76 z"/>
+          <path id="mm-obliques"   d="M118 108 q8 -2 12 4 q-1 44 -10 60 q-12 -4 -10 -32 q0 -16 8 -32 z
+                                     M178 108 q-8 -2 -12 4 q1 44 10 60 q12 -4 10 -32 q0 -16 -8 -32 z"/>
+          <path id="mm-quads"      d="M114 200 q14 -4 22 2 q2 40 -6 64 q-20 -6 -24 -38 q-2 -14 8 -28 z
+                                     M176 200 q-14 -4 -22 2 q-2 40 6 64 q20 -6 24 -38 q2 -14 -8 -28 z"/>
+          <!-- ───── BACK figure (centered ~x=327) ───── -->
+          <path id="mm-traps"      d="M312 58 q18 -6 30 14 q-2 14 -16 14 q-14 0 -16 -14 q0 -10 2 -14 z"/>
+          <path id="mm-upperBack"  d="M298 80 q30 -10 58 0 q-2 18 -14 26 q-18 6 -32 0 q-12 -8 -12 -26 z"/>
+          <path id="mm-lats"       d="M286 102 q12 -4 18 4 q4 36 -2 50 q-20 -4 -24 -30 q-2 -14 8 -24 z
+                                     M368 102 q-12 -4 -18 4 q-4 36 2 50 q20 -4 24 -30 q2 -14 -8 -24 z"/>
+          <path id="mm-triceps"    d="M270 88 q10 -2 14 8 q-2 22 -10 32 q-12 -4 -12 -22 q0 -10 8 -18 z
+                                     M384 88 q-10 -2 -14 8 q2 22 10 32 q12 -4 12 -22 q0 -10 -8 -18 z"/>
+          <path id="mm-lowerBack"  d="M308 150 q20 -4 38 0 q-2 18 -19 24 q-17 -6 -19 -24 z"/>
+          <path id="mm-glutes"     d="M300 180 q14 -10 27 -2 q14 -8 27 2 q4 22 -10 34 q-18 8 -34 0 q-14 -12 -10 -34 z"/>
+          <path id="mm-hamstrings" d="M304 218 q12 -4 20 2 q2 38 -6 58 q-18 -6 -22 -32 q-2 -14 8 -28 z
+                                     M352 218 q-12 -4 -20 2 q-2 38 6 58 q18 -6 22 -32 q2 -14 -8 -28 z"/>
+          <!-- ───── Forearms — appear on BOTH views ───── -->
+          <path id="mm-forearms"   d="M86 128 q8 -2 12 6 q-2 26 -10 38 q-12 -4 -12 -22 q0 -12 10 -22 z
+                                     M198 128 q-8 -2 -12 6 q2 26 10 38 q12 -4 12 -22 q0 -12 -10 -22 z
+                                     M256 130 q8 -2 12 6 q-2 26 -10 38 q-12 -4 -12 -22 q0 -12 10 -22 z
+                                     M398 130 q-8 -2 -12 6 q2 26 10 38 q12 -4 12 -22 q0 -12 -10 -22 z"/>
+          <!-- ───── Calves — appear on BOTH views ───── -->
+          <path id="mm-calves"     d="M114 274 q12 -2 18 4 q2 24 -8 42 q-14 -6 -14 -24 q0 -12 4 -22 z
+                                     M158 274 q-12 -2 -18 4 q-2 24 8 42 q14 -6 14 -24 q0 -12 -4 -22 z
+                                     M306 278 q12 -2 18 4 q2 24 -8 40 q-14 -6 -14 -22 q0 -12 4 -22 z
+                                     M350 278 q-12 -2 -18 4 q-2 24 8 40 q14 -6 14 -22 q0 -12 -4 -22 z"/>
+        </g>
+      </svg>
+    </div>`;
 }
 
-function _mmApplyFills(rootEl, intensities, accent, side) {
-  const suffix = side === 'front' ? '-f' : '-b';
+function _mmApplyFills(rootEl, intensities, accent) {
   MUSCLE_GROUPS.forEach(m => {
-    const node = rootEl.querySelector('#mm-' + m + suffix);
+    const node = rootEl.querySelector('#mm-' + m);
     if (!node) return;
     const i = intensities[m] || 0;
     node.setAttribute('fill', _mmColor(i, accent));
@@ -2696,14 +2712,7 @@ function renderMuscleMap(c) {
       </div>
 
       <div class="mm-body" id="mmBody">
-        <div class="mm-figure">
-          <div class="mm-figure-label">Front</div>
-          ${_mmBuildSilhouette('front')}
-        </div>
-        <div class="mm-figure">
-          <div class="mm-figure-label">Back</div>
-          ${_mmBuildSilhouette('back')}
-        </div>
+        ${_mmBuildComposite()}
       </div>
 
       <div class="mm-legend">
@@ -2733,8 +2742,8 @@ function _mmAfterRender(c) {
   const accent = c.accent || '#3B9EFF';
   const vols   = _mmComputeVolumes(c.id, days);
   const intens = _mmNormalize(vols);
-  body.querySelectorAll('.mm-svg').forEach((svg, idx) => {
-    _mmApplyFills(svg, intens, accent, idx === 0 ? 'front' : 'back');
+  body.querySelectorAll('.mm-svg').forEach(svg => {
+    _mmApplyFills(svg, intens, accent);
   });
   // Tap a muscle region → show detail
   body.querySelectorAll('.mm-regions path').forEach(node => {

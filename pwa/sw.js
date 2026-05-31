@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v64';
+const CACHE = 'crazyy-fit-v68';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
@@ -8,6 +8,7 @@ const ASSETS = [
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon.svg',
+  './icons/muscle-map.png',
   './css/app.css',
   './js/core.js',
   './js/fitness.js',

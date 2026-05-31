@@ -19,6 +19,8 @@ const PEPTIDE_DB = [
   { id:'ghrp6',    name:'GHRP-6',            defVial:5,  defBac:2, defDose:200,  range:'Typical: 100–300 mcg, 2–3× daily',           note:'Strong hunger pulse — useful for bulks.' },
   { id:'selank',   name:'Selank',            defVial:5,  defBac:2, defDose:400,  range:'Typical: 250–500 mcg, 1–3× daily',           note:'Anxiolytic. Intranasal preferred but sub-Q works.' },
   { id:'semax',    name:'Semax',             defVial:5,  defBac:2, defDose:500,  range:'Typical: 250–600 mcg, 1–3× daily',           note:'Nootropic. Best intranasal; if injected, sub-Q.' },
+  { id:'ghkcu',    name:'GHK-Cu',            defVial:50, defBac:5, defDose:2000, range:'Typical: 1–3 mg/day sub-Q',                  note:'Copper peptide. Skin / hair / wound repair. Reconstituted vial stains blue — normal.' },
+  { id:'reta',     name:'Retatrutide',       defVial:10, defBac:2, defDose:2000, range:'Typical: 2–8 mg WEEKLY (titrate up)',        note:'Triple agonist (GLP-1/GIP/glucagon). Weekly dose. Start 2 mg/wk, titrate every 4 weeks.' },
 ];
 
 const PepState = { pepId:'bpc157', vial:5, bac:2, dose:300, freq:'daily' };
@@ -533,3 +535,239 @@ function anaCycleRemove(i) {
   AnaState.cycle.splice(i, 1);
   _anaRerender();
 }
+
+/* ══════════════════════════════════════════════════════════════
+   BLOOD WORK INTERPRETER
+   Adult-male reference ranges (typical US labs). Coach pastes
+   values; engine flags out-of-range markers with plain-English
+   notes. Optional AI deep analysis for narrative context.
+══════════════════════════════════════════════════════════════ */
+const BW_PANELS = [
+  { id:'cbc', label:'Complete Blood Count (CBC)', markers:[
+    { id:'hgb',  name:'Hemoglobin',         unit:'g/dL',   min:13.5, max:17.5, high:'Elevated hemoglobin — common on AAS / TRT. Increases blood viscosity and CV risk. Hydrate, consider donating blood.', low:'Anemia indicator. Check iron, B12, folate. Could blunt training capacity.' },
+    { id:'hct',  name:'Hematocrit',         unit:'%',      min:40,   max:54,   high:'Polycythemia risk. >54% commonly seen on cycle/TRT. Donate blood or pause compounds. Sustained >55% raises stroke risk.', low:'Anemia or hydration issue. Investigate before adding load.' },
+    { id:'rbc',  name:'RBC',                unit:'M/uL',   min:4.5,  max:5.9,  high:'Erythrocytosis — typical AAS adaptation. Recheck Hgb/Hct. Therapeutic phlebotomy if persistent.', low:'Low red cell mass. Check iron / B12.' },
+    { id:'wbc',  name:'WBC',                unit:'K/uL',   min:4.0,  max:11.0, high:'Possible infection or inflammation. Recheck if asymptomatic.', low:'Immunosuppression risk. Investigate.' },
+    { id:'plt',  name:'Platelets',          unit:'K/uL',   min:150,  max:400,  high:'Thrombocytosis. Recheck. Avoid harsh orals.', low:'Bleeding risk. Pause orals (hepatotoxic compounds suppress platelets).' },
+  ]},
+  { id:'lipid', label:'Lipid Panel', markers:[
+    { id:'tc',   name:'Total Cholesterol', unit:'mg/dL',  min:120,  max:200,  high:'Elevated TC. Check LDL/HDL split before reacting.', low:'Low TC unusual on cycle. Check thyroid.' },
+    { id:'ldl',  name:'LDL',               unit:'mg/dL',  min:0,    max:100,  high:'Atherogenic. Orals (Sdrol, Anadrol, Winny) crush this. Drop offending compound; add citrus bergamot, fish oil, cardio.', low:'No clinical concern.' },
+    { id:'hdl',  name:'HDL',               unit:'mg/dL',  min:40,   max:200,  high:'No clinical concern.', low:'Low HDL — orals and harsh AAS suppress it. Add steady-state cardio, niacin, omega-3.' },
+    { id:'trig', name:'Triglycerides',     unit:'mg/dL',  min:0,    max:150,  high:'Insulin resistance / high carbs / GH peptides can push this. Fish oil, reduce simple carbs.', low:'No concern.' },
+  ]},
+  { id:'horm', label:'Hormones', markers:[
+    { id:'tt',   name:'Total Testosterone',unit:'ng/dL',  min:264,  max:916,  high:'Supraphysiological — typical on cycle. Confirm protocol matches. >1500 with symptoms = adjust dose.', low:'Hypogonadal. If natural: investigate (LH/FSH, prolactin, thyroid). If post-cycle: HPTA not recovered — extend PCT.' },
+    { id:'ft',   name:'Free Testosterone', unit:'pg/mL',  min:8.7,  max:25.1, high:'High free T — often paired with low SHBG. Watch sides (acne, hair, BP).', low:'Symptomatic low T even if total is normal. Check SHBG.' },
+    { id:'e2',   name:'Estradiol (E2)',    unit:'pg/mL',  min:7.6,  max:42.6, high:'Aromatization. Gyno / water / mood / BP risk. Lower AI dose carefully — crashed E2 is worse than high.', low:'E2 crashed — joint pain, low libido, depression. Drop AI, support with calories.' },
+    { id:'lh',   name:'LH',                unit:'mIU/mL', min:1.7,  max:8.6,  high:'Pituitary trying hard — primary hypogonadism or late PCT response.', low:'HPTA suppression — expected on cycle. Post-PCT, low LH = incomplete recovery.' },
+    { id:'fsh',  name:'FSH',               unit:'mIU/mL', min:1.5,  max:12.4, high:'Testicular failure signal. Investigate.', low:'HPTA suppression. Fertility concerns if trying to conceive — add HCG / HMG.' },
+    { id:'prl',  name:'Prolactin',         unit:'ng/mL',  min:4.0,  max:15.0, high:'19-nor compounds (Tren, Deca) and high E2 drive this. Libido/erectile sides, lactation. Caber 0.25 mg 2×/wk.', low:'Rarely clinically significant.' },
+    { id:'shbg', name:'SHBG',              unit:'nmol/L', min:10,   max:57,   high:'Binds free T — symptomatic low free T even at normal total. Common on Primo/Mast suppressing it artificially low.', low:'High free T fraction. Acne / hair / mood sides amplified.' },
+    { id:'tsh',  name:'TSH',               unit:'mIU/L',  min:0.4,  max:4.5,  high:'Hypothyroid — sluggish, weight gain, low energy. Check T3/T4 + antibodies.', low:'Hyperthyroid or exogenous T3/T4 use. Confirm.' },
+  ]},
+  { id:'liver', label:'Liver', markers:[
+    { id:'alt',  name:'ALT',               unit:'U/L',    min:7,    max:56,   high:'Liver enzyme elevation. Orals (Sdrol, Adrol, Dbol, Winny) and intense training both raise this. Recheck 48+ hr away from training. Persistent >2× upper = stop oral.', low:'No concern.' },
+    { id:'ast',  name:'AST',               unit:'U/L',    min:10,   max:40,   high:'Same as ALT — but AST also rises from heavy lifting. ALT is the more liver-specific marker.', low:'No concern.' },
+    { id:'ggt',  name:'GGT',               unit:'U/L',    min:5,    max:40,   high:'More specific liver/biliary marker. Persistent elevation = real hepatic stress, not training artifact.', low:'No concern.' },
+  ]},
+  { id:'kidney', label:'Kidney', markers:[
+    { id:'cr',   name:'Creatinine',        unit:'mg/dL',  min:0.7,  max:1.3,  high:'High muscle mass + creatine supplementation inflates this. Use cystatin C or eGFR if concerned. True kidney injury usually paired with abnormal BUN/eGFR.', low:'Low muscle mass or overhydration.' },
+    { id:'bun',  name:'BUN',               unit:'mg/dL',  min:8,    max:24,   high:'Dehydration or high protein intake. Recheck hydrated.', low:'Low protein intake or liver dysfunction.' },
+    { id:'egfr', name:'eGFR',              unit:'mL/min', min:60,   max:200,  high:'No concern.', low:'Kidney function impaired. Confirm with cystatin C (creatinine-based eGFR is unreliable in muscular athletes).' },
+  ]},
+  { id:'meta', label:'Metabolic', markers:[
+    { id:'glu',  name:'Fasting Glucose',   unit:'mg/dL',  min:70,   max:99,   high:'Pre-diabetic range (100-125) or diabetic (>125). GH peptides and high-dose AAS impair insulin sensitivity.', low:'Hypoglycemia. Recheck fed.' },
+    { id:'a1c',  name:'HbA1c',             unit:'%',      min:4.0,  max:5.7,  high:'5.7-6.4 = prediabetic. >6.4 = diabetic. Reduce GH dose, address body fat, cardio.', low:'Unusually low — confirm with fasting glucose.' },
+    { id:'psa',  name:'PSA',               unit:'ng/mL',  min:0,    max:4.0,  high:'Prostate stimulation — common on cycle. Sustained >4 = urology referral.', low:'No concern.' },
+    { id:'vitd', name:'Vitamin D (25-OH)', unit:'ng/mL',  min:30,   max:100,  high:'Over-supplementation. Cut dose.', low:'Deficiency hits testosterone, mood, recovery. Supplement 4000-5000 IU/day.' },
+  ]},
+];
+
+// Flatten to a lookup map
+const BW_MARKERS = {};
+BW_PANELS.forEach(p => p.markers.forEach(m => { BW_MARKERS[m.id] = { ...m, panel: p.id }; }));
+
+const BwState = { values: {}, results: null, aiText: null, aiLoading: false };
+
+function renderBloodWork() {
+  const panels = BW_PANELS.map(p => `
+    <div class="chart-card">
+      <div class="chart-title">${p.label}</div>
+      <div class="bw-grid">
+        ${p.markers.map(m => {
+          const v = BwState.values[m.id] ?? '';
+          return `
+            <div class="bw-field">
+              <label class="bw-label">${m.name}</label>
+              <div class="bw-input-row">
+                <input class="bw-input" type="number" inputmode="decimal" step="any"
+                  id="bw-${m.id}" value="${v}"
+                  oninput="bwSetValue('${m.id}', this.value)"
+                  placeholder="—">
+                <span class="bw-unit">${m.unit}</span>
+              </div>
+              <div class="bw-range">${m.min}–${m.max}</div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  const result = BwState.results ? _bwResultsHtml() : '';
+
+  return `
+    <div class="chart-card">
+      <div class="tool-helper" style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:10px">
+        Enter the markers you have — blank fields are skipped. Click <b>Interpret</b> for rule-based flagging.
+        Use <b>AI Deep Analysis</b> for narrative context (e.g. how values interact given the client's cycle).
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="bw-btn-secondary" onclick="bwClearAll()">Clear All</button>
+        <button class="bw-btn-primary" onclick="bwInterpret()">Interpret →</button>
+      </div>
+    </div>
+    ${panels}
+    ${result}
+    <div class="chart-card" style="background:rgba(231,76,60,.04);border-color:rgba(231,76,60,.25)">
+      <div class="tool-helper" style="font-size:11px;color:var(--muted);line-height:1.6">
+        Reference ranges are typical adult-male values (US labs). Reference / educational use only —
+        not medical advice. Always interpret bloodwork in context with the client's protocol, symptoms,
+        and full lab report. Persistent abnormalities require a physician.
+      </div>
+    </div>
+  `;
+}
+
+function _bwRerender() {
+  const body = document.getElementById('feature-bloodwork-body');
+  if (body) body.innerHTML = renderBloodWork();
+}
+
+function bwSetValue(id, val) {
+  const n = parseFloat(val);
+  if (val === '' || isNaN(n)) { delete BwState.values[id]; }
+  else { BwState.values[id] = n; }
+  // Don't full re-render — would lose focus. Results panel only updates on "Interpret".
+}
+
+function bwClearAll() {
+  BwState.values = {};
+  BwState.results = null;
+  BwState.aiText = null;
+  _bwRerender();
+}
+
+function bwInterpret() {
+  const flags = [];
+  Object.keys(BwState.values).forEach(id => {
+    const m = BW_MARKERS[id];
+    if (!m) return;
+    const v = BwState.values[id];
+    if (v < m.min) {
+      flags.push({ id, name: m.name, panel: m.panel, value: v, unit: m.unit, range: m.min + '–' + m.max, direction: 'low', severity: _bwSeverity(v, m, 'low'), note: m.low });
+    } else if (v > m.max) {
+      flags.push({ id, name: m.name, panel: m.panel, value: v, unit: m.unit, range: m.min + '–' + m.max, direction: 'high', severity: _bwSeverity(v, m, 'high'), note: m.high });
+    }
+  });
+  // Order: critical > high > borderline; then by panel
+  const sevRank = { critical: 0, high: 1, borderline: 2 };
+  flags.sort((a, b) => sevRank[a.severity] - sevRank[b.severity]);
+
+  const totalEntered = Object.keys(BwState.values).length;
+  if (totalEntered === 0) {
+    showFitToast('Enter at least one value');
+    return;
+  }
+  BwState.results = { flags, totalEntered };
+  BwState.aiText = null;
+  _bwRerender();
+}
+
+function _bwSeverity(v, m, dir) {
+  // Crude severity: >25% beyond range = critical, >10% = high, else borderline.
+  const rangeWidth = m.max - m.min || 1;
+  if (dir === 'high') {
+    const over = v - m.max;
+    if (over > rangeWidth * 0.5) return 'critical';
+    if (over > rangeWidth * 0.2) return 'high';
+    return 'borderline';
+  } else {
+    const under = m.min - v;
+    if (under > rangeWidth * 0.5) return 'critical';
+    if (under > rangeWidth * 0.2) return 'high';
+    return 'borderline';
+  }
+}
+
+function _bwResultsHtml() {
+  const { flags, totalEntered } = BwState.results;
+  const sevColor = { critical:'#e74c3c', high:'#ff8c42', borderline:'#f1c40f' };
+  const sevLbl   = { critical:'Critical', high:'High', borderline:'Borderline' };
+
+  const flagList = flags.length === 0
+    ? `<div class="bw-allgood">
+         <div class="bw-allgood-title">All ${totalEntered} marker${totalEntered===1?'':'s'} within range</div>
+         <div class="bw-allgood-sub">Nothing flagged by rule-based check. Run AI Deep Analysis for narrative context.</div>
+       </div>`
+    : flags.map(f => `
+        <div class="bw-flag">
+          <div class="bw-flag-head">
+            <div>
+              <div class="bw-flag-name">${esc(f.name)}</div>
+              <div class="bw-flag-val">${f.value} ${esc(f.unit)} <span class="bw-flag-range">(ref ${f.range})</span></div>
+            </div>
+            <div class="bw-flag-badges">
+              <span class="bw-flag-dir bw-dir-${f.direction}">${f.direction === 'high' ? '↑ HIGH' : '↓ LOW'}</span>
+              <span class="bw-flag-sev" style="background:${sevColor[f.severity]}22;color:${sevColor[f.severity]}">${sevLbl[f.severity]}</span>
+            </div>
+          </div>
+          <div class="bw-flag-note">${esc(f.note)}</div>
+        </div>`).join('');
+
+  const aiBlock = BwState.aiLoading
+    ? `<div class="bw-ai-loading"><div class="ai-review-loading-spinner"></div><div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">ANALYZING</div></div>`
+    : BwState.aiText
+      ? `<div class="bw-ai-result">${esc(BwState.aiText).replace(/\n/g,'<br>')}</div>`
+      : `<button class="bw-btn-primary" onclick="bwAIAnalyze()" style="width:100%;margin-top:4px">AI Deep Analysis →</button>
+         <div class="tool-helper" style="margin-top:6px;text-align:center">Sends values + flags to Claude for narrative context</div>`;
+
+  return `
+    <div class="chart-card">
+      <div class="chart-title">Results</div>
+      <div class="bw-summary">
+        <div class="bw-summary-stat"><span class="bw-summary-val" style="color:var(--accent)">${totalEntered}</span> <span class="bw-summary-lbl">entered</span></div>
+        <div class="bw-summary-stat"><span class="bw-summary-val" style="color:${flags.length?'#e74c3c':'#2ecc71'}">${flags.length}</span> <span class="bw-summary-lbl">flagged</span></div>
+      </div>
+      ${flagList}
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">AI Interpretation</div>
+      ${aiBlock}
+    </div>`;
+}
+
+async function bwAIAnalyze() {
+  if (!BwState.results) return;
+  BwState.aiLoading = true;
+  _bwRerender();
+  try {
+    const payload = {
+      values: BwState.values,
+      flags: BwState.results.flags.map(f => ({ name: f.name, value: f.value, unit: f.unit, direction: f.direction, severity: f.severity })),
+    };
+    const res = await fetch('/api/ai-bloodwork', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    BwState.aiLoading = false;
+    if (data.ok) BwState.aiText = data.interpretation;
+    else BwState.aiText = 'AI analysis failed: ' + (data.error || 'unknown');
+  } catch (err) {
+    BwState.aiLoading = false;
+    BwState.aiText = 'Network error: ' + err.message;
+  }
+  _bwRerender();
+}
+
