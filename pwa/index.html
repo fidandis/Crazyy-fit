@@ -258,6 +258,14 @@
         <div class="more-tile-icon">🧬</div><div class="more-tile-name">Muscle Map</div>
         <div class="more-tile-desc">Body silhouette by training load</div>
       </div>
+      <div class="more-tile tool-tile" data-act="openFeature" data-args="peptides">
+        <div class="more-tile-icon tool-tile-icon">Px</div><div class="more-tile-name">Peptide Calc</div>
+        <div class="more-tile-desc">Reconstitution &amp; syringe units</div>
+      </div>
+      <div class="more-tile tool-tile" data-act="openFeature" data-args="anabolics">
+        <div class="more-tile-icon tool-tile-icon">Rx</div><div class="more-tile-name">Anabolics Ref</div>
+        <div class="more-tile-desc">Compounds, cycles &amp; PCT</div>
+      </div>
     </div>
   </div>
 </div>
@@ -323,6 +331,14 @@
   <div class="feature-header"><div class="feature-title">Muscle Map</div><button class="feature-back" data-act="closeFeature" data-args="musclemap">← Back</button></div>
   <div class="feature-body" id="feature-musclemap-body"></div>
 </div>
+<div class="feature-screen" id="feature-peptides">
+  <div class="feature-header"><div class="feature-title">Peptide Calculator</div><button class="feature-back" data-act="closeFeature" data-args="peptides">← Back</button></div>
+  <div class="feature-body" id="feature-peptides-body"></div>
+</div>
+<div class="feature-screen" id="feature-anabolics">
+  <div class="feature-header"><div class="feature-title">Anabolics Reference</div><button class="feature-back" data-act="closeFeature" data-args="anabolics">← Back</button></div>
+  <div class="feature-body" id="feature-anabolics-body"></div>
+</div>
 
 <!-- Photo lightbox -->
 <div class="photo-lightbox" id="photoLightbox" style="display:none" role="dialog" aria-modal="true" aria-label="Progress photo viewer" data-act="closePhotoLightbox">
@@ -361,6 +377,7 @@
 <script src="js/ai.js" defer></script>
 <script src="js/macros.js" defer></script>
 <script src="js/nutrition.js" defer></script>
+<script src="js/tools.js" defer></script>
 
 </body>
 </html>

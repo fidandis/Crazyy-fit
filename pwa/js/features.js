@@ -18,6 +18,12 @@ function openFeature(id) {
   if (id === 'compare') {
     const body = document.getElementById('feature-compare-body');
     if (body) body.innerHTML = renderComparison();
+  } else if (id === 'peptides') {
+    const body = document.getElementById('feature-peptides-body');
+    if (body) { body.innerHTML = renderPeptideCalc(); pepUpdate(); }
+  } else if (id === 'anabolics') {
+    const body = document.getElementById('feature-anabolics-body');
+    if (body) body.innerHTML = renderAnabolicsRef();
   } else if (currentClient) {
     renderFeature(id, currentClient);
   }

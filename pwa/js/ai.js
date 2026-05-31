@@ -451,6 +451,184 @@ function toggleFlagNoteEntry(cid, id) {
   if (container) container.innerHTML = buildCoachNotesLogHtml(cid);
 }
 
+/* ── SMART NOTES (AI parse) ─────────────────────────────────── */
+function _smartNotesNote(cid) {
+  const ta = document.getElementById('coach-note-input-' + cid);
+  if (ta && ta.value && ta.value.trim()) return ta.value.trim();
+  // Fall back to the most recently saved note
+  const log = getCoachNotesLog(cid);
+  return log.length ? log[log.length - 1].text : '';
+}
+function _smartNotesGetExerciseNames(c) {
+  const out = new Set();
+  const days = c?.data?.workouts?.days || [];
+  days.forEach(d => {
+    (d.blocks || []).forEach(b => (b.exercises || []).forEach(e => { if (e.name) out.add(e.name); }));
+    (d.exercises || []).forEach(e => { if (e.name) out.add(e.name); });
+  });
+  return [...out];
+}
+async function parseSessionNote(cid) {
+  const note = _smartNotesNote(cid);
+  if (!note) { showFitToast('Type a note first'); return; }
+  const allClients = getAllClients();
+  const c = allClients.find(cl => cl.id === cid);
+  const container = document.getElementById('smart-notes-result-' + cid);
+  if (!container) return;
+  container.classList.add('open');
+  container.innerHTML = `<div class="smart-notes-loading">
+    <div class="ai-review-loading-spinner"></div>
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px">PARSING NOTE</div>
+  </div>`;
+  try {
+    const res = await fetch('/api/ai-parse-notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        note,
+        clientName: c?.name || '',
+        currentExercises: c ? _smartNotesGetExerciseNames(c) : [],
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      container.innerHTML = `<div class="smart-notes-error">AI parse failed: ${esc(data.error || 'unknown')}</div>`;
+      return;
+    }
+    // Stash for click handlers — ephemeral, not persisted
+    window._smartNotes = window._smartNotes || {};
+    window._smartNotes[cid] = data.parsed;
+    container.innerHTML = renderSmartNotesPanel(cid, data.parsed);
+  } catch (err) {
+    container.innerHTML = `<div class="smart-notes-error">Network error: ${esc(err.message)}</div>`;
+  }
+}
+function dismissSmartNotes(cid) {
+  const container = document.getElementById('smart-notes-result-' + cid);
+  if (container) { container.classList.remove('open'); container.innerHTML = ''; }
+  if (window._smartNotes) delete window._smartNotes[cid];
+}
+function renderSmartNotesPanel(cid, p) {
+  const catColor = {
+    mobility:'#3B9EFF', corrective:'#e74c3c', strength:'#f1c40f',
+    power:'#9b59b6', cardio:'#2ecc71',
+  };
+  const summary = p.summary
+    ? `<div class="smart-notes-summary">${esc(p.summary)}</div>`
+    : '';
+  const flags = (p.flags || []).length
+    ? `<div class="smart-notes-section">
+         <div class="smart-notes-lbl">Flag for review</div>
+         <div class="smart-notes-flag-row">
+           ${p.flags.map(f => `<span class="smart-notes-flag">${esc(f)}</span>`).join('')}
+         </div>
+       </div>`
+    : '';
+  const removes = (p.remove_suggestions || []).length
+    ? `<div class="smart-notes-section">
+         <div class="smart-notes-lbl">Consider removing</div>
+         <div class="smart-notes-flag-row">
+           ${p.remove_suggestions.map(r => `<span class="smart-notes-remove">${esc(r)}</span>`).join('')}
+         </div>
+       </div>`
+    : '';
+  const exercises = (p.suggested_exercises || []).length
+    ? `<div class="smart-notes-section">
+         <div class="smart-notes-lbl">Suggested exercises</div>
+         ${p.suggested_exercises.map((e, i) => `
+           <div class="smart-notes-ex">
+             <div class="smart-notes-ex-head">
+               <div>
+                 <div class="smart-notes-ex-name">${esc(e.name)}</div>
+                 <div class="smart-notes-ex-meta">${esc(e.sets || '')}${e.reps ? ' × ' + esc(e.reps) : ''}</div>
+               </div>
+               <span class="smart-notes-cat" style="background:${catColor[e.category]||'#3B9EFF'}22;color:${catColor[e.category]||'#3B9EFF'}">${esc(e.category)}</span>
+             </div>
+             ${e.notes ? `<div class="smart-notes-ex-note">${esc(e.notes)}</div>` : ''}
+             <button class="smart-notes-add-btn" onclick="smartNotesAddExercise('${cid}', ${i})">+ Add to program</button>
+           </div>
+         `).join('')}
+       </div>`
+    : '';
+  const nothing = !flags && !removes && !exercises
+    ? `<div class="smart-notes-empty">No actionable items found in this note.</div>`
+    : '';
+  return `
+    <div class="smart-notes-head">
+      <div class="smart-notes-title">Smart Notes</div>
+      <button class="smart-notes-dismiss" onclick="dismissSmartNotes('${cid}')">✕</button>
+    </div>
+    ${summary}${flags}${exercises}${removes}${nothing}
+  `;
+}
+function smartNotesAddExercise(cid, idx) {
+  const parsed = window._smartNotes?.[cid];
+  if (!parsed) return;
+  const ex = parsed.suggested_exercises?.[idx];
+  if (!ex) return;
+  const ok = appendExerciseToActivePlan(cid, ex);
+  if (ok) {
+    showFitToast('Added: ' + ex.name);
+    // Disable the button so coach can't double-add
+    const btn = document.querySelectorAll('#smart-notes-result-' + cid + ' .smart-notes-add-btn')[idx];
+    if (btn) { btn.disabled = true; btn.textContent = '✓ Added'; btn.classList.add('added'); }
+  }
+}
+function appendExerciseToActivePlan(cid, ex) {
+  const list = getDynamicClients();
+  const idx  = list.findIndex(c => c.id === cid);
+  if (idx < 0) {
+    if (!(AppState.currentClient && AppState.currentClient.id === cid)) {
+      showFitToast('Cannot add to a built-in client program');
+      return false;
+    }
+  }
+  const target = idx >= 0 ? list[idx] : AppState.currentClient;
+  target.data = target.data || {};
+  target.data.workouts = target.data.workouts || { days: [] };
+  const days = target.data.workouts.days;
+  // Find first day that has a blocks[] structure, else convert flat → blocks
+  let day = days[0];
+  if (!day) {
+    day = { id: 'd_' + Date.now().toString(36), label: 'Day 1', title: 'Day 1', sub: '', blocks: [] };
+    days.push(day);
+  }
+  if (!day.blocks || !day.blocks.length) {
+    // Some onboarding templates store flat exercises on the day. Wrap into a block.
+    const flat = day.exercises || [];
+    day.blocks = [{ label: 'Main', exercises: flat.slice() }];
+    delete day.exercises;
+  }
+  // Append to a dedicated "From Notes" block (create if missing) so the coach
+  // can see at a glance what came from AI parsing.
+  let block = day.blocks.find(b => b.label === 'From Notes');
+  if (!block) {
+    block = { label: 'From Notes', exercises: [] };
+    day.blocks.push(block);
+  }
+  block.exercises.push({
+    name: ex.name,
+    sets: ex.sets || '',
+    reps: ex.reps || '',
+    rest: '',
+    note: (ex.category ? '[' + ex.category + '] ' : '') + (ex.notes || ''),
+  });
+
+  if (idx >= 0) saveDynamicClients(list);
+  if (AppState.currentClient && AppState.currentClient.id === cid) {
+    AppState.currentClient = target;
+    currentClient = target;
+  }
+  sbAutoSync(cid);
+
+  // Re-render workouts tab if visible
+  const wPanel = document.getElementById('panel-workouts');
+  if (wPanel && AppState.currentClient && AppState.currentClient.id === cid) {
+    try { wPanel.innerHTML = renderWorkouts(target.data.workouts, target); } catch (_) {}
+  }
+  return true;
+}
+
 /* ── COACH ANALYTICS DASHBOARD ───────────────────────────────── */
 function toggleAnalyticsPanel() {
   AppState._analyticsOpen = !AppState._analyticsOpen;

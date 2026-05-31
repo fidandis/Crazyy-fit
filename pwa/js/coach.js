@@ -324,6 +324,8 @@ function buildClientCard(c) {
           <textarea id="coach-note-input-${c.id}" placeholder="Add a session note, flag, or reminder…" maxlength="500"></textarea>
           <button class="coach-note-add-btn" onclick="addCoachNoteEntry('${c.id}')">Add</button>
         </div>
+        <button class="smart-notes-parse-btn" onclick="parseSessionNote('${c.id}')">Parse Notes with AI</button>
+        <div class="smart-notes-result" id="smart-notes-result-${c.id}"></div>
       </div>
       <!-- Message thread -->
       <div class="coach-notes-section" style="border-top:1px solid var(--border)">
