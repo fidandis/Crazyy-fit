@@ -2578,7 +2578,7 @@ function _mmNormalize(vols) {
 // Map a 0-1 intensity to a fill color. Steps for clarity instead of a
 // continuous gradient — easier to read at a glance on small screens.
 function _mmColor(intensity, accent) {
-  if (intensity <= 0)    return '#202024';            // untouched
+  if (intensity <= 0)    return '#2a3548';            // untouched — faint blue tint (visible over dark image)
   if (intensity < 0.15)  return '#2c3a55';            // brushed — cool blue
   if (intensity < 0.35)  return '#3a6ea8';            // light
   if (intensity < 0.60)  return '#f1c40f';            // medium
@@ -2597,38 +2597,57 @@ function _mmBuildComposite() {
       <img class="mm-img" src="./icons/muscle-map.png" alt="" decoding="async">
       <svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" class="mm-svg" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
         <g class="mm-regions">
-          <!-- ───── FRONT figure (centered ~x=145) ───── -->
-          <path id="mm-shoulders"  d="M108 62 q12 -4 20 2 q-2 14 -12 18 q-14 -4 -14 -14 q0 -4 6 -6 z
-                                     M182 62 q-12 -4 -20 2 q2 14 12 18 q14 -4 14 -14 q0 -4 -6 -6 z"/>
-          <path id="mm-chest"      d="M120 70 q24 -8 48 0 q-2 22 -24 28 q-22 -6 -24 -28 z"/>
-          <path id="mm-biceps"     d="M100 86 q10 -2 14 8 q-2 20 -10 32 q-12 -4 -12 -22 q0 -10 8 -18 z
-                                     M190 86 q-10 -2 -14 8 q2 20 10 32 q12 -4 12 -22 q0 -10 -8 -18 z"/>
-          <path id="mm-abs"        d="M132 102 q14 -2 28 0 q-1 44 -14 76 q-13 -32 -14 -76 z"/>
-          <path id="mm-obliques"   d="M118 108 q8 -2 12 4 q-1 44 -10 60 q-12 -4 -10 -32 q0 -16 8 -32 z
-                                     M178 108 q-8 -2 -12 4 q1 44 10 60 q12 -4 10 -32 q0 -16 -8 -32 z"/>
-          <path id="mm-quads"      d="M114 200 q14 -4 22 2 q2 40 -6 64 q-20 -6 -24 -38 q-2 -14 8 -28 z
-                                     M176 200 q-14 -4 -22 2 q-2 40 6 64 q20 -6 24 -38 q2 -14 -8 -28 z"/>
-          <!-- ───── BACK figure (centered ~x=327) ───── -->
-          <path id="mm-traps"      d="M312 58 q18 -6 30 14 q-2 14 -16 14 q-14 0 -16 -14 q0 -10 2 -14 z"/>
-          <path id="mm-upperBack"  d="M298 80 q30 -10 58 0 q-2 18 -14 26 q-18 6 -32 0 q-12 -8 -12 -26 z"/>
-          <path id="mm-lats"       d="M286 102 q12 -4 18 4 q4 36 -2 50 q-20 -4 -24 -30 q-2 -14 8 -24 z
-                                     M368 102 q-12 -4 -18 4 q-4 36 2 50 q20 -4 24 -30 q2 -14 -8 -24 z"/>
-          <path id="mm-triceps"    d="M270 88 q10 -2 14 8 q-2 22 -10 32 q-12 -4 -12 -22 q0 -10 8 -18 z
-                                     M384 88 q-10 -2 -14 8 q2 22 10 32 q12 -4 12 -22 q0 -10 -8 -18 z"/>
-          <path id="mm-lowerBack"  d="M308 150 q20 -4 38 0 q-2 18 -19 24 q-17 -6 -19 -24 z"/>
-          <path id="mm-glutes"     d="M300 180 q14 -10 27 -2 q14 -8 27 2 q4 22 -10 34 q-18 8 -34 0 q-14 -12 -10 -34 z"/>
-          <path id="mm-hamstrings" d="M304 218 q12 -4 20 2 q2 38 -6 58 q-18 -6 -22 -32 q-2 -14 8 -28 z
-                                     M352 218 q-12 -4 -20 2 q-2 38 6 58 q18 -6 22 -32 q2 -14 -8 -28 z"/>
-          <!-- ───── Forearms — appear on BOTH views ───── -->
-          <path id="mm-forearms"   d="M86 128 q8 -2 12 6 q-2 26 -10 38 q-12 -4 -12 -22 q0 -12 10 -22 z
-                                     M198 128 q-8 -2 -12 6 q2 26 10 38 q12 -4 12 -22 q0 -12 -10 -22 z
-                                     M256 130 q8 -2 12 6 q-2 26 -10 38 q-12 -4 -12 -22 q0 -12 10 -22 z
-                                     M398 130 q-8 -2 -12 6 q2 26 10 38 q12 -4 12 -22 q0 -12 -10 -22 z"/>
-          <!-- ───── Calves — appear on BOTH views ───── -->
-          <path id="mm-calves"     d="M114 274 q12 -2 18 4 q2 24 -8 42 q-14 -6 -14 -24 q0 -12 4 -22 z
-                                     M158 274 q-12 -2 -18 4 q-2 24 8 42 q14 -6 14 -24 q0 -12 -4 -22 z
-                                     M306 278 q12 -2 18 4 q2 24 -8 40 q-14 -6 -14 -22 q0 -12 4 -22 z
-                                     M350 278 q-12 -2 -18 4 q-2 24 8 40 q14 -6 14 -22 q0 -12 -4 -22 z"/>
+          <!-- Regions are ellipses-as-paths. Format:
+               M{cx-rx} {cy} a {rx} {ry} 0 1 0 {2rx} 0 a {rx} {ry} 0 1 0 {-2rx} 0
+               Front figure centered ~x=145, back figure centered ~x=343 -->
+
+          <!-- FRONT — deltoids (caps of shoulders) -->
+          <path id="mm-shoulders"  d="M108 62 a10 9 0 1 0 20 0 a10 9 0 1 0 -20 0
+                                     M162 62 a10 9 0 1 0 20 0 a10 9 0 1 0 -20 0"/>
+          <!-- FRONT — pecs (two halves) -->
+          <path id="mm-chest"      d="M120 80 a12 11 0 1 0 24 0 a12 11 0 1 0 -24 0
+                                     M146 80 a12 11 0 1 0 24 0 a12 11 0 1 0 -24 0"/>
+          <!-- FRONT — biceps (upper arms front) -->
+          <path id="mm-biceps"     d="M96 100 a9 14 0 1 0 18 0 a9 14 0 1 0 -18 0
+                                     M176 100 a9 14 0 1 0 18 0 a9 14 0 1 0 -18 0"/>
+          <!-- FRONT — rectus abdominis -->
+          <path id="mm-abs"        d="M132 132 a13 36 0 1 0 26 0 a13 36 0 1 0 -26 0"/>
+          <!-- FRONT — obliques (sides of waist) -->
+          <path id="mm-obliques"   d="M117 130 a7 28 0 1 0 14 0 a7 28 0 1 0 -14 0
+                                     M159 130 a7 28 0 1 0 14 0 a7 28 0 1 0 -14 0"/>
+          <!-- FRONT — quads (front of thighs) -->
+          <path id="mm-quads"      d="M121 215 a11 26 0 1 0 22 0 a11 26 0 1 0 -22 0
+                                     M147 215 a11 26 0 1 0 22 0 a11 26 0 1 0 -22 0"/>
+
+          <!-- BACK — traps (top V of upper back) -->
+          <path id="mm-traps"      d="M324 68 a18 13 0 1 0 36 0 a18 13 0 1 0 -36 0"/>
+          <!-- BACK — upper back / rhomboids -->
+          <path id="mm-upperBack"  d="M315 95 a27 14 0 1 0 54 0 a27 14 0 1 0 -54 0"/>
+          <!-- BACK — lats (wings) -->
+          <path id="mm-lats"       d="M305 118 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0
+                                     M361 118 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0"/>
+          <!-- BACK — triceps -->
+          <path id="mm-triceps"    d="M293 102 a9 15 0 1 0 18 0 a9 15 0 1 0 -18 0
+                                     M375 102 a9 15 0 1 0 18 0 a9 15 0 1 0 -18 0"/>
+          <!-- BACK — lower back / erectors -->
+          <path id="mm-lowerBack"  d="M325 158 a18 11 0 1 0 36 0 a18 11 0 1 0 -36 0"/>
+          <!-- BACK — glutes -->
+          <path id="mm-glutes"     d="M314 184 a14 14 0 1 0 28 0 a14 14 0 1 0 -28 0
+                                     M344 184 a14 14 0 1 0 28 0 a14 14 0 1 0 -28 0"/>
+          <!-- BACK — hamstrings -->
+          <path id="mm-hamstrings" d="M319 218 a10 24 0 1 0 20 0 a10 24 0 1 0 -20 0
+                                     M347 218 a10 24 0 1 0 20 0 a10 24 0 1 0 -20 0"/>
+
+          <!-- BOTH views — forearms (front pair + back pair) -->
+          <path id="mm-forearms"   d="M81 138 a9 20 0 1 0 18 0 a9 20 0 1 0 -18 0
+                                     M191 138 a9 20 0 1 0 18 0 a9 20 0 1 0 -18 0
+                                     M276 140 a9 20 0 1 0 18 0 a9 20 0 1 0 -18 0
+                                     M392 140 a9 20 0 1 0 18 0 a9 20 0 1 0 -18 0"/>
+          <!-- BOTH views — calves -->
+          <path id="mm-calves"     d="M122 275 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0
+                                     M148 275 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0
+                                     M320 275 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0
+                                     M346 275 a10 22 0 1 0 20 0 a10 22 0 1 0 -20 0"/>
         </g>
       </svg>
     </div>`;
