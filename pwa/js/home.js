@@ -433,28 +433,13 @@ function unpauseClient(cid) {
   renderCoachDashboard();
   showFitToast('Client unpaused');
 }
-function restoreClient(cid) {
-  const terminated = getLS('terminated_clients', []);
-  const c = terminated.find(t => t.id === cid);
-  if (!c) return;
-  // Restore to dynamic_clients
-  let dyn = getLS('dynamic_clients', []);
-  const { terminatedAt, ...clean } = c;
-  dyn.push(clean);
-  localStorage.setItem('dynamic_clients', JSON.stringify(dyn));
-  // Remove from terminated
-  localStorage.setItem('terminated_clients', JSON.stringify(terminated.filter(t => t.id !== cid)));
-  renderCoachDashboard();
-  showFitToast('Client restored');
-}
-function deleteArchivedClient(cid) {
-  if (!confirm('Permanently delete all data for this client? This cannot be undone.')) return;
-  let terminated = getLS('terminated_clients', []);
-  terminated = terminated.filter(t => t.id !== cid);
-  localStorage.setItem('terminated_clients', JSON.stringify(terminated));
-  renderCoachDashboard();
-  showFitToast('Client permanently deleted');
-}
+// NOTE: restoreClient + deleteArchivedClient previously lived here, but used a
+// stale data model (terminated_clients = full objects). The current model keeps
+// terminated_clients as an ID blocklist and full data in archived_clients. The
+// canonical restoreClient lives in onboarding.js (and permanentlyDeleteClient
+// replaces deleteArchivedClient). Because home.js loaded AFTER onboarding.js,
+// these stale copies were silently overriding the correct ones and breaking the
+// archived-client Restore button — removed.
 
 /* ══════════════════════════════════════════════════════════════
    COACH VIEW-AS-CLIENT
