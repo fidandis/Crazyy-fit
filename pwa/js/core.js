@@ -1608,11 +1608,17 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   const saved = getLS(storageKey, null);
 
   // Determine if the saved data is from a previous session (not today).
-  // Only treat it as a previous session when _countedDate is explicitly set to
-  // a different day — in-progress data that hasn't been formally saved yet has
-  // no _countedDate and must NOT be discarded as if it were old.
+  // The session "belongs" to a day per (in priority order): its formal
+  // _countedDate (set on check/save), its savedAt date, or _lastEdit (stamped
+  // by wlUpdate the moment any weight/reps is typed). If that day is not today
+  // it is a PREVIOUS session — its weights x reps must surface as a reference,
+  // not linger as today's editable values. Earlier this only checked
+  // _countedDate, so a session that was typed but never checked/saved was
+  // wrongly treated as still-active and its previous numbers never showed.
   const todayStr = new Date().toDateString();
-  const isNewSession = !!(saved?._countedDate && saved._countedDate !== todayStr);
+  const savedAtStr = saved?.savedAt ? new Date(saved.savedAt).toDateString() : '';
+  const sessionDay = saved?._countedDate || savedAtStr || saved?._lastEdit || '';
+  const isNewSession = !!(sessionDay && sessionDay !== todayStr);
 
   // Stale-session cleanup: if a prior session is sitting in the live key,
   // archive it once to history and reset the live entry. Without this the
@@ -1622,12 +1628,20 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   if (isNewSession && saved?.exercises && Object.keys(saved.exercises).length) {
     try {
       const hist = getWlHistory(cid, dayId);
-      const stamp = saved.savedAt || saved._countedDate || '';
-      const already = hist.some(h => (h?.date && h.date === saved.savedAt) || (h?._countedDate && h._countedDate === saved._countedDate));
+      // Resolve a valid ISO date for the archive entry. A typed-but-never-saved
+      // session has no savedAt/_countedDate; fall back to its _lastEdit day
+      // (and finally to the day boundary of sessionDay) so we never write an
+      // Invalid Date that would break later date parsing.
+      const archiveIso = saved.savedAt
+        || (sessionDay ? new Date(sessionDay).toISOString() : new Date().toISOString());
+      const already = hist.some(h =>
+        (saved.savedAt && h?.date === saved.savedAt)
+        || (saved._countedDate && h?._countedDate === saved._countedDate)
+        || (!saved.savedAt && !saved._countedDate && h?.date === archiveIso));
       if (!already) {
         hist.unshift({
-          date: saved.savedAt || new Date(saved._countedDate).toISOString(),
-          _countedDate: saved._countedDate,
+          date: archiveIso,
+          _countedDate: saved._countedDate || sessionDay,
           exercises: saved.exercises,
           sessionNotes: saved.sessionNotes || '',
         });
@@ -1664,9 +1678,12 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   const prevSession = isNewSession
     ? (saved && saved.exercises && Object.keys(saved.exercises).length ? saved : (hist[0] || null))
     : (hist[0] || null);
-  const prevDateStr = prevSession?.date
-    ? new Date(prevSession.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
-    : (prevSession?._countedDate ? new Date(prevSession._countedDate).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : null);
+  // Date label for the "Last session" reference. A typed-but-never-saved
+  // previous session carries only _lastEdit, so fall back to that too.
+  const prevDateRaw = prevSession?.date || prevSession?._countedDate || prevSession?._lastEdit || null;
+  const prevDateStr = prevDateRaw
+    ? new Date(prevDateRaw).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+    : null;
 
   const exBlocks = exercises.map((e, ei) => {
     const savedEx = activeData?.exercises?.[ei];
@@ -1687,6 +1704,9 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
     // to the positional entry when it is unnamed (legacy data) or the same
     // movement — never borrow a different exercise's history into a swapped slot.
     let prevSets = [];
+    // Per-movement date for the hint. Defaults to the session-level prevDateStr
+    // (same-day match); overridden when we fall back to a cross-program match.
+    let prevSetsDateStr = prevDateStr;
     if (prevSession?.exercises) {
       let prevEx = Object.values(prevSession.exercises).find(ex => ex?.name === displayName);
       if (!prevEx) {
@@ -1698,11 +1718,27 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
       prevSets = (prevEx?.sets || []).filter(s => s && (s.weight || s.reps));
     }
 
+    // Cross-program fallback: if this day's previous session has nothing for the
+    // movement (e.g. the client switched programs / day ids, or it's a brand-new
+    // day), search the movement BY NAME across every logged day & program so the
+    // last weight x reps still appears below the inputs. Skips the current live
+    // key and the already-shown session date to avoid echoing the same data.
+    if (!prevSets.length && typeof _wlLastSetsForMovement === 'function') {
+      const xDate = prevSession?.date || prevSession?._countedDate || prevSession?._lastEdit || '';
+      const found = _wlLastSetsForMovement(cid, displayName, storageKey, xDate);
+      if (found && found.sets.length) {
+        prevSets = found.sets;
+        prevSetsDateStr = found.date
+          ? new Date(found.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+          : null;
+      }
+    }
+
     const setRows = Array.from({length: Math.max(numSets, savedSets.length)}, (_, si) => {
       const s = savedSets[si] || {};
       const prev = prevSets[si];
       const prevHint = (prev && (prev.weight || prev.reps))
-        ? `<div class="wl-prev-hint">Last: ${[prev.weight, prev.reps].filter(Boolean).join(' × ')}${prevDateStr ? ' · ' + prevDateStr : ''}</div>`
+        ? `<div class="wl-prev-hint">Last: ${[prev.weight, prev.reps].filter(Boolean).join(' × ')}${prevSetsDateStr ? ' · ' + prevSetsDateStr : ''}</div>`
         : '';
       // Build any saved drop rows
       const drops = s.drops || [];

@@ -63,6 +63,10 @@ function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
     if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
     data.exercises[exIdx].sets[setIdx][field] = value;
   }
+  // Stamp the day this session was last touched so a session left in the live
+  // key without ever being checked/saved is still recognised as a *previous*
+  // session next time (otherwise its weights x reps never surface as a hint).
+  data._lastEdit = new Date().toDateString();
   saveWlData(cid, dayId, data);
   sbAutoSync(cid);
   // Style input
@@ -158,6 +162,7 @@ function wlUpdateDrop(cid, dayId, exIdx, setIdx, dropIdx, field, value) {
   if (!data.exercises[exIdx].sets[setIdx].drops) data.exercises[exIdx].sets[setIdx].drops = [];
   if (!data.exercises[exIdx].sets[setIdx].drops[dropIdx]) data.exercises[exIdx].sets[setIdx].drops[dropIdx] = {};
   data.exercises[exIdx].sets[setIdx].drops[dropIdx][field] = value;
+  data._lastEdit = new Date().toDateString();
   saveWlData(cid, dayId, data);
   const input = event.target;
   input.classList.toggle('completed', !!value.trim());
@@ -289,6 +294,51 @@ function _wlLastSession(cid, dayId) {
   const saved = getWlData(cid, dayId);
   if (saved?.exercises && Object.keys(saved.exercises).length) return saved;
   return null;
+}
+
+// Most recent logged sets for a MOVEMENT BY NAME, searched across every day and
+// program (all wl_hist_<cid>_* archives + all wl_<cid>_* live keys). This lets
+// "last time" weight x reps follow the movement when the client switches
+// programs / day ids — the per-day prevSession lookup only sees the same day.
+//   excludeKey: the current live key to skip (so today's in-progress session is
+//   never returned as its own "previous").
+//   excludeDate: a session date (ISO/string) to skip, so we don't echo back the
+//   very session already shown by the same-day lookup.
+// Returns { sets, date } of the newest matching session, or null.
+function _wlLastSetsForMovement(cid, exName, excludeKey, excludeDate) {
+  if (!exName) return null;
+  const target = String(exName).trim().toLowerCase();
+  if (!target) return null;
+  let best = null; // { sets, date, ts }
+  const consider = (sessionDate, exercisesObj) => {
+    if (!exercisesObj) return;
+    const dateStr = sessionDate || '';
+    if (excludeDate && dateStr && dateStr === excludeDate) return;
+    const ex = Object.values(exercisesObj).find(e =>
+      e && e.name && String(e.name).trim().toLowerCase() === target);
+    if (!ex) return;
+    const sets = (Array.isArray(ex.sets) ? ex.sets : []).filter(s => s && (s.weight || s.reps));
+    if (!sets.length) return;
+    const ts = dateStr ? new Date(dateStr).getTime() : 0;
+    if (!best || ts > best.ts) best = { sets, date: dateStr, ts: ts || 0 };
+  };
+  try {
+    const histPrefix = 'wl_hist_' + cid + '_';
+    const livePrefix = 'wl_' + cid + '_';
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (k.startsWith(histPrefix)) {
+        const arr = safeJSON(localStorage.getItem(k), []);
+        if (Array.isArray(arr)) arr.forEach(entry => consider(entry?.date || entry?._countedDate || '', entry?.exercises));
+      } else if (k.startsWith(livePrefix) && !k.startsWith(histPrefix)) {
+        if (k === excludeKey) continue;
+        const obj = safeJSON(localStorage.getItem(k), null);
+        if (obj && obj.exercises) consider(obj.savedAt || obj._countedDate || obj._lastEdit || '', obj.exercises);
+      }
+    }
+  } catch (_) {}
+  return best ? { sets: best.sets, date: best.date } : null;
 }
 
 // Flat list of a day's prescribed exercises (across all blocks), in render order.
