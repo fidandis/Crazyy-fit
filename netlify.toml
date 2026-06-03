@@ -38,10 +38,16 @@
   to = "/index.html"
   status = 200
 
-# /pricing → pricing page
+# /pricing → online coaching pricing page
 [[redirects]]
   from = "/pricing"
   to = "/pricing.html"
+  status = 200
+
+# /in-person → in-person training page
+[[redirects]]
+  from = "/in-person"
+  to = "/in-person.html"
   status = 200
 
 # SPA fallback — known app paths get index.html, everything else gets a real 404

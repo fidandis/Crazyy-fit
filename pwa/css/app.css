@@ -951,6 +951,15 @@ button,a,[role=button]{touch-action:manipulation;}
 .signup-pay-btn{width:100%;padding:16px;background:#3B9EFF;color:#000;border:none;border-radius:10px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer;margin-top:16px;transition:opacity .15s;}
 .signup-pay-btn:hover{opacity:.88;}
 .signup-pay-btn:disabled{opacity:.45;cursor:not-allowed;}
+/* Payment options (signup + pricing pages) */
+.pay-options{display:flex;flex-direction:column;gap:10px;}
+.pay-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2,#1c2024);text-decoration:none;transition:border-color .15s,transform .15s,background .15s;}
+.pay-option:hover{border-color:#3B9EFF;transform:translateY(-1px);background:rgba(59,158,255,.06);}
+.pay-option-name{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:1px;color:var(--text);}
+.pay-option-handle{font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted);}
+.pay-venmo:hover .pay-option-name{color:#3D95CE;}
+.pay-cashapp:hover .pay-option-name{color:#00D632;}
+.pay-zelle:hover .pay-option-name{color:#6D1ED4;}
 /* Streak banner */
 .streak-banner{display:flex;align-items:center;gap:10px;margin:0 20px 12px;background:rgba(59,158,255,.07);border:1px solid rgba(59,158,255,.2);border-radius:10px;padding:10px 14px;}
 .streak-fire{font-size:24px;}

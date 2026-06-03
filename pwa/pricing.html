@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Choose Your Blueprint — Crazyy Fit</title>
-  <meta name="description" content="Two ways to work with your coach. Pick the level that fits your life." />
+  <title>Online Coaching — Crazyy Fit</title>
+  <meta name="description" content="Remote coaching built around your schedule. Real programming, real accountability — pick the level that fits your goals." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
@@ -25,7 +25,8 @@
       --accent-dim: #1E6FCC;
       --mono: 'Geist Mono', monospace;
       --sans: 'Geist', sans-serif;
-      --bebas: 'Geist', sans-serif;
+      --display: 'Geist', sans-serif;
+      --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     }
 
     html { scroll-behavior: smooth; }
@@ -43,7 +44,27 @@
       overflow-x: hidden;
       min-height: 100svh;
       -webkit-font-smoothing: antialiased;
+      position: relative;
     }
+
+    /* ── GRAIN OVERLAY ── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── REVEAL (scroll) ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+      transition-delay: calc(var(--i, 0) * 70ms);
+    }
+    .reveal.in-view { opacity: 1; transform: none; }
 
     /* ── NAV ── */
     nav {
@@ -52,16 +73,22 @@
       justify-content: space-between;
       padding: 18px 24px;
       border-bottom: 1px solid var(--border);
+      background: rgba(10,12,14,0.88);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .nav-logo {
-      font-family: var(--bebas); font-weight: 800;
+      font-family: var(--display); font-weight: 800;
       font-size: 24px;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       color: var(--text);
       text-decoration: none;
     }
     .nav-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
     .nav-logo .fit { color: var(--text); }
+    .nav-links { display: flex; gap: 12px; align-items: center; }
     .nav-back {
       font-family: var(--mono);
       font-size: 11px;
@@ -70,13 +97,28 @@
       color: var(--muted);
       text-decoration: none;
       transition: color 0.2s;
+      padding: 9px 0;
     }
     .nav-back:hover { color: var(--text); }
+    .nav-alt {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text);
+      background: transparent;
+      padding: 9px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .nav-alt:hover { border-color: var(--accent); color: var(--accent); }
 
     /* ── HEADER ── */
     .page-header {
       text-align: center;
-      padding: 72px 24px 56px;
+      padding: 72px 24px 44px;
       max-width: 680px;
       margin: 0 auto;
     }
@@ -99,10 +141,10 @@
       background: var(--accent);
     }
     h1 {
-      font-family: var(--bebas); font-weight: 800;
-      font-size: clamp(52px, 10vw, 96px);
+      font-family: var(--display); font-weight: 800;
+      font-size: clamp(52px, 10vw, 92px);
       line-height: 0.93;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       margin-bottom: 20px;
     }
     h1 span { color: var(--accent); }
@@ -115,185 +157,309 @@
       margin: 0 auto;
     }
 
+    /* ── BILLING TOGGLE ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 40px auto 8px;
+    }
+    .toggle-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--faint);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label.active { color: var(--text); }
+    .toggle {
+      width: 48px;
+      height: 26px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.25s, border-color 0.25s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--accent); border-color: var(--accent); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 4px;
+      transition: transform 0.25s;
+    }
+    .toggle.on::after { transform: translateX(21px); }
+    .save-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(59,158,255,0.1);
+      border: 1px solid rgba(59,158,255,0.25);
+      padding: 4px 9px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .save-badge.show { opacity: 1; }
+
     /* ── CARDS ── */
     .cards-wrap {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 24px 80px;
+      max-width: 960px;
+      margin: 32px auto 0;
+      padding: 0 24px 24px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .cards-wrap { grid-template-columns: 1fr; max-width: 460px; }
     }
 
     .tier-card {
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 48px 36px 40px;
+      padding: 40px 30px 36px;
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: border-color 0.2s;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.25s, background 0.2s;
     }
-    .tier-card:hover { border-color: rgba(255,255,255,0.14); }
+    .tier-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .tier-card:hover::before { transform: scaleX(1); }
+    .tier-card:hover { border-color: rgba(255,255,255,0.14); transform: translateY(-4px); }
     .tier-card.featured {
       border-color: var(--accent);
-      background: var(--bg3);
+      background: linear-gradient(165deg, #102134 0%, var(--bg2) 55%);
     }
+    .tier-card.featured::before { transform: scaleX(1); background: linear-gradient(90deg, transparent, var(--accent), transparent); }
     .featured-badge {
       position: absolute;
-      top: -11px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 18px;
+      right: 18px;
       font-family: var(--mono);
       font-size: 9px;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       background: var(--accent);
-      color: var(--bg);
+      color: #fff;
       font-weight: 600;
-      padding: 5px 16px;
-      border-radius: 100px;
+      padding: 4px 10px;
+      border-radius: 8px;
       white-space: nowrap;
     }
 
-    .tier-icon {
-      font-size: 36px;
-      margin-bottom: 24px;
-      display: block;
-    }
-    .tier-mode {
+    .tier-num {
       font-family: var(--mono);
       font-size: 10px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--faint);
       margin-bottom: 10px;
     }
     .tier-name {
-      font-family: var(--bebas); font-weight: 800;
-      font-size: 52px;
-      letter-spacing: 1px;
+      font-family: var(--display); font-weight: 800;
+      font-size: 40px;
+      letter-spacing: 0.5px;
       line-height: 1;
       color: var(--text);
       margin-bottom: 10px;
     }
     .tier-tagline {
-      font-size: 15px;
+      font-size: 14px;
       color: var(--muted);
       font-weight: 300;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
       line-height: 1.6;
+      min-height: 66px;
     }
 
     .tier-price {
-      margin-bottom: 32px;
-      padding-bottom: 32px;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      margin-bottom: 28px;
+      padding-bottom: 28px;
       border-bottom: 1px solid var(--border);
     }
+    .price-currency {
+      font-family: var(--mono);
+      font-size: 18px;
+      color: var(--accent);
+      padding-bottom: 12px;
+    }
     .price-amount {
-      font-family: var(--bebas); font-weight: 800;
-      font-size: 72px;
+      font-family: var(--display); font-weight: 800;
+      font-size: 64px;
       line-height: 1;
       color: var(--text);
-      letter-spacing: 1px;
-    }
-    .price-amount sup {
-      font-size: 32px;
-      vertical-align: top;
-      margin-top: 10px;
-      display: inline-block;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
     }
     .price-period {
       font-family: var(--mono);
       font-size: 11px;
-      letter-spacing: 1.5px;
+      letter-spacing: 1px;
       text-transform: uppercase;
       color: var(--muted);
-      margin-top: 6px;
+      padding-bottom: 10px;
     }
 
     .tier-includes {
       list-style: none;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
     }
     .tier-includes li {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: 11px;
       font-size: 14px;
-      color: var(--muted);
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text);
       font-weight: 300;
-      line-height: 1.4;
+      line-height: 1.45;
     }
-    .tier-includes li:last-child { border-bottom: none; }
     .tier-includes li .chk {
-      font-size: 12px;
-      color: var(--accent);
+      width: 17px;
+      height: 17px;
       flex-shrink: 0;
       margin-top: 1px;
+      color: var(--accent);
     }
-    .tier-includes li.included { color: var(--text); }
+    .tier-includes li.muted { color: var(--faint); }
+    .tier-includes li.muted .chk { color: var(--border); }
 
     .tier-cta {
       display: block;
       text-align: center;
+      width: 100%;
       font-family: var(--mono);
       font-size: 12px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      padding: 17px 24px;
+      padding: 16px 24px;
       border-radius: 12px;
       text-decoration: none;
       transition: all 0.2s;
       border: 1px solid var(--border);
       color: var(--muted);
       background: transparent;
+      cursor: pointer;
     }
     .tier-cta:hover { border-color: var(--text); color: var(--text); }
     .tier-cta.primary {
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+      box-shadow: 0 4px 24px rgba(59,158,255,0.28);
     }
-    .tier-cta.primary:hover { background: var(--accent2); border-color: var(--accent2); transform: translateY(-1px); }
+    .tier-cta.primary:hover { background: var(--accent2); border-color: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 32px rgba(59,158,255,0.42); }
 
-    /* ── COMPARE NOTE ── */
-    .compare-note {
+    .footer-note-inline {
       text-align: center;
-      padding: 0 24px 72px;
       max-width: 640px;
       margin: 0 auto;
-    }
-    .compare-note p {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 1px;
+      padding: 8px 24px 8px;
+      font-size: 13px;
       color: var(--muted);
-      line-height: 1.9;
+      font-weight: 300;
     }
-    .compare-note p strong { color: var(--text); font-weight: 500; }
+    .footer-note-inline span { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+
+    /* ── COMPARE TABLE ── */
+    .compare {
+      max-width: 960px;
+      margin: 64px auto 0;
+      padding: 0 24px;
+    }
+    .compare-title {
+      font-family: var(--display); font-weight: 800;
+      font-size: clamp(28px, 5vw, 40px);
+      letter-spacing: 0.5px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .compare-title span { color: var(--accent); }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 560px;
+    }
+    thead th {
+      padding: 14px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th.highlight { color: var(--accent); }
+    tbody tr {
+      border-bottom: 1px solid var(--line-soft);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody td {
+      padding: 13px 16px;
+      color: var(--text);
+      font-weight: 300;
+    }
+    tbody td:first-child { color: var(--muted); }
+    tbody td .chk { width: 15px; height: 15px; color: var(--accent); vertical-align: -2px; }
+    tbody td .cross { color: var(--faint); font-size: 15px; }
+    tbody td.highlight-col { background: rgba(59,158,255,0.05); }
+    tbody td.price-cell { font-family: var(--mono); }
+    tbody td.price-cell.highlight-col { color: var(--accent); font-weight: 600; }
 
     /* ── FAQ ── */
     .faq-wrap {
       border-top: 1px solid var(--border);
+      margin-top: 72px;
       padding: 64px 24px 80px;
       max-width: 680px;
-      margin: 0 auto;
+      margin-left: auto;
+      margin-right: auto;
     }
     .faq-title {
-      font-family: var(--bebas); font-weight: 800;
+      font-family: var(--display); font-weight: 800;
       font-size: 36px;
-      letter-spacing: 1px;
-      margin-bottom: 32px;
+      letter-spacing: 0.5px;
+      margin-bottom: 28px;
     }
-    .faq-item {
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-    }
+    .faq-item { padding: 20px 0; border-bottom: 1px solid var(--border); }
     .faq-q {
       font-family: var(--mono);
       font-size: 12px;
@@ -302,12 +468,7 @@
       text-transform: uppercase;
       margin-bottom: 10px;
     }
-    .faq-a {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-      font-weight: 300;
-    }
+    .faq-a { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 300; }
 
     /* ── FOOTER ── */
     footer {
@@ -316,9 +477,9 @@
       text-align: center;
     }
     .footer-logo {
-      font-family: var(--bebas); font-weight: 800;
+      font-family: var(--display); font-weight: 800;
       font-size: 20px;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       margin-bottom: 8px;
     }
     .footer-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
@@ -333,98 +494,331 @@
 
     @media (max-width: 600px) {
       nav { padding: 14px 16px; }
-      .cards-wrap { padding: 0 0 64px; gap: 0; }
-      .tier-card { border-left: none; border-right: none; border-radius: 0; padding: 40px 24px 36px; }
+      .tier-tagline { min-height: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+    }
+
+    /* ── PAYMENT POPUP ── */
+    .pay-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(5,7,9,0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .pay-overlay.open { display: flex; opacity: 1; }
+    .pay-modal {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      position: relative;
+      transform: translateY(12px);
+      transition: transform 0.25s var(--ease);
+    }
+    .pay-overlay.open .pay-modal { transform: none; }
+    .pay-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .pay-close:hover { border-color: var(--text); color: var(--text); }
+    .pay-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .pay-title {
+      font-family: var(--display); font-weight: 800;
+      font-size: 30px;
+      letter-spacing: 0.5px;
+      line-height: 1.05;
+      margin-bottom: 6px;
+    }
+    .pay-plan {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .pay-plan span { color: var(--accent); }
+    .pay-options { display: flex; flex-direction: column; gap: 10px; }
+    .pay-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg3);
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    }
+    .pay-option:hover { border-color: var(--accent); transform: translateY(-1px); background: rgba(59,158,255,0.06); }
+    .pay-option-name {
+      font-family: var(--display); font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+    .pay-option-handle { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .pay-venmo:hover .pay-option-name { color: #3D95CE; }
+    .pay-cashapp:hover .pay-option-name { color: #00D632; }
+    .pay-zelle:hover .pay-option-name { color: #8254e5; }
+    .pay-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--faint);
+      text-align: center;
+      line-height: 1.7;
+      margin-top: 18px;
     }
   </style>
 </head>
 <body>
 
+  <div class="grain" aria-hidden="true"></div>
+
   <nav>
     <a href="/landing.html" class="nav-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></a>
-    <a href="/landing.html" class="nav-back">← Back</a>
+    <div class="nav-links">
+      <a href="/in-person.html" class="nav-alt">In-Person</a>
+      <a href="/landing.html" class="nav-back">← Back</a>
+    </div>
   </nav>
 
   <div class="page-header">
-    <div class="page-tag">Buy Your Blueprint</div>
-    <h1>TWO WAYS TO<br><span>GET RESULTS.</span></h1>
-    <p class="page-sub">Access to a real coach-built program, or full transformation coaching. Same app — different levels of commitment.</p>
+    <div class="page-tag">Online Coaching</div>
+    <h1>CHOOSE YOUR<br><span>LEVEL.</span></h1>
+    <p class="page-sub">Remote coaching built around your schedule. Real programming, real accountability — no gym required.</p>
+
+    <div class="toggle-wrap">
+      <span class="toggle-label active" id="label-mo" onclick="setBilling(false)">Monthly</span>
+      <div class="toggle" id="toggle" role="switch" aria-checked="false" tabindex="0" onclick="switchBilling()"></div>
+      <span class="toggle-label" id="label-yr" onclick="setBilling(true)">Annual</span>
+      <span class="save-badge" id="save-badge">Save 17%</span>
+    </div>
   </div>
 
   <div class="cards-wrap">
 
-    <!-- TIER 1: CRAZYY BLUEPRINT -->
-    <div class="tier-card">
-      <span class="tier-icon">⚡</span>
-      <div class="tier-mode">Program Access</div>
-      <div class="tier-name">Crazyy Blueprint</div>
-      <p class="tier-tagline">A coach-built program delivered through the app. Follow it, log it, and let the system keep you accountable.</p>
+    <!-- TIER 1: STARTER -->
+    <div class="tier-card reveal">
+      <div class="tier-num">Tier 01</div>
+      <div class="tier-name">Starter</div>
+      <p class="tier-tagline">Custom programming and async check-ins. Best for self-starters who need a real plan.</p>
       <div class="tier-price">
-        <div class="price-amount"><sup>$</sup>50</div>
-        <div class="price-period">Per month</div>
+        <span class="price-currency">$</span>
+        <span class="price-amount" id="price-1">99</span>
+        <span class="price-period">/mo</span>
       </div>
       <ul class="tier-includes">
-        <li class="included"><span class="chk">✓</span> Full app access (install on any device)</li>
-        <li class="included"><span class="chk">✓</span> Coach-assigned training program</li>
-        <li class="included"><span class="chk">✓</span> Macro targets set to your goals</li>
-        <li class="included"><span class="chk">✓</span> Workout logger + exercise history</li>
-        <li class="included"><span class="chk">✓</span> Progress tracking + milestone badges</li>
-        <li class="included"><span class="chk">✓</span> XP leveling system</li>
-        <li class="included"><span class="chk">✓</span> Tabata timer + endurance tools</li>
+        <li><span class="chk">&check;</span> Custom monthly training program</li>
+        <li><span class="chk">&check;</span> Full CrazyyFit app access</li>
+        <li><span class="chk">&check;</span> Bi-weekly progress check-in (text)</li>
+        <li><span class="chk">&check;</span> Workout logging &amp; tracking</li>
+        <li><span class="chk">&check;</span> Onboarding assessment</li>
+        <li class="muted"><span class="chk">&times;</span> Nutrition coaching</li>
+        <li class="muted"><span class="chk">&times;</span> Live video calls</li>
       </ul>
-      <a href="https://buy.stripe.com/3cIeVe5r702Vd8H28G3oA00" class="tier-cta">Get The Blueprint</a>
+      <button type="button" class="tier-cta" onclick="openPay('Starter — $99/mo')">Get Started</button>
     </div>
 
-    <!-- TIER 2: TRANSFORMATION -->
-    <div class="tier-card featured">
-      <div class="featured-badge">Full Coaching</div>
-      <span class="tier-icon">🔥</span>
-      <div class="tier-mode">Complete Package</div>
-      <div class="tier-name">Transformation</div>
-      <p class="tier-tagline">Your coach is actively watching everything — check-ins, program adjustments, direct messaging, and full accountability.</p>
+    <!-- TIER 2: PRO (FEATURED) -->
+    <div class="tier-card featured reveal">
+      <span class="featured-badge">Most Popular</span>
+      <div class="tier-num">Tier 02</div>
+      <div class="tier-name">Pro</div>
+      <p class="tier-tagline">The full coaching experience. Programming, nutrition, and weekly video calls.</p>
       <div class="tier-price">
-        <div class="price-amount"><sup>$</sup>350</div>
-        <div class="price-period">Per month</div>
+        <span class="price-currency">$</span>
+        <span class="price-amount" id="price-2">249</span>
+        <span class="price-period">/mo</span>
       </div>
       <ul class="tier-includes">
-        <li class="included"><span class="chk">✓</span> Everything in Crazyy Blueprint</li>
-        <li class="included"><span class="chk">✓</span> Weekly check-in reviews by your coach</li>
-        <li class="included"><span class="chk">✓</span> Program adjusted as you progress</li>
-        <li class="included"><span class="chk">✓</span> Direct coach messaging inside the app</li>
-        <li class="included"><span class="chk">✓</span> Adherence and consistency monitoring</li>
-        <li class="included"><span class="chk">✓</span> Nutrition coaching + macro adjustments</li>
-        <li class="included"><span class="chk">✓</span> Progress photo comparisons + feedback</li>
-        <li class="included"><span class="chk">✓</span> Priority response from your coach</li>
+        <li><span class="chk">&check;</span> Custom weekly training program</li>
+        <li><span class="chk">&check;</span> Weekly check-in call (30 min)</li>
+        <li><span class="chk">&check;</span> Macro &amp; nutrition coaching</li>
+        <li><span class="chk">&check;</span> Form review via video</li>
+        <li><span class="chk">&check;</span> Monthly progress report + photos</li>
+        <li><span class="chk">&check;</span> Peptide &amp; anabolic guidance</li>
+        <li><span class="chk">&check;</span> Bloodwork interpretation</li>
+        <li><span class="chk">&check;</span> Hormone optimization</li>
       </ul>
-      <a href="https://buy.stripe.com/5kQcN6f1HbLD7On5kS3oA01" class="tier-cta primary">Start Your Transformation</a>
+      <button type="button" class="tier-cta primary" onclick="openPay('Pro — $249/mo')">Get Started</button>
+    </div>
+
+    <!-- TIER 3: ELITE -->
+    <div class="tier-card reveal">
+      <div class="tier-num">Tier 03</div>
+      <div class="tier-name">Elite</div>
+      <p class="tier-tagline">Full-access, high-touch coaching for serious athletes and competitive goals.</p>
+      <div class="tier-price">
+        <span class="price-currency">$</span>
+        <span class="price-amount" id="price-3">449</span>
+        <span class="price-period">/mo</span>
+      </div>
+      <ul class="tier-includes">
+        <li><span class="chk">&check;</span> Everything in Pro</li>
+        <li><span class="chk">&check;</span> 2&times; weekly calls (30 min each)</li>
+        <li><span class="chk">&check;</span> Full meal plan (not just macros)</li>
+        <li><span class="chk">&check;</span> Supplement recommendations</li>
+        <li><span class="chk">&check;</span> Periodized 12-week roadmap</li>
+        <li><span class="chk">&check;</span> 1:1 kickoff strategy call (60 min)</li>
+        <li><span class="chk">&check;</span> Limited spots (max 5 clients)</li>
+      </ul>
+      <button type="button" class="tier-cta" onclick="openPay('Elite — $449/mo')">Apply Now</button>
     </div>
 
   </div>
 
-  <div class="compare-note">
-    <p>
-      <strong>Not sure?</strong> The Blueprint gets you a real program and the tools to execute it.<br>
-      Transformation is for people who want their coach in their corner every single week.
-    </p>
+  <p class="footer-note-inline">
+    All plans are <span>month-to-month</span>. No contracts. Cancel anytime.
+  </p>
+
+  <!-- COMPARE TABLE -->
+  <div class="compare reveal">
+    <div class="compare-title">FULL <span>COMPARISON</span></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Starter</th>
+            <th class="highlight">Pro</th>
+            <th>Elite</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Custom training program</td>
+            <td>Monthly</td>
+            <td class="highlight-col">Weekly</td>
+            <td>Weekly + adjusted</td>
+          </tr>
+          <tr>
+            <td>CrazyyFit app access</td>
+            <td><span class="chk">&check;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Progress check-ins</td>
+            <td>Bi-weekly (text)</td>
+            <td class="highlight-col">Weekly (video)</td>
+            <td>2&times; weekly (video)</td>
+          </tr>
+          <tr>
+            <td>Nutrition / macros</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col">Macros</td>
+            <td>Full meal plan</td>
+          </tr>
+          <tr>
+            <td>Form video review</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Supplement guidance</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Peptide &amp; anabolic guidance</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Bloodwork interpretation</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Hormone optimization</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="chk">&check;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>1:1 kickoff strategy call</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="cross">&times;</span></td>
+            <td>60 min</td>
+          </tr>
+          <tr>
+            <td>12-week roadmap</td>
+            <td><span class="cross">&times;</span></td>
+            <td class="highlight-col"><span class="cross">&times;</span></td>
+            <td><span class="chk">&check;</span></td>
+          </tr>
+          <tr>
+            <td>Client cap</td>
+            <td>Open</td>
+            <td class="highlight-col">Open</td>
+            <td>5 clients max</td>
+          </tr>
+          <tr>
+            <td>Monthly price</td>
+            <td class="price-cell">$99</td>
+            <td class="price-cell highlight-col">$249</td>
+            <td class="price-cell">$449</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div class="faq-wrap">
     <div class="faq-title">COMMON QUESTIONS</div>
     <div class="faq-item">
-      <div class="faq-q">What happens after I buy?</div>
-      <p class="faq-a">Your coach sets up your profile and sends your app PIN within 24 hours. You'll be ready to log your first session same day.</p>
+      <div class="faq-q">What happens after I sign up?</div>
+      <p class="faq-a">Your coach sets up your profile and sends your app PIN within 24 hours. You'll complete your onboarding assessment and be ready to log your first session same day.</p>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is there a contract?</div>
-      <p class="faq-a">No lock-in. Both plans are monthly. We'd rather earn your commitment through results than a contract.</p>
+      <p class="faq-a">No lock-in. Every plan is month-to-month. We'd rather earn your commitment through results than a contract.</p>
     </div>
     <div class="faq-item">
-      <div class="faq-q">Can I upgrade from Blueprint to Transformation?</div>
-      <p class="faq-a">Yes — at any time. Your program, logs, and progress carry over. You just get more of your coach's time and attention.</p>
+      <div class="faq-q">Can I upgrade tiers later?</div>
+      <p class="faq-a">Yes — at any time. Your program, logs, and progress carry over. You just unlock more of your coach's time and attention.</p>
     </div>
     <div class="faq-item">
       <div class="faq-q">Do I need to download an app?</div>
-      <p class="faq-a">No App Store needed. The app installs directly from your browser on iPhone, Android, or desktop.</p>
+      <p class="faq-a">No App Store needed. CrazyyFit installs directly from your browser on iPhone, Android, or desktop.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Prefer to train in person?</div>
+      <p class="faq-a"><a href="/in-person.html" style="color:var(--accent);text-decoration:none">See in-person rates →</a> One-on-one sessions on O'ahu, HI.</p>
     </div>
     <div class="faq-item">
       <div class="faq-q">Already have a PIN from your coach?</div>
@@ -436,6 +830,104 @@
     <div class="footer-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></div>
     <div class="footer-note">Real coaching. Real accountability. Real results.</div>
   </footer>
+
+  <!-- PAYMENT POPUP -->
+  <div class="pay-overlay" id="payOverlay" onclick="if(event.target===this)closePay()">
+    <div class="pay-modal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+      <button class="pay-close" onclick="closePay()" aria-label="Close">&times;</button>
+      <div class="pay-tag">Reserve Your Spot</div>
+      <div class="pay-title" id="payTitle">Send Payment</div>
+      <div class="pay-plan" id="payPlan"></div>
+      <div class="pay-options">
+        <a class="pay-option pay-venmo" href="https://venmo.com/u/Fidandiss" target="_blank" rel="noopener">
+          <span class="pay-option-name">Venmo</span>
+          <span class="pay-option-handle">@Fidandiss</span>
+        </a>
+        <a class="pay-option pay-cashapp" href="https://cash.app/$Fidandiss" target="_blank" rel="noopener">
+          <span class="pay-option-name">Cash App</span>
+          <span class="pay-option-handle">$Fidandiss</span>
+        </a>
+        <a class="pay-option pay-zelle" id="payZelle" href="mailto:acsnick16@gmail.com?subject=Zelle%20payment%20%E2%80%94%20CrazyyFit">
+          <span class="pay-option-name">Zelle</span>
+          <span class="pay-option-handle">Contact to arrange &rarr;</span>
+        </a>
+      </div>
+      <div class="pay-note">Prefer Zelle? Email your coach and they'll send details.<br>Your coach confirms your spot once payment lands.</div>
+    </div>
+  </div>
+
+  <script>
+    // Payment popup
+    function openPay(planLabel) {
+      var overlay = document.getElementById('payOverlay');
+      document.getElementById('payPlan').innerHTML = planLabel ? 'Plan: <span>' + planLabel + '</span>' : '';
+      var subject = 'Zelle payment — CrazyyFit' + (planLabel ? ' (' + planLabel + ')' : '');
+      document.getElementById('payZelle').href = 'mailto:acsnick16@gmail.com?subject=' + encodeURIComponent(subject);
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closePay() {
+      document.getElementById('payOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePay(); });
+
+    var monthly = { 1: 99, 2: 249, 3: 449 };
+    var annual  = { 1: 83, 2: 208, 3: 374 };
+    var isAnnual = false;
+
+    function setBilling(annualOn) {
+      if (isAnnual === annualOn) return;
+      switchBilling();
+    }
+
+    function switchBilling() {
+      isAnnual = !isAnnual;
+      var toggle = document.getElementById('toggle');
+      toggle.classList.toggle('on', isAnnual);
+      toggle.setAttribute('aria-checked', String(isAnnual));
+      document.getElementById('save-badge').classList.toggle('show', isAnnual);
+      document.getElementById('label-mo').classList.toggle('active', !isAnnual);
+      document.getElementById('label-yr').classList.toggle('active', isAnnual);
+
+      var prices = isAnnual ? annual : monthly;
+      for (var i = 1; i <= 3; i++) {
+        (function (n) {
+          var el = document.getElementById('price-' + n);
+          el.style.opacity = 0;
+          setTimeout(function () {
+            el.textContent = prices[n];
+            el.style.opacity = 1;
+          }, 150);
+        })(i);
+      }
+    }
+
+    document.getElementById('toggle').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchBilling(); }
+    });
+
+    // Reveal on scroll
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var items = document.querySelectorAll('.reveal');
+      if (reduce || !('IntersectionObserver' in window)) {
+        items.forEach(function (el) { el.classList.add('in-view'); });
+        return;
+      }
+      document.querySelectorAll('.cards-wrap').forEach(function (grp) {
+        Array.prototype.forEach.call(grp.children, function (c, i) {
+          if (c.classList.contains('reveal')) c.style.setProperty('--i', i % 6);
+        });
+      });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+      items.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
 
 </body>
 </html>

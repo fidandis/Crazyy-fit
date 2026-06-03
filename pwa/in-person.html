@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>In-Person Training — Crazyy Fit</title>
+  <meta name="description" content="One-on-one training with Nick on O'ahu, HI. Choose how often you want to show up." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c0e;
+      --bg2: #131619;
+      --bg3: #1c2024;
+      --border: #262b30;
+      --line-soft: #1e2226;
+      --text: #f4f5f6;
+      --muted: #a1a8b0;
+      --faint: #5a6168;
+      --accent: #3B9EFF;
+      --accent2: #5AAEFF;
+      --accent-dim: #1E6FCC;
+      --green: #2DD4A0;
+      --green-dim: rgba(45,212,160,0.10);
+      --mono: 'Geist Mono', monospace;
+      --sans: 'Geist', sans-serif;
+      --display: 'Geist', sans-serif;
+      --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(at 80% 0%, rgba(59,158,255,0.07) 0%, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(255,77,46,0.03) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100svh;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── REVEAL (scroll) ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+      transition-delay: calc(var(--i, 0) * 60ms);
+    }
+    .reveal.in-view { opacity: 1; transform: none; }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,12,14,0.88);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-family: var(--display); font-weight: 800;
+      font-size: 24px;
+      letter-spacing: 1px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .nav-logo .fit { color: var(--text); }
+    .nav-links { display: flex; gap: 12px; align-items: center; }
+    .nav-back {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      padding: 9px 0;
+    }
+    .nav-back:hover { color: var(--text); }
+    .nav-alt {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text);
+      background: transparent;
+      padding: 9px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .nav-alt:hover { border-color: var(--accent); color: var(--accent); }
+
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── HEADER ── */
+    .page-header {
+      text-align: center;
+      padding: 72px 24px 48px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .page-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .page-tag::before, .page-tag::after {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+    }
+    h1 {
+      font-family: var(--display); font-weight: 800;
+      font-size: clamp(52px, 10vw, 88px);
+      line-height: 0.93;
+      letter-spacing: 0.5px;
+      margin-bottom: 18px;
+    }
+    h1 span { color: var(--accent); }
+    .page-sub {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .location {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 7px 15px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .location-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── FREQUENCY GRID ── */
+    .freq-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 700px) { .freq-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .freq-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px 18px 22px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    }
+    .freq-card:hover { border-color: rgba(59,158,255,0.35); transform: translateY(-3px); }
+    .freq-card.active {
+      border-color: var(--accent);
+      background: linear-gradient(165deg, #102134 0%, var(--bg2) 60%);
+    }
+    .freq-card.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    .freq-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 10px;
+    }
+    .freq-card.active .freq-badge { color: var(--accent); }
+    .freq-sessions {
+      font-family: var(--display); font-weight: 800;
+      font-size: 48px;
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+    .freq-label { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 14px; font-weight: 300; }
+    .freq-divider { height: 1px; background: var(--border); margin-bottom: 14px; }
+    .freq-rate { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .freq-rate strong { color: var(--accent); font-size: 15px; }
+    .best-value {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: var(--green);
+      color: #05140e;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* ── DETAIL PANEL ── */
+    .detail-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 40px 44px;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 600px) { .detail-panel { padding: 28px 22px 32px; } }
+
+    .panel-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .panel-freq-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .panel-title {
+      font-family: var(--display); font-weight: 800;
+      font-size: 38px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      line-height: 1;
+    }
+    .panel-subtitle { font-size: 13px; color: var(--muted); margin-top: 8px; font-weight: 300; }
+    .panel-right { text-align: right; }
+    .panel-price-row { display: flex; align-items: flex-end; gap: 3px; justify-content: flex-end; }
+    .panel-currency { font-family: var(--mono); font-size: 16px; color: var(--accent); padding-bottom: 10px; }
+    .panel-amount {
+      font-family: var(--display); font-weight: 800;
+      font-size: 68px;
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
+    }
+    .panel-period { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; padding-bottom: 12px; }
+    .panel-per-session { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .panel-per-session span { color: var(--green); }
+    .savings-pill {
+      display: inline-block;
+      margin-top: 8px;
+      background: var(--green-dim);
+      border: 1px solid rgba(45,212,160,0.25);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .savings-pill.show { opacity: 1; }
+
+    /* ── FEATURES ROW ── */
+    .features-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 600px) { .features-row { grid-template-columns: 1fr; gap: 14px; } }
+    .feature-item { display: flex; align-items: flex-start; gap: 12px; }
+    .feature-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      background: rgba(59,158,255,0.1);
+      border: 1px solid rgba(59,158,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+    .feature-icon svg { width: 17px; height: 17px; }
+    .feature-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.45; font-weight: 300; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+
+    /* ── WHATS INCLUDED ── */
+    .included-section { margin-bottom: 56px; }
+    .included-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 500px) { .included-grid { grid-template-columns: 1fr; } }
+    .included-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 300;
+      transition: border-color 0.2s;
+    }
+    .included-item:hover { border-color: rgba(255,255,255,0.12); }
+    .included-item svg { color: var(--accent); flex-shrink: 0; width: 16px; height: 16px; }
+
+    /* ── RATE TABLE ── */
+    .rate-section { margin-bottom: 8px; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .rate-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 560px;
+    }
+    .rate-table thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .rate-table thead th:not(:first-child) { text-align: center; }
+    .rate-table tbody tr {
+      border-bottom: 1px solid var(--line-soft);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .rate-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .rate-table tbody tr.active-row { background: rgba(59,158,255,0.06); }
+    .rate-table tbody td { padding: 14px 16px; color: var(--text); font-weight: 300; }
+    .rate-table tbody td:not(:first-child) { text-align: center; }
+    .rate-table tbody td:first-child { font-weight: 500; }
+    .rate-table .highlight { color: var(--accent); font-weight: 600; font-family: var(--mono); }
+    .rate-table .savings { color: var(--green); font-family: var(--mono); font-size: 11px; }
+    .rate-table .muted-cell { color: var(--faint); }
+    .active-row td:first-child::before { content: '▶ '; color: var(--accent); font-size: 9px; }
+
+    /* ── CTA ── */
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+    .cta {
+      padding: 16px 30px;
+      border-radius: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .cta-solid {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(59,158,255,0.28);
+    }
+    .cta-solid:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 32px rgba(59,158,255,0.42); }
+    .cta-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .cta-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── FOOTER ── */
+    .footer-note {
+      text-align: center;
+      margin-top: 56px;
+      padding: 0 24px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+      font-weight: 300;
+    }
+    .footer-note span { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: var(--display); font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .footer-logo .yy { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.03em; }
+    .footer-logo .fit { color: var(--text); }
+    .footer-brand {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--border);
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 600px) { nav { padding: 14px 16px; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .location-dot { animation: none !important; }
+    }
+
+    /* ── PAYMENT POPUP ── */
+    .pay-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(5,7,9,0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .pay-overlay.open { display: flex; opacity: 1; }
+    .pay-modal {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px 28px;
+      position: relative;
+      transform: translateY(12px);
+      transition: transform 0.25s var(--ease);
+    }
+    .pay-overlay.open .pay-modal { transform: none; }
+    .pay-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .pay-close:hover { border-color: var(--text); color: var(--text); }
+    .pay-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .pay-title {
+      font-family: var(--display); font-weight: 800;
+      font-size: 30px;
+      letter-spacing: 0.5px;
+      line-height: 1.05;
+      margin-bottom: 6px;
+    }
+    .pay-plan {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .pay-plan span { color: var(--accent); }
+    .pay-options { display: flex; flex-direction: column; gap: 10px; }
+    .pay-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg3);
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    }
+    .pay-option:hover { border-color: var(--accent); transform: translateY(-1px); background: rgba(59,158,255,0.06); }
+    .pay-option-name {
+      font-family: var(--display); font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+    .pay-option-handle { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .pay-venmo:hover .pay-option-name { color: #3D95CE; }
+    .pay-cashapp:hover .pay-option-name { color: #00D632; }
+    .pay-zelle:hover .pay-option-name { color: #8254e5; }
+    .pay-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--faint);
+      text-align: center;
+      line-height: 1.7;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <nav>
+    <a href="/landing.html" class="nav-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></a>
+    <div class="nav-links">
+      <a href="/pricing.html" class="nav-alt">Online Coaching</a>
+      <a href="/landing.html" class="nav-back">← Back</a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-tag">In-Person Training</div>
+    <h1>TRAIN WITH<br><span>NICK.</span></h1>
+    <p class="page-sub">One-on-one sessions on O'ahu, HI. Choose how often you want to show up.</p>
+    <div class="location">
+      <span class="location-dot"></span>
+      O'ahu, HI
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- FREQUENCY SELECTOR -->
+    <div class="freq-grid">
+      <div class="freq-card" onclick="selectFreq(0)">
+        <div class="freq-badge">Per Session</div>
+        <div class="freq-sessions">1</div>
+        <div class="freq-label">session / week</div>
+        <div class="freq-divider"></div>
+        <div class="freq-rate"><strong>$85</strong> / session</div>
+      </div>
+      <div class="freq-card active" onclick="selectFreq(1)">
+        <div class="freq-badge">2&times; / Week</div>
+        <div class="freq-sessions">2</div>
+        <div class="freq-label">sessions / week</div>
+        <div class="freq-divider"></div>
+        <div class="freq-rate"><strong>$75</strong> / session</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(2)">
+        <div class="freq-badge">3&times; / Week</div>
+        <div class="freq-sessions">3</div>
+        <div class="freq-label">sessions / week</div>
+        <div class="freq-divider"></div>
+        <div class="freq-rate"><strong>$70</strong> / session</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(3)">
+        <span class="best-value">Best Value</span>
+        <div class="freq-badge">5&times; / Week</div>
+        <div class="freq-sessions">5</div>
+        <div class="freq-label">sessions / week</div>
+        <div class="freq-divider"></div>
+        <div class="freq-rate"><strong>$60</strong> / session</div>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel">
+      <div class="panel-top">
+        <div class="panel-left">
+          <div class="panel-freq-label" id="panel-freq-label">2&times; per week</div>
+          <div class="panel-title" id="panel-title">8 Sessions / Mo</div>
+          <div class="panel-subtitle" id="panel-subtitle">Ideal for steady progress and habit building</div>
+        </div>
+        <div class="panel-right">
+          <div class="panel-price-row">
+            <span class="panel-currency">$</span>
+            <span class="panel-amount" id="panel-amount">600</span>
+            <span class="panel-period">/mo</span>
+          </div>
+          <div class="panel-per-session" id="per-session-text"><span>$75</span> per session</div>
+          <div class="savings-pill show" id="savings-pill">Save $80/mo vs drop-in</div>
+        </div>
+      </div>
+
+      <div class="features-row">
+        <div class="feature-item">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9v6M3 10v4M18 9v6M21 10v4M6 12h12"/></svg></div>
+          <div class="feature-text">
+            <div class="feature-title">Custom Programming</div>
+            <div class="feature-desc">Each session built around your goals</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5v14h14"/><path d="M9 19v-5M13 19v-9M17 19v-12"/></svg></div>
+          <div class="feature-text">
+            <div class="feature-title">Progress Tracking</div>
+            <div class="feature-desc">Logged in CrazyyFit app every session</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div class="feature-text">
+            <div class="feature-title">Flexible Scheduling</div>
+            <div class="feature-desc">Reschedule up to 24 hrs in advance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHATS INCLUDED -->
+    <div class="included-section">
+      <div class="section-label">Every Plan Includes</div>
+      <div class="included-grid">
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Initial fitness assessment
+        </div>
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Body composition tracking
+        </div>
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Macro targets via CrazyyFit app
+        </div>
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Form coaching &amp; injury prevention
+        </div>
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Monthly check-in &amp; program adjustment
+        </div>
+        <div class="included-item">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          Full CrazyyFit app access
+        </div>
+      </div>
+    </div>
+
+    <!-- RATE TABLE -->
+    <div class="rate-section">
+      <div class="section-label">Full Rate Breakdown</div>
+      <div class="table-scroll">
+        <table class="rate-table">
+          <thead>
+            <tr>
+              <th>Frequency</th>
+              <th>Sessions / Mo</th>
+              <th>Rate / Session</th>
+              <th>Monthly Total</th>
+              <th>Savings vs Drop-in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="selectFreq(0)" id="row-0">
+              <td>1&times; per week</td>
+              <td>4</td>
+              <td class="highlight">$85</td>
+              <td>$340</td>
+              <td class="muted-cell">—</td>
+            </tr>
+            <tr onclick="selectFreq(1)" id="row-1" class="active-row">
+              <td>2&times; per week</td>
+              <td>8</td>
+              <td class="highlight">$75</td>
+              <td>$600</td>
+              <td class="savings">Save $80/mo</td>
+            </tr>
+            <tr onclick="selectFreq(2)" id="row-2">
+              <td>3&times; per week</td>
+              <td>12</td>
+              <td class="highlight">$70</td>
+              <td>$840</td>
+              <td class="savings">Save $180/mo</td>
+            </tr>
+            <tr onclick="selectFreq(3)" id="row-3">
+              <td>5&times; per week</td>
+              <td>20</td>
+              <td class="highlight">$60</td>
+              <td>$1,200</td>
+              <td class="savings">Save $500/mo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row">
+      <button type="button" class="cta cta-solid" id="payBtn" onclick="openPay()">Pay for Sessions</button>
+      <a href="mailto:acsnick16@gmail.com?subject=Free%20Consult%20%E2%80%94%20CrazyyFit%20In-Person" class="cta cta-ghost">Book a Free Consult</a>
+      <a href="/pricing.html" class="cta cta-ghost">View Online Coaching</a>
+    </div>
+
+  </div>
+
+  <p class="footer-note">
+    Sessions are <span>60 minutes</span> · Held on <span>O'ahu, HI</span><br>
+    Month-to-month · No contracts · Cancel anytime
+  </p>
+
+  <footer>
+    <div class="footer-logo">CRAZ<span class="yy">YY</span><span class="fit">FIT</span></div>
+    <div class="footer-brand">Real coaching. Real accountability. Real results.</div>
+  </footer>
+
+  <!-- PAYMENT POPUP -->
+  <div class="pay-overlay" id="payOverlay" onclick="if(event.target===this)closePay()">
+    <div class="pay-modal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+      <button class="pay-close" onclick="closePay()" aria-label="Close">&times;</button>
+      <div class="pay-tag">Reserve Your Spot</div>
+      <div class="pay-title" id="payTitle">Send Payment</div>
+      <div class="pay-plan" id="payPlan"></div>
+      <div class="pay-options">
+        <a class="pay-option pay-venmo" href="https://venmo.com/u/Fidandiss" target="_blank" rel="noopener">
+          <span class="pay-option-name">Venmo</span>
+          <span class="pay-option-handle">@Fidandiss</span>
+        </a>
+        <a class="pay-option pay-cashapp" href="https://cash.app/$Fidandiss" target="_blank" rel="noopener">
+          <span class="pay-option-name">Cash App</span>
+          <span class="pay-option-handle">$Fidandiss</span>
+        </a>
+        <a class="pay-option pay-zelle" id="payZelle" href="mailto:acsnick16@gmail.com?subject=Zelle%20payment%20%E2%80%94%20CrazyyFit%20In-Person">
+          <span class="pay-option-name">Zelle</span>
+          <span class="pay-option-handle">Contact to arrange &rarr;</span>
+        </a>
+      </div>
+      <div class="pay-note">Prefer Zelle? Email your coach and they'll send details.<br>Your coach confirms your spot once payment lands.</div>
+    </div>
+  </div>
+
+  <script>
+    var plans = [
+      { freqLabel: '1× per week',  title: '4 Sessions / Mo',  subtitle: 'Best for beginners building a foundation',   amount: '340',   perSession: '$85', savings: null },
+      { freqLabel: '2× per week',  title: '8 Sessions / Mo',  subtitle: 'Ideal for steady progress and habit building', amount: '600',   perSession: '$75', savings: 'Save $80/mo vs drop-in' },
+      { freqLabel: '3× per week',  title: '12 Sessions / Mo', subtitle: 'Serious training for real results',           amount: '840',   perSession: '$70', savings: 'Save $180/mo vs drop-in' },
+      { freqLabel: '5× per week',  title: '20 Sessions / Mo', subtitle: 'Full commitment. Maximum transformation.',    amount: '1,200', perSession: '$60', savings: 'Save $500/mo vs drop-in' }
+    ];
+
+    var active = 1;
+
+    function selectFreq(idx) {
+      active = idx;
+      var plan = plans[idx];
+
+      document.querySelectorAll('.freq-card').forEach(function (c, i) {
+        c.classList.toggle('active', i === idx);
+      });
+      document.querySelectorAll('.rate-table tbody tr').forEach(function (r, i) {
+        r.classList.toggle('active-row', i === idx);
+      });
+
+      var amountEl = document.getElementById('panel-amount');
+      amountEl.style.opacity = 0;
+      setTimeout(function () {
+        document.getElementById('panel-freq-label').textContent = plan.freqLabel;
+        document.getElementById('panel-title').textContent = plan.title;
+        document.getElementById('panel-subtitle').textContent = plan.subtitle;
+        amountEl.textContent = plan.amount;
+        amountEl.style.opacity = 1;
+        document.getElementById('per-session-text').innerHTML =
+          '<span>' + plan.perSession + '</span> per session';
+      }, 150);
+
+      var pill = document.getElementById('savings-pill');
+      if (plan.savings) {
+        pill.textContent = plan.savings;
+        pill.classList.add('show');
+      } else {
+        pill.classList.remove('show');
+      }
+    }
+
+    // Payment popup
+    function openPay() {
+      var plan = plans[active];
+      var label = plan.freqLabel + ' · $' + plan.amount + '/mo';
+      document.getElementById('payPlan').innerHTML = 'Plan: <span>' + label + '</span>';
+      var subject = 'In-Person Training payment — CrazyyFit (' + label + ')';
+      document.getElementById('payZelle').href = 'mailto:acsnick16@gmail.com?subject=' + encodeURIComponent(subject);
+      var overlay = document.getElementById('payOverlay');
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closePay() {
+      document.getElementById('payOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePay(); });
+  </script>
+
+</body>
+</html>

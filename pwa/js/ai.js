@@ -1288,7 +1288,7 @@ async function sendEmail(to, subject, html) {
 
 // Branded credentials email (welcome / PIN reset)
 function buildCredentialsEmailHtml(name, pin, appUrl, plan) {
-  const planLabels = { blueprint:'Crazyy Blueprint', blueprintv2:'BlueprintV2', transformation:'Full Transformation' };
+  const planLabels = { starter:'Starter', pro:'Pro', elite:'Elite', blueprint:'Crazyy Blueprint', blueprintv2:'BlueprintV2', transformation:'Full Transformation' };
   const planLabel = planLabels[plan] || 'Training Program';
   const yr = new Date().getFullYear();
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -1369,7 +1369,7 @@ async function sendWelcomeEmailToNewClient() {
   if (!email) { showFitToast('No email on file for this client'); return; }
   const pin = c._pinPlain || '';
   const appUrl = window.location.href.split('?')[0];
-  const plan = c._meta?.plan || c.programType || c.program_type || 'blueprint';
+  const plan = c._meta?.plan || c.programType || c.program_type || '';
   const btn = document.getElementById('obEmailCredBtn');
   const status = document.getElementById('obEmailStatus');
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
@@ -1408,7 +1408,7 @@ async function emailClientCredentials(cid) {
   try { localStorage.setItem('pin_plain_' + cid, newPin); } catch (_) {}
   try { await sbUpsert('clients', { id: cid, pin: hashed, updated_at: new Date().toISOString() }); } catch (e) {}
   const appUrl = window.location.href.split('?')[0];
-  const plan = c._meta?.plan || c.programType || c.program_type || 'blueprint';
+  const plan = c._meta?.plan || c.programType || c.program_type || '';
   try {
     await sendEmail(email, 'Your CrazyyFit Login Details',
       buildCredentialsEmailHtml(c.name, newPin, appUrl, plan));
@@ -1440,13 +1440,10 @@ async function sendBroadcastEmailToAll(message) {
 
 /* ── SIGNUP FLOW ─────────────────────────────────────────────── */
 const SIGNUP_PLANS = [
-  { id:'blueprint',     name:'CRAZYY BLUEPRINT',    price:'$50',  per:'/mo', desc:'2-month structured program · 1-on-1 texting · Peptide & anabolic guidance · Full app access' },
-  { id:'transformation',name:'FULL TRANSFORMATION', price:'$350', per:'/mo', desc:'Everything in Blueprint · Custom programming rebuilt monthly · Hormone & peptide protocol optimization · Bloodwork review · Priority 24/7 access', featured: true },
+  { id:'starter', name:'STARTER', price:'$99',  per:'/mo', desc:'Custom monthly program · Bi-weekly text check-ins · Full app access · Onboarding assessment' },
+  { id:'pro',     name:'PRO',     price:'$249', per:'/mo', desc:'Weekly programming + video calls · Macro & nutrition coaching · Form review · Bloodwork & hormone optimization · Peptide & anabolic guidance', featured: true },
+  { id:'elite',   name:'ELITE',   price:'$449', per:'/mo', desc:'Everything in Pro · 2× weekly calls · Full meal plan · Supplement protocol · Periodized 12-week roadmap · Max 5 clients' },
 ];
-const STRIPE_LINKS = {
-  blueprint:      'https://buy.stripe.com/3cIeVe5r702Vd8H28G3oA00',
-  transformation: 'https://buy.stripe.com/5kQcN6f1HbLD7On5kS3oA01',
-};
 /* ── EXERCISE DATABASE (200 exercises) ───────────────────────── */
 const EXERCISE_DB = [
   // CHEST
@@ -2024,7 +2021,7 @@ function exTipShowPopup(el, name) {
   setTimeout(() => { if (document.getElementById('exTipPopup') === popup) { popup.remove(); _tipBackdrop.remove(); } }, 6000);
 }
 
-let _signupState = { plan: 'blueprint' };
+let _signupState = { plan: 'pro' };
 function openSignup() {
   const existing = document.getElementById('signupModal');
   if (existing) existing.remove();
@@ -2072,8 +2069,8 @@ function openSignup() {
           <div class="signup-plan-desc">${p.desc}</div>
         </div>`).join('')}
     </div>
-    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;text-align:center">Secure payment via Stripe · Cancel anytime</div>
-    <button class="signup-pay-btn" id="suPayBtn" onclick="submitSignup()">Continue to Payment →</button>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;text-align:center">No payment now · Your coach will be in touch</div>
+    <button class="signup-pay-btn" id="suPayBtn" onclick="submitSignup()">Submit Application →</button>
     <button class="ob-back-btn" style="width:100%;margin-top:10px" onclick="document.getElementById('signupModal').remove()">Cancel</button>
   </div>`;
   document.body.appendChild(modal);
@@ -2104,14 +2101,44 @@ async function submitSignup() {
   localStorage.setItem('signups', JSON.stringify(existing));
   // Also push to Supabase
   try { await sbUpsert('signups', lead); } catch(e) {}
-  document.getElementById('signupModal')?.remove();
-  // Redirect to Stripe payment link
-  const link = STRIPE_LINKS[plan];
-  if (link && !link.includes('test_')) {
-    window.open(link + '?prefilled_email=' + encodeURIComponent(email) + '&client_reference_id=' + encodeURIComponent(name), '_blank');
-  } else {
-    showFitToast('Application submitted! Your coach will be in touch.');
-  }
+  showSignupPayment(plan);
+}
+
+/* Payment handles — update these in one place */
+const PAY_HANDLES = {
+  venmo:  'https://venmo.com/u/Fidandiss',
+  cashapp:'https://cash.app/$Fidandiss',
+  zelle:  'acsnick16@gmail.com',
+};
+function payOptionsHtml() {
+  const planName = (SIGNUP_PLANS.find(p => p.id === _signupState.plan) || {}).name || '';
+  const zelleSubject = encodeURIComponent('Zelle payment — CrazyyFit' + (planName ? ' (' + planName + ')' : ''));
+  return `
+    <a class="pay-option pay-venmo" href="${PAY_HANDLES.venmo}" target="_blank" rel="noopener">
+      <span class="pay-option-name">Venmo</span>
+      <span class="pay-option-handle">@Fidandiss</span>
+    </a>
+    <a class="pay-option pay-cashapp" href="${PAY_HANDLES.cashapp}" target="_blank" rel="noopener">
+      <span class="pay-option-name">Cash App</span>
+      <span class="pay-option-handle">$Fidandiss</span>
+    </a>
+    <a class="pay-option pay-zelle" href="mailto:${PAY_HANDLES.zelle}?subject=${zelleSubject}">
+      <span class="pay-option-name">Zelle</span>
+      <span class="pay-option-handle">Contact to arrange →</span>
+    </a>`;
+}
+function showSignupPayment(plan) {
+  const modal = document.getElementById('signupModal');
+  const planObj = SIGNUP_PLANS.find(p => p.id === plan) || {};
+  const inner = modal ? modal.querySelector('.signup-modal') : null;
+  if (!inner) { showFitToast('Application submitted! Your coach will be in touch.'); return; }
+  inner.innerHTML = `
+    <div class="signup-modal-title">You're In ✓</div>
+    <div class="signup-modal-sub">// Application received — send payment to lock your spot</div>
+    ${planObj.name ? `<div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:16px">Plan: <span style="color:#3B9EFF">${planObj.name}</span> ${planObj.price || ''}${planObj.per || ''}</div>` : ''}
+    <div class="pay-options">${payOptionsHtml()}</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);margin-top:14px;text-align:center;line-height:1.6">Prefer Zelle? Email your coach and they'll send details.<br>Your coach will confirm once payment lands.</div>
+    <button class="ob-back-btn" style="width:100%;margin-top:16px" onclick="document.getElementById('signupModal').remove()">Done</button>`;
 }
 
 /* ── LEADS PANEL (coach) ─────────────────────────────────────── */
