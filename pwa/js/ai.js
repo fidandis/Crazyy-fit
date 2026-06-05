@@ -2954,6 +2954,15 @@ async function pullClientData(cid) {
     const dyn = getLS('dynamic_clients', []);
     const idx = dyn.findIndex(c => c.id === cid);
     if (idx >= 0) {
+      // Newest-wins guard for the PROGRAM/SCHEDULE blob + meta. The embedded
+      // sub-keys below (PRs, fit logs, history, diary…) merge additively and
+      // always run, but the wholesale `dyn[idx].data = pulled` / `._meta`
+      // overwrites must NOT clobber a newer local edit — otherwise a coach who
+      // just switched a client's split sees it revert when a stale pull lands
+      // before the debounced push. ISO-8601 strings compare correctly.
+      const localAt = dyn[idx]._updated_at || '';
+      const cloudAt = cRows[0].updated_at || '';
+      const cloudIsNewer = !localAt || (cloudAt && cloudAt >= localAt);
       if (cRows[0].data !== null) {
         const pulled = safeJSON(cRows[0].data, dyn[idx].data || {});
         // Restore all embedded blob fields
@@ -3046,12 +3055,18 @@ async function pullClientData(cid) {
           const merged = [...local, ...pulled._customFoods.filter(f => !ids.has(f.id))];
           localStorage.setItem('custom_foods_' + cid, JSON.stringify(merged));
         }
-        dyn[idx].data = pulled;
+        // Only replace the program/schedule blob when the cloud copy is newer.
+        if (cloudIsNewer) dyn[idx].data = pulled;
       }
       if (cRows[0].meta       !== null) {
-        dyn[idx]._meta = safeJSON(cRows[0].meta, dyn[idx]._meta || {});
-        // Always sync last_seen to its own key so the coach dashboard can read it
-        const pulledLastSeen = dyn[idx]._meta?.last_seen;
+        const pulledMeta = safeJSON(cRows[0].meta, dyn[idx]._meta || {});
+        // Only replace the local meta (program type, training days…) when the
+        // cloud copy is newer — protects a fresh local split switch.
+        if (cloudIsNewer) dyn[idx]._meta = pulledMeta;
+        // Always sync last_seen to its own key so the coach dashboard can read
+        // it — last_seen is client-written and must propagate even when the
+        // coach's local program edit is newer than the cloud row.
+        const pulledLastSeen = pulledMeta?.last_seen;
         if (pulledLastSeen) {
           const localLastSeen = parseInt(localStorage.getItem('last_seen_' + cid) || '0');
           if (parseInt(pulledLastSeen) > localLastSeen) {
@@ -3059,8 +3074,11 @@ async function pullClientData(cid) {
           }
         }
       }
-      if (cRows[0].weight_loss!== null) dyn[idx].weightLoss = safeJSON(cRows[0].weight_loss, dyn[idx].weightLoss || null);
-      dyn[idx]._updated_at = cRows[0].updated_at;
+      if (cRows[0].weight_loss!== null && cloudIsNewer) dyn[idx].weightLoss = safeJSON(cRows[0].weight_loss, dyn[idx].weightLoss || null);
+      // Keep _updated_at as the MAX of local + cloud so a local-newer edit isn't
+      // demoted to the (older) cloud timestamp, which would let the next poll
+      // win the comparison and clobber it.
+      if (cloudIsNewer) dyn[idx]._updated_at = cRows[0].updated_at;
       localStorage.setItem('dynamic_clients', JSON.stringify(dyn));
     }
   }

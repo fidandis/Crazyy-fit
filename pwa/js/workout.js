@@ -48,8 +48,24 @@ function getTodayWorkoutDayId(c) {
 }
 
 function _wlExName(cid, dayId, exIdx) {
+  // Prefer a saved swap (alt) override, then the live DOM label, then fall back
+  // to the program's prescribed movement for this slot. The DOM-only lookup
+  // returned '' whenever the element wasn't mounted yet (or for a slot rendered
+  // off-screen) — which then saved a NAMELESS exercise, so the next session's
+  // "Last: w × r" hint (matched by name) could never find it. Falling back to
+  // the program data guarantees a name is always stamped.
+  const live = getWlData(cid, dayId);
+  const alt = live?.['alt_' + exIdx];
+  if (alt) return String(alt).trim();
   const el = document.getElementById('wl-ex-name-' + cid + '-' + dayId + '-' + exIdx);
-  return (el?.firstChild?.textContent || el?.textContent || '').replace(/\(alt\)/g,'').trim();
+  const fromDom = (el?.firstChild?.textContent || el?.textContent || '').replace(/\(alt\)/g,'').trim();
+  if (fromDom) return fromDom;
+  try {
+    const prog = _wlDayExercises(cid, dayId);
+    const name = prog?.[exIdx]?.name;
+    if (name) return String(name).trim();
+  } catch (_) {}
+  return '';
 }
 
 function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
@@ -310,17 +326,39 @@ function _wlLastSetsForMovement(cid, exName, excludeKey, excludeDate) {
   const target = String(exName).trim().toLowerCase();
   if (!target) return null;
   let best = null; // { sets, date, ts }
-  const consider = (sessionDate, exercisesObj) => {
+  // Resolve an exercise entry's name, falling back to the program's prescribed
+  // movement for that slot. Legacy sessions (and any saved before name-stamping)
+  // stored sets with no `name`, so a pure name match silently skipped them and
+  // the "Last: w × r" hint never appeared. progNames is the day's prescribed
+  // movement list (by index); idx is the entry's key in the exercises object.
+  const nameOf = (entry, idx, progNames) => {
+    const n = entry && entry.name ? String(entry.name).trim() : '';
+    if (n) return n.toLowerCase();
+    const pn = progNames && progNames[idx] ? String(progNames[idx]).trim() : '';
+    return pn.toLowerCase();
+  };
+  const consider = (sessionDate, exercisesObj, progNames) => {
     if (!exercisesObj) return;
     const dateStr = sessionDate || '';
     if (excludeDate && dateStr && dateStr === excludeDate) return;
-    const ex = Object.values(exercisesObj).find(e =>
-      e && e.name && String(e.name).trim().toLowerCase() === target);
-    if (!ex) return;
+    const entry = Object.entries(exercisesObj).find(([idx, e]) =>
+      e && nameOf(e, idx, progNames) === target);
+    if (!entry) return;
+    const ex = entry[1];
     const sets = (Array.isArray(ex.sets) ? ex.sets : []).filter(s => s && (s.weight || s.reps));
     if (!sets.length) return;
     const ts = dateStr ? new Date(dateStr).getTime() : 0;
     if (!best || ts > best.ts) best = { sets, date: dateStr, ts: ts || 0 };
+  };
+  // Cache prescribed-movement lists per dayId so we don't rebuild for each entry.
+  const progCache = {};
+  const progNamesFor = (dayId) => {
+    if (!dayId) return null;
+    if (progCache[dayId] === undefined) {
+      try { progCache[dayId] = (_wlDayExercises(cid, dayId) || []).map(e => e?.name || ''); }
+      catch (_) { progCache[dayId] = null; }
+    }
+    return progCache[dayId];
   };
   try {
     const histPrefix = 'wl_hist_' + cid + '_';
@@ -329,12 +367,16 @@ function _wlLastSetsForMovement(cid, exName, excludeKey, excludeDate) {
       const k = localStorage.key(i);
       if (!k) continue;
       if (k.startsWith(histPrefix)) {
+        const dayId = k.slice(histPrefix.length);
+        const progNames = progNamesFor(dayId);
         const arr = safeJSON(localStorage.getItem(k), []);
-        if (Array.isArray(arr)) arr.forEach(entry => consider(entry?.date || entry?._countedDate || '', entry?.exercises));
+        if (Array.isArray(arr)) arr.forEach(entry => consider(entry?.date || entry?._countedDate || '', entry?.exercises, progNames));
       } else if (k.startsWith(livePrefix) && !k.startsWith(histPrefix)) {
         if (k === excludeKey) continue;
+        const dayId = k.slice(livePrefix.length);
+        const progNames = progNamesFor(dayId);
         const obj = safeJSON(localStorage.getItem(k), null);
-        if (obj && obj.exercises) consider(obj.savedAt || obj._countedDate || obj._lastEdit || '', obj.exercises);
+        if (obj && obj.exercises) consider(obj.savedAt || obj._countedDate || obj._lastEdit || '', obj.exercises, progNames);
       }
     }
   } catch (_) {}

@@ -1747,6 +1747,11 @@ async function obSaveClient(btn) {
 
   // Strip _pinPlain before persisting
   const { _pinPlain, ...clientToSave } = newClient;
+  // Stamp the edit time so cloud sync resolves newest-wins. Without this an
+  // edited client carries the timestamp it was last pulled with, so a stale
+  // cloud row (older program) can clobber the just-saved split on the next
+  // background poll — the switched split silently reverts.
+  clientToSave._updated_at = new Date().toISOString();
   if (AppState.obState.editId) {
     const list = getDynamicClients();
     const idx = list.findIndex(c => c.id === AppState.obState.editId);
@@ -1759,6 +1764,14 @@ async function obSaveClient(btn) {
   // Stash plaintext PIN coach-locally so View PIN can show it later.
   // Stored under a separate key so it's never pushed to Supabase or pulled to other devices.
   try { localStorage.setItem('pin_plain_' + id, plainPin); } catch (_) {}
+
+  // Push the new/edited client to the cloud so the change actually propagates
+  // to the client's own device. Previously this only saved locally — a coach
+  // who switched a client's split via Edit never had it reach Supabase, so the
+  // client kept seeing the old program. sbAutoSync pushes the program/schedule
+  // blob (debounced); syncClientData pushes the profile row + sub-tables.
+  try { if (typeof sbAutoSync === 'function') sbAutoSync(id); } catch (_) {}
+  try { if (typeof syncClientData === 'function') syncClientData(id); } catch (_) {}
 
   // Auto-infer goals from onboarding data
   setupInitialGoals(newClient.id, AppState.obState);

@@ -266,10 +266,20 @@ document.addEventListener('DOMContentLoaded', () => {
         programType: row.program_type || '',
         data: safeJSON(row.data, {}), _meta: safeJSON(row.meta, {}),
         weightLoss: safeJSON(row.weight_loss, null),
+        _updated_at: row.updated_at,
       };
       if (row.mode) localStorage.setItem('client_mode_' + row.id, row.mode);
-      if (idx >= 0) existing[idx] = client; else existing.push(client);
-      changed = true;
+      if (idx >= 0) {
+        // Newest-wins: don't let this on-load cloud hydration clobber a client
+        // whose LOCAL copy is newer (e.g. a split the coach just switched that
+        // hasn't finished pushing). Previously this overwrote unconditionally
+        // AND dropped _updated_at, reverting the edit on every page load.
+        const localAt = existing[idx]._updated_at || '';
+        const cloudAt = row.updated_at || '';
+        if (!localAt || (cloudAt && cloudAt > localAt)) { existing[idx] = client; changed = true; }
+      } else {
+        existing.push(client); changed = true;
+      }
     });
     if (changed) localStorage.setItem('dynamic_clients', JSON.stringify(existing));
   }).catch(() => {});

@@ -111,7 +111,14 @@ async function coachSilentRefresh() {
     if (row.mode) localStorage.setItem('client_mode_' + row.id, row.mode);
 
     if (idx >= 0) {
-      if (existing[idx]._updated_at !== row.updated_at) {
+      // Newest-wins: only let the cloud row replace the local client when the
+      // cloud copy is strictly NEWER. A plain `!==` also overwrote when the
+      // LOCAL copy was newer (e.g. the coach just switched this client's split
+      // but the debounced push hasn't landed yet) — silently reverting the
+      // edit. ISO-8601 timestamps compare correctly as strings.
+      const localAt = existing[idx]._updated_at || '';
+      const cloudAt = row.updated_at || '';
+      if (cloudAt && cloudAt !== localAt && (!localAt || cloudAt > localAt)) {
         existing[idx] = newClient;
         needsPull.push(row.id);
         changed = true;
