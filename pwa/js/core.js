@@ -1620,36 +1620,14 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
   const sessionDay = saved?._countedDate || savedAtStr || saved?._lastEdit || '';
   const isNewSession = !!(sessionDay && sessionDay !== todayStr);
 
-  // Stale-session cleanup: if a prior session is sitting in the live key,
+  // Stale-session cleanup: if a prior-day session is sitting in the live key,
   // archive it once to history and reset the live entry. Without this the
   // old `done: true` flags linger in localStorage — the UI renders blank
   // (correct) but tapping a check toggles the stale `true` -> `false`,
-  // making the check appear to do nothing.
+  // making the check appear to do nothing. Shares _wlArchiveLiveSession with
+  // the program-change clear so logged weights/reps are always preserved.
   if (isNewSession && saved?.exercises && Object.keys(saved.exercises).length) {
-    try {
-      const hist = getWlHistory(cid, dayId);
-      // Resolve a valid ISO date for the archive entry. A typed-but-never-saved
-      // session has no savedAt/_countedDate; fall back to its _lastEdit day
-      // (and finally to the day boundary of sessionDay) so we never write an
-      // Invalid Date that would break later date parsing.
-      const archiveIso = saved.savedAt
-        || (sessionDay ? new Date(sessionDay).toISOString() : new Date().toISOString());
-      const already = hist.some(h =>
-        (saved.savedAt && h?.date === saved.savedAt)
-        || (saved._countedDate && h?._countedDate === saved._countedDate)
-        || (!saved.savedAt && !saved._countedDate && h?.date === archiveIso));
-      if (!already) {
-        hist.unshift({
-          date: archiveIso,
-          _countedDate: saved._countedDate || sessionDay,
-          exercises: saved.exercises,
-          sessionNotes: saved.sessionNotes || '',
-        });
-        if (hist.length > 12) hist.length = 12;
-        saveWlHistory(cid, dayId, hist);
-      }
-      saveWlData(cid, dayId, { exercises: {} });
-    } catch (_) {}
+    if (typeof _wlArchiveLiveSession === 'function') _wlArchiveLiveSession(cid, dayId);
   }
 
   // For a new session, inputs are blank; use previous session data only as reference

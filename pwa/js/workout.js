@@ -16,30 +16,83 @@ function saveWlData(cid, dayId, data) {
   localStorage.setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
 }
 
+// Archive a day's LIVE session (its logged weights/reps) into history, then
+// blank the live key. Idempotent — won't double-archive the same session.
+// Returns true if it archived (or the live key was already empty), false on
+// error. This is the SAME logic buildWorkoutLogger uses for stale-session
+// cleanup; extracted so the program-change clear can preserve logged data.
+function _wlArchiveLiveSession(cid, dayId) {
+  try {
+    const saved = getLS('wl_' + cid + '_' + dayId, null);
+    if (!saved || !saved.exercises || !Object.keys(saved.exercises).length) return true;
+    // Only archive if there is real logged data (any weight/reps/done), not an
+    // empty scaffold.
+    const hasData = Object.values(saved.exercises).some(ex =>
+      ex && Array.isArray(ex.sets) && ex.sets.some(s => s && (s.weight || s.reps || s.done)));
+    if (!hasData) { saveWlData(cid, dayId, { exercises: {} }); return true; }
+
+    const sessionDay = saved._countedDate
+      || (saved.savedAt ? new Date(saved.savedAt).toDateString() : '')
+      || saved._lastEdit || '';
+    const archiveIso = saved.savedAt
+      || (sessionDay ? new Date(sessionDay).toISOString() : new Date().toISOString());
+    const hist = getWlHistory(cid, dayId);
+    const already = hist.some(h =>
+      (saved.savedAt && h?.date === saved.savedAt)
+      || (saved._countedDate && h?._countedDate === saved._countedDate)
+      || (!saved.savedAt && !saved._countedDate && h?.date === archiveIso));
+    if (!already) {
+      hist.unshift({
+        date: archiveIso,
+        _countedDate: saved._countedDate || sessionDay,
+        exercises: saved.exercises,
+        sessionNotes: saved.sessionNotes || '',
+      });
+      if (hist.length > 12) hist.length = 12;
+      saveWlHistory(cid, dayId, hist);
+    }
+    saveWlData(cid, dayId, { exercises: {} });
+    return true;
+  } catch (_) { return false; }
+}
+
 // Reset a client's per-day workout LIVE state on a program/split change.
 // Workout day ids are weekday-based (mon/tue/...) and REUSED by every program
 // template, so the live key `wl_<cid>_mon`, its swap overrides (`alt_N`), and
 // the repeat plan `wl_repeat_<cid>_mon` all carry the OLD program's data onto
 // the NEW program's same-weekday day — old weights prefill under unrelated new
 // exercises, stale swaps override new slots, and an old repeat plan auto-fills
-// old movements. This clears those live/repeat keys for the client.
-// Logged HISTORY (`wl_hist_<cid>_*`) is intentionally PRESERVED — the coach UI
-// promises it survives, and name-based "last time" matching still surfaces it.
+// old movements.
+//
+// CRITICAL: the live key holds the client's MOST RECENT logged session (their
+// real weights/reps) until day-rollover archives it. So we ARCHIVE each live
+// session into history FIRST, then blank it — the client's logged weights/reps
+// are preserved (and still surface via the name-matched "Last:" hint). Only the
+// now-redundant live working copy + the repeat plan are removed. `wl_hist_` is
+// always preserved.
 function clearWorkoutLiveStateForClient(cid) {
   if (!cid) return;
   try {
     const livePrefix   = 'wl_' + cid + '_';
     const histPrefix   = 'wl_hist_' + cid + '_';
     const repeatPrefix = 'wl_repeat_' + cid + '_';
-    const toRemove = [];
+    const liveKeys = [];
+    const repeatKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (!k) continue;
-      // Live session keys: start with wl_<cid>_ but NOT wl_hist_/wl_repeat_.
       const isLive = k.startsWith(livePrefix) && !k.startsWith(histPrefix) && !k.startsWith(repeatPrefix);
-      if (isLive || k.startsWith(repeatPrefix)) toRemove.push(k);
+      if (isLive) liveKeys.push(k);
+      else if (k.startsWith(repeatPrefix)) repeatKeys.push(k);
     }
-    toRemove.forEach(k => localStorage.removeItem(k));
+    // Archive each live session's logged data to history, then remove the live key.
+    liveKeys.forEach(k => {
+      const dayId = k.slice(livePrefix.length);
+      _wlArchiveLiveSession(cid, dayId); // preserves weights/reps into wl_hist_
+      localStorage.removeItem(k);
+    });
+    // Repeat plans carry no logged data — safe to drop outright.
+    repeatKeys.forEach(k => localStorage.removeItem(k));
   } catch (_) {}
 }
 
