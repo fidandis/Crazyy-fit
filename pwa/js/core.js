@@ -371,6 +371,30 @@ function getLS(key, fallback = null) {
   return safeJSON(localStorage.getItem(key), fallback);
 }
 
+// Quota-safe localStorage write. Plain localStorage.setItem throws
+// QuotaExceededError when storage is full (common on budget phones after many
+// logged sessions / photos) — most call sites don't catch it, so data is lost
+// silently while the UI acts saved. Route data-loss-critical writes through
+// this: on quota failure it surfaces a toast so the user knows to free space
+// (e.g. export + clear, or remove old progress photos). Returns true on success.
+let _quotaToastShown = false;
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    _quotaToastShown = false;
+    return true;
+  } catch (e) {
+    const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+    console.error('localStorage write failed' + (quota ? ' (quota exceeded)' : '') + ' for key ' + key, e);
+    // Throttle the toast so a burst of failing writes doesn't spam it.
+    if (quota && !_quotaToastShown && typeof showFitToast === 'function') {
+      _quotaToastShown = true;
+      showFitToast('Storage full — export a backup, then clear old data to keep saving');
+    }
+    return false;
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════
    SCHEMA VERSIONING
    Bump LS_SCHEMA_VERSION whenever a localStorage key is renamed,
@@ -1742,14 +1766,24 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
             onclick="wlToggleDropDone('${cid}','${dayId}',${ei},${si},${di})">${d.done?'✓':''}</button>
           <button class="wl-mini-btn wl-del-mini" onclick="wlDeleteDrop('${cid}','${dayId}',${ei},${si},${di})" title="Remove drop set">&times;</button>
         </div>`).join('');
+      const _wId = `wlw-${cid}-${dayId}-${ei}-${si}`;
+      const _rId = `wlr-${cid}-${dayId}-${ei}-${si}`;
       return `<div class="wl-set-row" id="wl-set-${cid}-${dayId}-${ei}-${si}">
         <div class="wl-set-num">S${si+1}</div>
-        <input class="wl-set-input ${s.weight?'completed':''}" type="text" inputmode="decimal"
-          placeholder="${prev?.weight ? prev.weight : 'lbs / kg'}" value="${s.weight||''}"
-          oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'weight',this.value)">
-        <input class="wl-set-input ${s.reps?'completed':''}" type="text" inputmode="numeric"
+        <div class="wl-weight-cell">
+          <button type="button" class="wl-step wl-step-dn" tabindex="-1" title="−5"
+            onclick="wlStepWeight('${cid}','${dayId}',${ei},${si},-5)">−</button>
+          <input id="${_wId}" class="wl-set-input ${s.weight?'completed':''}" type="text" inputmode="decimal"
+            placeholder="${prev?.weight ? prev.weight : 'lbs / kg'}" value="${s.weight||''}"
+            oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'weight',this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('${_rId}')?.focus();}">
+          <button type="button" class="wl-step wl-step-up" tabindex="-1" title="+5"
+            onclick="wlStepWeight('${cid}','${dayId}',${ei},${si},5)">+</button>
+        </div>
+        <input id="${_rId}" class="wl-set-input ${s.reps?'completed':''}" type="text" inputmode="numeric"
           placeholder="${prev?.reps ? prev.reps : 'reps'}" value="${s.reps||''}"
-          oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'reps',this.value)">
+          oninput="wlUpdate('${cid}','${dayId}',${ei},${si},'reps',this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();wlToggleDone('${cid}','${dayId}',${ei},${si});this.blur();}">
         <button class="wl-set-check ${s.done?'done':''}"
           onclick="wlToggleDone('${cid}','${dayId}',${ei},${si})">${s.done?'✓':''}</button>
         <div class="wl-row-actions">
@@ -2122,8 +2156,36 @@ if ('serviceWorker' in navigator) {
       });
     });
   }).catch(() => {});
-  // When the new SW takes control, reload to get fresh assets
-  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+  // When the new SW takes control, reload to get fresh assets — but guard
+  // against an auto-reload yanking the page out from under unsaved work (coach
+  // mid-edit in the Program Editor / onboarding wizard). In that case we keep
+  // the old assets running and let the user finish; the update applies on the
+  // next natural reload. _reloadedForSW prevents a double reload race.
+  let _reloadedForSW = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (_reloadedForSW) return;
+    if (typeof _hasUnsavedWork === 'function' && _hasUnsavedWork()) {
+      if (typeof showFitToast === 'function') showFitToast('Update ready — it will apply when you finish');
+      return;
+    }
+    _reloadedForSW = true;
+    try { if (typeof sbAutoSyncFlushAll === 'function') sbAutoSyncFlushAll(); } catch (_) {}
+    location.reload();
+  });
+}
+
+// True when the user has in-progress edits that an auto-reload would discard.
+// Currently: the Program Editor has unsaved changes, or the onboarding wizard
+// is open. Extend this as new editable surfaces are added.
+function _hasUnsavedWork() {
+  try {
+    if (typeof _peState === 'object' && _peState && _peState.dirty &&
+        document.getElementById('progEditorOverlay')) return true;
+    const ob = document.getElementById('onboard');
+    if (ob && ob.classList.contains('active') &&
+        typeof AppState === 'object' && AppState.obState && AppState.obState.step > 0) return true;
+  } catch (_) {}
+  return false;
 }
 
 

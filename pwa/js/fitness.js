@@ -52,7 +52,8 @@ function loadIntakeForDate(cid, date) {
   if (fatEl)  fatEl.value  = entry?.fat      || '';
 }
 function saveFitnessLogs(cid, logs) {
-  localStorage.setItem('fit_logs_' + cid, JSON.stringify(logs));
+  if (typeof safeSetItem === 'function') safeSetItem('fit_logs_' + cid, JSON.stringify(logs));
+  else localStorage.setItem('fit_logs_' + cid, JSON.stringify(logs));
 }
 
 function renderFitnessLog(c) {

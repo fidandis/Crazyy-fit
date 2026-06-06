@@ -436,6 +436,8 @@ button,a,[role=button]{touch-action:manipulation;}
   .wl-set-input{padding:7px 6px;font-size:14px;}
   .wl-set-check{width:34px;height:34px;font-size:14px;}
   .wl-mini-btn{width:22px;height:17px;font-size:10px;}
+  .wl-weight-cell{gap:2px;}
+  .wl-step{width:20px;height:32px;font-size:15px;}
   .wl-drop-row{grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 34px 20px;gap:5px;}
   .wl-drop-input{padding:7px 6px;font-size:14px;}
   .wl-drop-check{width:34px;height:34px;font-size:14px;}
@@ -451,6 +453,8 @@ button,a,[role=button]{touch-action:manipulation;}
   .wl-set-input,.wl-drop-input{padding:6px 4px;font-size:13px;}
   .wl-set-check,.wl-drop-check{width:30px;height:30px;font-size:13px;}
   .wl-mini-btn{width:20px;height:16px;font-size:9px;}
+  .wl-weight-cell{gap:1px;}
+  .wl-step{width:17px;height:30px;font-size:13px;}
   .wl-drop-row{grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) 30px 18px;gap:4px;}
   .wl-ex-name{font-size:13px;}
 }
@@ -1051,6 +1055,12 @@ button,a,[role=button]{touch-action:manipulation;}
 .wl-drop-check{width:40px;height:40px;border-radius:50%;border:2px solid rgba(52,152,219,.35);background:none;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;touch-action:manipulation;}
 .wl-drop-check.done{background:#3498db;border-color:#3498db;color:#000;}
 .wl-set-num{font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);text-align:center;width:24px;height:24px;background:var(--surface2);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Weight cell: [−] input [+] inline steppers (tap to nudge ±5 without typing) */
+.wl-weight-cell{display:flex;align-items:center;gap:3px;min-width:0;}
+.wl-weight-cell .wl-set-input{flex:1;padding-left:4px;padding-right:4px;}
+.wl-step{flex-shrink:0;width:22px;height:34px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;transition:all .12s;-webkit-user-select:none;user-select:none;}
+.wl-step:hover{color:var(--text);border-color:var(--accent);}
+.wl-step:active{transform:scale(.9);background:rgba(59,158,255,.12);color:var(--accent);}
 .wl-set-input{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'Geist Mono',monospace;font-size:16px;outline:none;text-align:center;width:100%;min-width:0;transition:border-color .15s;}
 .wl-set-input:focus{border-color:var(--accent);}
 .wl-set-input.completed{border-color:var(--accent);background:rgba(255,255,255,.04);}

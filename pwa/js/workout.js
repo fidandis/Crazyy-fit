@@ -13,7 +13,13 @@ function getWlData(cid, dayId) {
   return getLS('wl_' + cid + '_' + dayId, null) || { exercises: {} };
 }
 function saveWlData(cid, dayId, data) {
-  localStorage.setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
+  _setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
+}
+// Quota-safe write (safeSetItem lives in core.js, loaded first). Fall back to a
+// plain write only if the helper somehow isn't defined yet.
+function _setItem(k, v) {
+  if (typeof safeSetItem === 'function') return safeSetItem(k, v);
+  try { localStorage.setItem(k, v); return true; } catch (_) { return false; }
 }
 
 // Archive a day's LIVE session (its logged weights/reps) into history, then
@@ -184,6 +190,33 @@ function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
   // Style input
   const input = event.target;
   input.classList.toggle('completed', !!value.trim());
+}
+
+// Tap +/- to nudge a set's weight without typing (the #1 phone-logging
+// friction). Starts from the typed value, or seeds from the placeholder
+// (last session's weight) so the first tap on a blank field becomes "last
+// week ± step". Keeps one decimal for plate-fraction work; clamps at 0.
+function wlStepWeight(cid, dayId, exIdx, setIdx, delta) {
+  const id = 'wlw-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx;
+  const input = document.getElementById(id);
+  if (!input) return;
+  const seed = (input.value || '').trim() || (input.getAttribute('placeholder') || '');
+  let base = parseFloat(seed);
+  if (!isFinite(base)) base = 0;
+  let next = base + delta;
+  if (next < 0) next = 0;
+  // Trim trailing .0 so whole numbers stay clean (e.g. 135 not 135.0).
+  const val = (Math.round(next * 10) / 10).toString();
+  input.value = val;
+  input.classList.add('completed');
+  const data = getWlData(cid, dayId);
+  const ex = _wlEnsureExercise(data, cid, dayId, exIdx);
+  if (!ex.sets[setIdx]) ex.sets[setIdx] = {};
+  ex.sets[setIdx].weight = val;
+  data._lastEdit = new Date().toDateString();
+  saveWlData(cid, dayId, data);
+  sbAutoSync(cid);
+  if (typeof haptic === 'function') haptic('light');
 }
 
 function wlToggleDone(cid, dayId, exIdx, setIdx) {
@@ -374,7 +407,7 @@ function wlAddSet(cid, dayId, exIdx, totalEx) {
 }
 
 function getWlHistory(cid, dayId) { return getLS('wl_hist_' + cid + '_' + dayId, []); }
-function saveWlHistory(cid, dayId, hist) { localStorage.setItem('wl_hist_' + cid + '_' + dayId, JSON.stringify(hist)); }
+function saveWlHistory(cid, dayId, hist) { _setItem('wl_hist_' + cid + '_' + dayId, JSON.stringify(hist)); }
 
 /* ══════════════════════════════════════════════════════════════
    REPEAT LAST WEEK

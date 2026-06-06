@@ -29,7 +29,10 @@ function getDynamicClients() {
 }
 
 function saveDynamicClients(list) {
-  localStorage.setItem('dynamic_clients', JSON.stringify(list));
+  // Quota-safe (safeSetItem in core.js, loaded first). Losing dynamic_clients
+  // silently would drop the entire client roster, so surface a toast on failure.
+  if (typeof safeSetItem === 'function') safeSetItem('dynamic_clients', JSON.stringify(list));
+  else localStorage.setItem('dynamic_clients', JSON.stringify(list));
   invalidateClientsCache();
 }
 

@@ -3275,6 +3275,8 @@ function showUpdateBanner() {
   document.body.classList.add('has-update-banner');
 }
 function applyUpdate() {
+  // Flush any pending cloud sync so the reload doesn't drop the last write.
+  try { if (typeof sbAutoSyncFlushAll === 'function') sbAutoSyncFlushAll(); } catch (_) {}
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then(reg => {
       if (reg && reg.waiting) { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
@@ -3282,11 +3284,23 @@ function applyUpdate() {
     });
   } else { window.location.reload(); }
 }
+let _updateRemindT = null;
 function dismissUpdate() {
   const banner = document.getElementById('updateBanner');
   if (banner) banner.classList.remove('show');
   document.body.classList.remove('has-update-banner');
   document.documentElement.style.removeProperty('--update-banner-h');
+  // Don't lose the update forever — a dismissed banner previously never
+  // returned until a manual restart, so flaky-network users stayed on stale
+  // code. Re-surface it after 10 minutes (only if an update is still waiting).
+  clearTimeout(_updateRemindT);
+  _updateRemindT = setTimeout(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg && reg.waiting && typeof showUpdateBanner === 'function') showUpdateBanner();
+      }).catch(() => {});
+    }
+  }, 10 * 60 * 1000);
 }
 
 /* ── WORKOUT LOGGER (ALT EXERCISES) ────────────────────────── */
