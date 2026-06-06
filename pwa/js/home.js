@@ -42,12 +42,15 @@ function renderHome(c) {
 
   // ── HERO (reference "Today" layout) ──
   const streak = getDayStreak(c.id);
-  const heroSub = streak >= 2
-    ? `Day ${streak} of your streak. Keep showing up.`
-    : nowDate.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});
+  // Streak now reads as a small chip beside the greeting (was buried in the
+  // subtitle); the subtitle stays the date so the hero keeps its calm look.
+  const streakChip = streak >= 2
+    ? `<span class="home-streak-chip" title="${streak}-day training streak">🔥 ${streak}-day streak</span>`
+    : '';
+  const heroSub = nowDate.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});
   h += `<div class="sess-hero">
     <h1 class="sess-hero-title">${esc(greet)} <em>${esc(firstName)}.</em></h1>
-    <p class="sess-hero-sub">${esc(heroSub)}</p>
+    <p class="sess-hero-sub">${esc(heroSub)}${streakChip}</p>
   </div>`;
 
   // ── TODAY FEATURED WORKOUT CARD ──
@@ -98,8 +101,14 @@ function renderHome(c) {
   // XP widget (after greeting and stats)
   h += buildXPWidget(c.id, c.name, c.accent);
 
-  // Weekly summary card (Mondays only)
+  // Weekly summary card (rolling last 7 days)
   h += buildWeeklySummaryCard(c);
+
+  // Recent wins (PRs + latest badge) and compact goal progress — surfaces
+  // momentum that was previously ephemeral or buried. Each renders nothing
+  // when there's no data, so the home stays clean for new clients.
+  h += buildRecentWinsCard(c);
+  h += buildHomeGoalsStrip(c);
 
   // Broadcast message
   const _broadcast = localStorage.getItem('coach_broadcast');
@@ -188,6 +197,93 @@ function accToggle(id) {
   }
   head.classList.toggle('open', !isOpen);
   body.classList.toggle('open', !isOpen);
+}
+
+// Short relative-date label for home win/goal rows ("today", "3d ago", "Apr 2").
+function _homeRelDate(dateLike) {
+  if (!dateLike) return '';
+  const t = new Date(dateLike).getTime();
+  if (!isFinite(t)) return '';
+  const days = Math.floor((Date.now() - t) / 86400000);
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return days + 'd ago';
+  return new Date(t).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+}
+
+// ── HOME: RECENT WINS ──────────────────────────────────────────
+// Surfaces PRs (last 30 days) + the most recently earned badge. PR celebrations
+// are ephemeral (2.8s) and badges are buried in a feature screen — this gives a
+// persistent recap right on home. Renders nothing when there are no wins.
+function buildRecentWinsCard(c) {
+  const rows = [];
+  try {
+    const prs = (typeof getPRs === 'function') ? getPRs(c.id) : {};
+    const cutoff = Date.now() - 30 * 86400000;
+    const recent = Object.entries(prs || {})
+      .filter(([, v]) => v && v.date && new Date(v.date).getTime() >= cutoff && v.weight)
+      .sort((a, b) => new Date(b[1].date) - new Date(a[1].date))
+      .slice(0, 3);
+    recent.forEach(([name, v]) => {
+      rows.push(`<button class="home-win-row" onclick="openFeature('strength')">
+        <span class="home-win-ic">🏆</span>
+        <span class="home-win-name">${esc(name)}</span>
+        <span class="home-win-val">${esc(String(v.weight))} lb</span>
+        <span class="home-win-date">${esc(_homeRelDate(v.date))}</span>
+      </button>`);
+    });
+  } catch (_) {}
+  // Most recent unlocked badge (by milestone definition order — newest unlock
+  // is the last id added to the array).
+  try {
+    if (typeof getUnlockedMilestones === 'function' && typeof MILESTONES !== 'undefined') {
+      const unlocked = getUnlockedMilestones(c.id) || [];
+      if (unlocked.length) {
+        const lastId = unlocked[unlocked.length - 1];
+        const ms = MILESTONES.find(m => m.id === lastId);
+        if (ms) {
+          rows.push(`<button class="home-win-row" onclick="openFeature('badges')">
+            <span class="home-win-ic">${ms.emoji || '🏅'}</span>
+            <span class="home-win-name">${esc(ms.title || 'Badge unlocked')}</span>
+            <span class="home-win-val home-win-badge">BADGE</span>
+            <span class="home-win-date"></span>
+          </button>`);
+        }
+      }
+    }
+  } catch (_) {}
+  if (!rows.length) return '';
+  return `<div class="home-wins-card">
+    <div class="home-wins-head">RECENT WINS</div>
+    ${rows.join('')}
+  </div>`;
+}
+
+// ── HOME: COMPACT GOAL PROGRESS ────────────────────────────────
+// Read-only one-liners (the editable banner already lives in the header). Keeps
+// goal progress in view on home without duplicating the log control. Tap routes
+// to the milestones/goals feature. Renders nothing when there are no goals.
+function buildHomeGoalsStrip(c) {
+  let goals = [];
+  try { goals = (typeof getClientGoals === 'function') ? getClientGoals(c.id) : []; } catch (_) {}
+  if (!goals || !goals.length) return '';
+  const rows = goals.slice(0, 2).map(goal => {
+    let cur = null, p = { pct: 0, done: false };
+    try { cur = getGoalCurrent(c.id, goal.id); p = calcGoalProgress(goal, cur); } catch (_) {}
+    const color = (typeof GOAL_COLORS !== 'undefined' && GOAL_COLORS[goal.type]) || 'var(--accent)';
+    const icon  = (typeof GOAL_ICONS !== 'undefined' && GOAL_ICONS[goal.type]) || '🎯';
+    return `<button class="home-goal-row" onclick="openFeature('progress')">
+      <span class="home-goal-top">
+        <span class="home-goal-label">${icon} ${esc(goal.label || 'Goal')}</span>
+        <span class="home-goal-pct">${p.done ? '🎯 done' : p.pct + '%'}</span>
+      </span>
+      <span class="wt-track"><span class="wt-fill" style="width:${p.pct}%;background:${color}"></span></span>
+    </button>`;
+  }).join('');
+  return `<div class="home-goals-strip">
+    <div class="home-wins-head">YOUR GOALS</div>
+    ${rows}
+  </div>`;
 }
 
 

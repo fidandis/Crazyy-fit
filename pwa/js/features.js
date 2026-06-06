@@ -639,17 +639,18 @@ function buildSkeleton() {
 
 /* ── WEEKLY SUMMARY CARD ─────────────────────────────────────── */
 function buildWeeklySummaryCard(c) {
+  // Rolling last 7 days — shown EVERY day (was Monday-only, so clients almost
+  // never saw it). A daily "here's your week" recap drives engagement.
   const now = new Date();
-  if (now.getDay() !== 1) return ''; // Mondays only
-  const weekEnd = new Date(now);
-  weekEnd.setHours(0, 0, 0, 0);
-  const weekStart = new Date(weekEnd);
-  weekStart.setDate(weekEnd.getDate() - 7);
+  const nowMs = now.getTime();
+  const weekStart = new Date(now);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - 6); // today + previous 6 days
   const logs = getFitnessLogs(c.id);
   const lastWeekLogs = logs.filter(l => {
     if (!l.date) return false;
     const d = new Date(l.date).getTime();
-    return d >= weekStart.getTime() && d < weekEnd.getTime();
+    return d >= weekStart.getTime() && d <= nowMs;
   });
   const sessions  = lastWeekLogs.length;
   const kcal      = lastWeekLogs.reduce((s, l) => s + (l.calories || 0), 0);
@@ -658,10 +659,10 @@ function buildWeeklySummaryCard(c) {
   const adherence = trainDays ? Math.min(100, Math.round(sessions / trainDays * 100)) : null;
   const adColor   = adherence === null ? 'var(--muted)' : adherence >= 80 ? '#2ecc71' : adherence >= 50 ? '#f1c40f' : '#e74c3c';
   const rangeStr  = weekStart.toLocaleDateString('en', { month: 'short', day: 'numeric' }) + ' – ' +
-                    new Date(weekEnd.getTime() - 86400000).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                    now.toLocaleDateString('en', { month: 'short', day: 'numeric' });
   return `<div class="weekly-sum-card">
     <div class="weekly-sum-header">
-      <div class="weekly-sum-title">📅 Last Week</div>
+      <div class="weekly-sum-title">📅 Last 7 Days</div>
       <div class="weekly-sum-badge">${rangeStr}</div>
     </div>
     <div class="weekly-sum-grid">

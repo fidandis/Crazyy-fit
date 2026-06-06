@@ -1405,6 +1405,24 @@ button,a,[role=button]{touch-action:manipulation;}
 .weekly-sum-stat:last-child{border-right:none}
 .weekly-sum-val{font-family:var(--display);font-weight:700;font-size:24px;line-height:1}
 .weekly-sum-lbl{font-family:'Geist Mono',monospace;font-size:7px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+/* ── HOME STREAK CHIP ── */
+.home-streak-chip{display:inline-flex;align-items:center;gap:4px;margin-left:10px;vertical-align:middle;font-family:'Geist Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.3px;color:var(--gold,#d4af6a);background:rgba(212,175,106,.1);border:1px solid rgba(212,175,106,.3);border-radius:20px;padding:2px 9px;white-space:nowrap;}
+/* ── HOME RECENT WINS + GOALS STRIP ── */
+.home-wins-card,.home-goals-strip{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:0 20px 12px;}
+.home-wins-head{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:11px 16px 7px;}
+.home-win-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line-soft,rgba(255,255,255,.04));padding:10px 16px;cursor:pointer;color:var(--text);transition:background .15s;}
+.home-win-row:hover{background:rgba(255,255,255,.02);}
+.home-win-ic{font-size:15px;flex-shrink:0;width:18px;text-align:center;}
+.home-win-name{flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.home-win-val{font-family:'Geist Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;flex-shrink:0;}
+.home-win-val.home-win-badge{font-size:8px;letter-spacing:1px;color:var(--gold,#d4af6a);background:rgba(212,175,106,.12);border-radius:4px;padding:2px 6px;}
+.home-win-date{font-family:'Geist Mono',monospace;font-size:9px;color:var(--text-3,var(--faint));flex-shrink:0;min-width:46px;text-align:right;}
+.home-goal-row{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line-soft,rgba(255,255,255,.04));padding:11px 16px;cursor:pointer;color:var(--text);transition:background .15s;}
+.home-goal-row:hover{background:rgba(255,255,255,.02);}
+.home-goal-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.home-goal-label{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.home-goal-pct{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-2,var(--muted));flex-shrink:0;}
+.home-goal-row .wt-track{height:6px;}
 /* ── HOME QUICK WEIGHT ── */
 .home-wt-strip{display:flex;align-items:center;gap:8px;margin:0 20px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px}
 .home-wt-label{font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
