@@ -365,6 +365,7 @@ function buildClientCard(c) {
       <div class="coach-card-actions">
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="coachViewPin(this.dataset.cid)">View PIN</button>
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="coachEditClient(this.dataset.cid)">Edit</button>
+        <button class="coach-action-btn" style="color:var(--accent);border-color:rgba(59,158,255,.4)" data-cid="${esc(c.id)}" onclick="openProgramEditor(this.dataset.cid)" title="Edit exercises directly — no wizard">🏋 Exercises</button>
         <button class="coach-action-btn" style="color:var(--accent)" data-cid="${esc(c.id)}" onclick="coachViewAsClient(this.dataset.cid)">👁 View</button>
         <button class="coach-action-btn ${_isPaused ? 'pause-active' : ''}" data-cid="${esc(c.id)}" onclick="togglePauseClient(this.dataset.cid)">${_isPaused ? 'Unpause' : 'Pause'}</button>
         <button class="coach-action-btn" data-cid="${esc(c.id)}" onclick="openNotifModal(this.dataset.cid)">Notify</button>
