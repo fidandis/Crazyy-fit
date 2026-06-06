@@ -634,13 +634,35 @@ function _obTemplateTrainingDays(key) {
   return tpl.days.filter(d => d.exercises && d.exercises.length > 0).length;
 }
 
-// Collect known exercises from all templates + this coach's existing clients.
-// Returns a map: name → representative exercise object (first seen wins).
+// Collect known exercises for the program builder. Sources, in priority order
+// (first seen wins, so curated program-shaped entries keep their sets/reps/rest):
+//   1. all PROGRAM_TEMPLATES days
+//   2. this coach's existing clients' days
+//   3. EXERCISE_DB — the full built-in exercise database
+//   4. the coach's saved/custom movement_library
+// Sources 3 + 4 are the same catalog the live workout pickers use
+// (getPickerMovements), so the program builder now offers the COMPLETE library
+// rather than only exercises that already appear in a template/client.
+// Returns a map: name → representative exercise object.
 function _obExerciseLibraryMap() {
   const map = new Map();
+  // Normalise a bare count/range into the program-builder's " sets" / " reps"
+  // strings (EXERCISE_DB stores sets:'4', reps:'8–10' with no unit suffix).
+  const withUnit = (v, unit) => {
+    const s = String(v == null ? '' : v).trim();
+    if (!s) return '';
+    return /[a-z]/i.test(s) ? s : s + ' ' + unit;
+  };
   const take = (e) => {
     if (!e || !e.name) return;
-    if (!map.has(e.name)) map.set(e.name, { name: e.name, sets: e.sets || '3 sets', reps: e.reps || '10-12 reps', rest: e.rest || '90 sec', note: e.note || '' });
+    if (map.has(e.name)) return;
+    map.set(e.name, {
+      name: e.name,
+      sets: withUnit(e.sets, 'sets') || '3 sets',
+      reps: withUnit(e.reps, 'reps') || '10-12 reps',
+      rest: e.rest || '90 sec',
+      note: e.note || '',
+    });
   };
   Object.values(PROGRAM_TEMPLATES).forEach(tpl => {
     (tpl.days || []).forEach(d => (d.exercises || []).forEach(take));
@@ -651,6 +673,9 @@ function _obExerciseLibraryMap() {
       days.forEach(d => (d.exercises || []).forEach(take));
     });
   } catch {}
+  // Full built-in database + the coach's custom movement library.
+  try { if (typeof EXERCISE_DB !== 'undefined') EXERCISE_DB.forEach(take); } catch {}
+  try { if (typeof getMovementLibrary === 'function') getMovementLibrary().forEach(take); } catch {}
   return map;
 }
 function _obExerciseLibrary() { return Array.from(_obExerciseLibraryMap().keys()).sort((a,b)=>a.localeCompare(b)); }
