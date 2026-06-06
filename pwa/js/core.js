@@ -1690,15 +1690,24 @@ function buildWorkoutLogger(cid, dayId, exercises, accent) {
     // Parse number of sets from e.sets string (e.g. "3 sets" -> 3, "4 rounds" -> 4)
     const setMatch = e.sets.match(/\d+/);
     const numSets = setMatch ? parseInt(setMatch[0]) : 3;
-    const savedSets = savedEx?.sets || [];
 
     // Swapped (alternate) movement for this slot, if any — drives the name we
     // match history against so a swap never inherits the old movement's weights.
     const altName = activeData?.['alt_' + ei] || saved?.['alt_' + ei] || '';
     const displayName = altName || e.name;
 
+    // Guard against cross-program bleed: workout day ids are weekday-based and
+    // reused by every template, so a live session left under wl_<cid>_mon from a
+    // PREVIOUS program would prefill its weights positionally under this new
+    // program's unrelated exercise. Only treat the saved sets as belonging to
+    // THIS slot when the saved exercise has no name (legacy/just-typed) or its
+    // name matches the current movement. A mismatch -> render blank inputs.
+    const _savedExName = (savedEx?.name || '').trim().toLowerCase();
+    const _slotMatches = !_savedExName || _savedExName === displayName.trim().toLowerCase();
+    const savedSets = (_slotMatches ? savedEx?.sets : null) || [];
+
     // Backfill exercise name into today's saved data if missing (old entries)
-    if (savedEx && !savedEx.name) savedEx.name = displayName;
+    if (savedEx && _slotMatches && !savedEx.name) savedEx.name = displayName;
 
     // Build "last time" hints: match the CURRENT movement by name. Only fall back
     // to the positional entry when it is unnamed (legacy data) or the same

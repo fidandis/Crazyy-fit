@@ -16,6 +16,33 @@ function saveWlData(cid, dayId, data) {
   localStorage.setItem('wl_' + cid + '_' + dayId, JSON.stringify(data));
 }
 
+// Reset a client's per-day workout LIVE state on a program/split change.
+// Workout day ids are weekday-based (mon/tue/...) and REUSED by every program
+// template, so the live key `wl_<cid>_mon`, its swap overrides (`alt_N`), and
+// the repeat plan `wl_repeat_<cid>_mon` all carry the OLD program's data onto
+// the NEW program's same-weekday day — old weights prefill under unrelated new
+// exercises, stale swaps override new slots, and an old repeat plan auto-fills
+// old movements. This clears those live/repeat keys for the client.
+// Logged HISTORY (`wl_hist_<cid>_*`) is intentionally PRESERVED — the coach UI
+// promises it survives, and name-based "last time" matching still surfaces it.
+function clearWorkoutLiveStateForClient(cid) {
+  if (!cid) return;
+  try {
+    const livePrefix   = 'wl_' + cid + '_';
+    const histPrefix   = 'wl_hist_' + cid + '_';
+    const repeatPrefix = 'wl_repeat_' + cid + '_';
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      // Live session keys: start with wl_<cid>_ but NOT wl_hist_/wl_repeat_.
+      const isLive = k.startsWith(livePrefix) && !k.startsWith(histPrefix) && !k.startsWith(repeatPrefix);
+      if (isLive || k.startsWith(repeatPrefix)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch (_) {}
+}
+
 // Resolve TODAY's workout day id from the client's schedule + program.
 // Matches the schedule day for today's weekday to a workout day by name
 // (title, then tag), then falls back to a weekday-keyed id/label. Returns
@@ -68,16 +95,32 @@ function _wlExName(cid, dayId, exIdx) {
   return '';
 }
 
+// Ensure data.exercises[exIdx] exists and carries the CURRENT slot's name.
+// Cross-program safety: day ids are weekday-based and reused across templates,
+// so a leftover entry from a PREVIOUS program may sit at this index under a
+// DIFFERENT exercise name. If the current slot resolves to a different
+// movement, reset the entry rather than mutating the old movement's sets (which
+// would mis-stamp the logged data). Returns the (possibly new) exercise object.
+function _wlEnsureExercise(data, cid, dayId, exIdx) {
+  const curName = _wlExName(cid, dayId, exIdx);
+  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: curName };
+  const storedName = (data.exercises[exIdx].name || '').trim().toLowerCase();
+  if (curName && storedName && storedName !== curName.trim().toLowerCase()) {
+    data.exercises[exIdx] = { sets: [], name: curName };
+  }
+  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = curName;
+  return data.exercises[exIdx];
+}
+
 function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
   const data = getWlData(cid, dayId);
   if (exIdx === -1) {
     // Top-level session field (e.g. sessionNotes)
     data[field] = value;
   } else {
-    if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
-    if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
-    if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
-    data.exercises[exIdx].sets[setIdx][field] = value;
+    const ex = _wlEnsureExercise(data, cid, dayId, exIdx);
+    if (!ex.sets[setIdx]) ex.sets[setIdx] = {};
+    ex.sets[setIdx][field] = value;
   }
   // Stamp the day this session was last touched so a session left in the live
   // key without ever being checked/saved is still recognised as a *previous*
@@ -92,10 +135,9 @@ function wlUpdate(cid, dayId, exIdx, setIdx, field, value) {
 
 function wlToggleDone(cid, dayId, exIdx, setIdx) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
-  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
-  if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
-  const current = data.exercises[exIdx].sets[setIdx].done;
+  const ex = _wlEnsureExercise(data, cid, dayId, exIdx);
+  if (!ex.sets[setIdx]) ex.sets[setIdx] = {};
+  const current = ex.sets[setIdx].done;
   const nowDone = !current;
   data.exercises[exIdx].sets[setIdx].done = nowDone;
   if (nowDone) _wlAutoLog(cid, dayId, data);
@@ -143,12 +185,11 @@ function wlToggleDone(cid, dayId, exIdx, setIdx) {
 /* ── DROP SET FUNCTIONS ── */
 function wlAddDrop(cid, dayId, exIdx, setIdx) {
   const data = getWlData(cid, dayId);
-  if (!data.exercises[exIdx]) data.exercises[exIdx] = { sets: [], name: _wlExName(cid, dayId, exIdx) };
-  if (!data.exercises[exIdx].name) data.exercises[exIdx].name = _wlExName(cid, dayId, exIdx);
-  if (!data.exercises[exIdx].sets[setIdx]) data.exercises[exIdx].sets[setIdx] = {};
-  if (!data.exercises[exIdx].sets[setIdx].drops) data.exercises[exIdx].sets[setIdx].drops = [];
-  const dropIdx = data.exercises[exIdx].sets[setIdx].drops.length;
-  data.exercises[exIdx].sets[setIdx].drops.push({ weight: '', reps: '', done: false });
+  const ex = _wlEnsureExercise(data, cid, dayId, exIdx);
+  if (!ex.sets[setIdx]) ex.sets[setIdx] = {};
+  if (!ex.sets[setIdx].drops) ex.sets[setIdx].drops = [];
+  const dropIdx = ex.sets[setIdx].drops.length;
+  ex.sets[setIdx].drops.push({ weight: '', reps: '', done: false });
   saveWlData(cid, dayId, data);
 
   const container = document.getElementById('wl-drops-' + cid + '-' + dayId + '-' + exIdx + '-' + setIdx);

@@ -1170,6 +1170,15 @@ function checkProgressionRules(cid) {
       const exerciseName = allExercises[exIdx]?.name;
       if (!exerciseName || existingNames.has(exerciseName)) return;
 
+      // Cross-program guard: workout day ids are weekday-based and reused across
+      // templates, so the two history sessions at the same index can be from
+      // DIFFERENT programs (e.g. new Bench vs old Squat). Only compare when both
+      // logged exercises actually match the current movement by name — otherwise
+      // we'd emit a bogus progression suggestion from unrelated lifts.
+      const _norm = n => (n || '').trim().toLowerCase();
+      const _target = _norm(exerciseName);
+      if ((ex1.name && _norm(ex1.name) !== _target) || (ex2.name && _norm(ex2.name) !== _target)) return;
+
       // Keep only sets that have both weight and reps logged
       const sets1 = (ex1.sets || []).filter(s => s && s.weight && s.reps);
       const sets2 = (ex2.sets || []).filter(s => s && s.weight && s.reps);

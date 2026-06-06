@@ -1588,6 +1588,20 @@ async function obSaveClient(btn) {
   const template = PROGRAM_TEMPLATES[AppState.obState.programType];
   const isWeightLoss = AppState.obState.programType === 'weightloss' || (AppState.obState.startWeight && AppState.obState.goalWeight);
   const id = AppState.obState.editId || ('client_' + Date.now());
+
+  // Capture the EXISTING program's per-day exercise signature so we can detect
+  // an actual program change below. Day ids are weekday-based and reused across
+  // templates, so when the workouts change we must clear the old live workout
+  // state (see clearWorkoutLiveStateForClient) or old weights/swaps bleed into
+  // the new program's same-weekday day.
+  const _prevWorkoutSig = (() => {
+    try {
+      if (!AppState.obState.editId) return null;
+      const prev = getAllClients().find(c => c.id === AppState.obState.editId);
+      const days = prev?.data?.workouts?.days || [];
+      return JSON.stringify(days.map(d => [d.id, (d.blocks || []).reduce((a, b) => a.concat((b.exercises || []).map(e => e.name)), [])]));
+    } catch (_) { return null; }
+  })();
   const initials = AppState.obState.name.trim().split(' ').map(w=>w[0]?.toUpperCase()||'').join('').slice(0,2) || 'CL';
   const accent = AppState.obState.accent;
 
@@ -1758,6 +1772,13 @@ async function obSaveClient(btn) {
     if (idx >= 0) list[idx] = clientToSave;
     else list.push(clientToSave);
     saveDynamicClients(list);
+    // If the program's workouts actually changed, clear the old live workout
+    // state so old weights/swaps/repeat plans don't bleed onto the new program
+    // (day ids are weekday-based and reused). History is preserved.
+    const _newWorkoutSig = JSON.stringify(workoutDays.map(d => [d.id, (d.blocks || []).reduce((a, b) => a.concat((b.exercises || []).map(e => e.name)), [])]));
+    if (_prevWorkoutSig !== null && _prevWorkoutSig !== _newWorkoutSig && typeof clearWorkoutLiveStateForClient === 'function') {
+      clearWorkoutLiveStateForClient(id);
+    }
   } else {
     addDynamicClient(clientToSave);
   }

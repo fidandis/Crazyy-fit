@@ -586,6 +586,11 @@ async function applyEvidenceBasedToClient(cid, tplKey) {
     dyn[idx] = cc;
     saveDynamicClients(dyn);
     if (typeof invalidateClientsCache === 'function') invalidateClientsCache();
+    // This wholesale replaces the program, so clear the old live workout state
+    // (day ids are weekday-based and reused across templates) — otherwise old
+    // weights/swaps/repeat plans bleed onto the new split's same-weekday day.
+    // Logged history is preserved (as the confirm dialog promises).
+    if (typeof clearWorkoutLiveStateForClient === 'function') clearWorkoutLiveStateForClient(cc.id);
     try { if (typeof sbAutoSync === 'function') sbAutoSync(cc.id); } catch (_) {}
     try { if (typeof syncClientData === 'function') syncClientData(cc.id); } catch (_) {}
 
