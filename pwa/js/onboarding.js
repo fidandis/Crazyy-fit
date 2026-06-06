@@ -2079,10 +2079,10 @@ function restoreClient(cid) {
 }
 
 /* ── PERMANENTLY DELETE ── */
-function permanentlyDeleteClient(cid) {
+async function permanentlyDeleteClient(cid) {
   const _ac = getArchivedClients().find(a => a.client?.id === cid);
   const name = _ac?.client?.name || 'this client';
-  if (!confirm('Permanently delete ' + name + '? All archived data will be gone forever.')) return;
+  if (!await fitConfirm({ title: 'Permanently delete ' + name + '?', message: 'All archived data will be gone forever. This cannot be undone.', confirmText: 'Delete forever', danger: true })) return;
 
   // Remove from archive
   saveArchivedClients(getArchivedClients().filter(a => a.client?.id !== cid));

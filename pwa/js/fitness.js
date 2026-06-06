@@ -323,8 +323,8 @@ function duplicateFitLog(cid, idx) {
   refreshFitnessTab(cid);
 }
 
-function clearFitLogs(cid) {
-  if (!confirm('Clear all workout history for this client?')) return;
+async function clearFitLogs(cid) {
+  if (!await fitConfirm({ title: 'Clear workout history?', message: 'This removes all logged sessions for this client. This cannot be undone.', confirmText: 'Clear', danger: true })) return;
   saveFitnessLogs(cid, []);
   refreshFitnessTab(cid);
 }
@@ -370,6 +370,59 @@ function showUndoToast(msg, undoFn, duration) {
   t.classList.add('show');
   clearTimeout(_undoToastT);
   _undoToastT = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// Themed confirmation dialog — a promise-based replacement for the jarring
+// native confirm(). Resolves true (confirmed) / false (cancelled/dismissed).
+// opts: { title, message, confirmText, cancelText, danger }. Closes on confirm,
+// cancel, backdrop click, or Escape. Usage:
+//   if (await fitConfirm({ title:'Delete?', message:'…', danger:true })) { … }
+function fitConfirm(opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    // Remove any stale dialog first so rapid calls don't stack.
+    document.getElementById('fitConfirmBackdrop')?.remove();
+    const back = document.createElement('div');
+    back.id = 'fitConfirmBackdrop';
+    back.className = 'fit-confirm-backdrop';
+    const danger = !!opts.danger;
+    const title = opts.title || 'Are you sure?';
+    const msg = opts.message || '';
+    const okText = opts.confirmText || (danger ? 'Delete' : 'Confirm');
+    const cancelText = opts.cancelText || 'Cancel';
+    back.innerHTML =
+      '<div class="fit-confirm-modal" role="dialog" aria-modal="true">' +
+        '<div class="fit-confirm-title">' + esc(title) + '</div>' +
+        (msg ? '<div class="fit-confirm-msg">' + esc(msg) + '</div>' : '') +
+        '<div class="fit-confirm-actions">' +
+          '<button class="fit-confirm-btn fit-confirm-cancel" data-fc="0">' + esc(cancelText) + '</button>' +
+          '<button class="fit-confirm-btn ' + (danger ? 'fit-confirm-danger' : 'fit-confirm-ok') + '" data-fc="1">' + esc(okText) + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add('open'));
+
+    let done = false;
+    const finish = (val) => {
+      if (done) return;
+      done = true;
+      document.removeEventListener('keydown', onKey, true);
+      back.classList.remove('open');
+      setTimeout(() => back.remove(), 200);
+      resolve(val);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+      else if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    };
+    back.addEventListener('click', (e) => {
+      if (e.target === back) return finish(false);
+      const b = e.target.closest('[data-fc]');
+      if (b) finish(b.getAttribute('data-fc') === '1');
+    });
+    document.addEventListener('keydown', onKey, true);
+    setTimeout(() => back.querySelector('.fit-confirm-cancel')?.focus(), 60);
+  });
 }
 
 

@@ -2188,4 +2188,35 @@ function _hasUnsavedWork() {
   return false;
 }
 
+// Global Escape-to-close for modals/overlays. Closes the TOPMOST open one
+// (checked in z-index / nesting order) so a stack unwinds one layer per press.
+// fitConfirm handles its own Escape, so we bail while it's open. Each entry is
+// [predicate that the layer is open, close action].
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('fitConfirmBackdrop')) return; // fitConfirm owns Esc
+  const layers = [
+    ['peLibraryDrawer', () => typeof _peCloseLibrary === 'function' && _peCloseLibrary()],
+    ['progEditorOverlay', () => typeof _peRequestClose === 'function' && _peRequestClose()],
+    ['evbPickerBackdrop', () => typeof closeEvidenceBasedPicker === 'function' && closeEvidenceBasedPicker()],
+    ['obExPickerModal', () => document.getElementById('obExPickerModal')?.remove()],
+    ['notifBackdrop', () => document.getElementById('notifBackdrop')?.remove()],
+  ];
+  for (const [id, close] of layers) {
+    if (document.getElementById(id)) { close(); return; }
+  }
+  // The photo lightbox toggles display:flex/none rather than an .open class.
+  const lb = document.getElementById('photoLightbox');
+  if (lb && lb.style.display === 'flex') { if (typeof closePhotoLightbox === 'function') closePhotoLightbox(); return; }
+  // Sheets / backdrops that toggle an .open class.
+  const openClassModals = [
+    ['moreMenuBackdrop', () => typeof closeMoreMenu === 'function' && closeMoreMenu()],
+    ['terminateBackdrop', () => typeof closeTerminateModal === 'function' && closeTerminateModal()],
+  ];
+  for (const [id, close] of openClassModals) {
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('open')) { close(); return; }
+  }
+});
+
 

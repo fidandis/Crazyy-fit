@@ -500,11 +500,18 @@ function exitClientView() {
 /* ══════════════════════════════════════════════════════════════
    NOTIFICATION MODAL + CLIENT NOTIF LOG
 ══════════════════════════════════════════════════════════════ */
-function openNotifModal(cid) {
+function openNotifModal(cid, scopeIds) {
   AppState.notifTarget = cid;
+  // Optional array of client ids to message at once (from coach bulk-select).
+  AppState.notifTargets = (Array.isArray(scopeIds) && scopeIds.length) ? scopeIds.slice() : null;
   const existing = document.getElementById('notifBackdrop');
   if (existing) existing.remove();
   const clients = getAllClients();
+  const _scopeN = AppState.notifTargets ? AppState.notifTargets.length : 0;
+  const _title = _scopeN ? 'Notify ' + _scopeN + ' clients' : (cid ? 'Send Notification' : 'Broadcast to All');
+  const _sub = _scopeN
+    ? AppState.notifTargets.map(id => clients.find(c=>c.id===id)?.name).filter(Boolean).join(', ')
+    : (cid ? clients.find(c=>c.id===cid)?.name || '' : 'All clients');
   const backdrop = document.createElement('div');
   backdrop.id = 'notifBackdrop';
   backdrop.className = 'notif-backdrop';
@@ -512,8 +519,8 @@ function openNotifModal(cid) {
     <div class="notif-modal">
       <div class="notif-handle"></div>
       <div class="notif-header">
-        <div class="notif-title">${cid ? 'Send Notification' : 'Broadcast to All'}</div>
-        <div class="notif-subtitle">${cid ? clients.find(c=>c.id===cid)?.name || '' : 'All clients'}</div>
+        <div class="notif-title">${esc(_title)}</div>
+        <div class="notif-subtitle">${esc(_sub)}</div>
       </div>
       <div class="notif-body">
         <div class="notif-field">
@@ -533,15 +540,19 @@ function openNotifModal(cid) {
 function sendNotification() {
   const msg = document.getElementById('notifMsg')?.value?.trim();
   if (!msg) { showFitToast('Enter a message'); return; }
-  const targets = AppState.notifTarget ? [AppState.notifTarget] : getAllClients().map(c => c.id);
+  // Priority: a bulk-selected scope array, then a single target, then all.
+  const targets = (AppState.notifTargets && AppState.notifTargets.length)
+    ? AppState.notifTargets
+    : (AppState.notifTarget ? [AppState.notifTarget] : getAllClients().map(c => c.id));
   const ts = new Date().toISOString();
   targets.forEach(cid => {
     const log = getLS('notif_log_' + cid, []);
     log.push({ msg, ts, from: 'coach' });
     localStorage.setItem('notif_log_' + cid, JSON.stringify(log));
   });
+  AppState.notifTargets = null;
   document.getElementById('notifBackdrop')?.remove();
-  showFitToast('✓ Notification sent');
+  showFitToast(targets.length > 1 ? '✓ Sent to ' + targets.length + ' clients' : '✓ Notification sent');
   renderCoachDashboard();
 }
 function openClientNotifLog() {

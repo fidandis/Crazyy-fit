@@ -260,8 +260,14 @@ function buildClientCard(c) {
     const scoreColor = avgScore == null ? 'var(--muted)' : avgScore >= 80 ? '#2ecc71' : avgScore >= 60 ? '#f1c40f' : '#e74c3c';
 
     const _unreadMsgs = getLS('notif_log_' + c.id, []).filter(n => !n.read && n.from === 'client').length;
+    const _bulk = (typeof AppState === 'object' && AppState._bulkMode);
+    const _checked = _bulk && AppState._bulkSel && AppState._bulkSel.has(c.id);
+    const _bulkBox = _bulk
+      ? `<button class="coach-bulk-box ${_checked?'checked':''}" data-cid="${esc(c.id)}" onclick="toggleBulkSelect(this.dataset.cid)" title="Select">${_checked?'✓':''}</button>`
+      : '';
     return `
-    <div class="coach-card" data-longpress="client:${esc(c.id)}" style="--cc-accent:${c.accent};opacity:${_isPaused?0.65:1};border-top:${_isPaused?'3px solid #f1c40f':''}">
+    <div class="coach-card ${_bulk?'bulk-on':''} ${_checked?'bulk-checked':''}" data-longpress="client:${esc(c.id)}" style="--cc-accent:${c.accent};opacity:${_isPaused?0.65:1};border-top:${_isPaused?'3px solid #f1c40f':''}">
+      ${_bulkBox}
       <div class="coach-card-header">
         <div class="coach-avatar" style="background:${c.avatarBg || (c.accent || '#3B9EFF') + '22'};color:${c.avatarColor || c.accent || '#3B9EFF'}">${c.initials || clientInitials(c.name)}</div>
         <div style="flex:1">
@@ -543,14 +549,14 @@ async function applyEvidenceBasedToClient(cid, tplKey) {
   if (idx < 0) { if (typeof showFitToast === 'function') showFitToast('Client not found'); return; }
   const c = dyn[idx];
 
-  if (!confirm('Prescribe "' + tpl.name + '" to ' + c.name + '?\n\nA JSON backup will download first, then their schedule + workout days will be REPLACED with this template. Logged history (weights, PRs, milestones) is preserved.\n\nContinue?')) return;
+  if (!await fitConfirm({ title: 'Prescribe "' + tpl.name + '"?', message: 'A JSON backup downloads first, then ' + c.name + "'s schedule + workout days are REPLACED with this template. Logged history (weights, PRs, milestones) is preserved.", confirmText: 'Continue' })) return;
 
   closeEvidenceBasedPicker();
 
   try { exportAllData(); } catch (_) {}
   await new Promise(r => setTimeout(r, 900));
 
-  if (!confirm('Backup downloaded. Final confirmation — apply "' + tpl.name + '" to ' + c.name + ' now?')) return;
+  if (!await fitConfirm({ title: 'Apply now?', message: 'Backup downloaded. Final confirmation — apply "' + tpl.name + '" to ' + c.name + ' now?', confirmText: 'Apply' })) return;
 
   const FULL_DAY = { Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday' };
 
@@ -625,6 +631,7 @@ function renderCoachDashboard() {
           oninput="AppState._dashSearch=this.value;renderCoachDashboard()"
           style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);width:140px;outline:none">
         <button class="coach-add-btn" onclick="startOnboarding()">+ Add Client</button>
+        <button class="coach-add-btn" onclick="toggleBulkMode()" style="background:${AppState._bulkMode?'rgba(59,158,255,.22)':'rgba(59,158,255,.08)'};color:#3B9EFF;border-color:${AppState._bulkMode?'#3B9EFF':'rgba(59,158,255,.3)'}" title="Select multiple clients">${AppState._bulkMode?'✕ Done':'☑ Select'}</button>
         <button class="coach-add-btn" onclick="openLeads()" style="background:rgba(59,158,255,.1);color:#3B9EFF;border-color:#3B9EFF" title="Signup leads">📥 Leads${getLS('signups',[]).filter(s=>!s.converted).length > 0 ? ' ('+getLS('signups',[]).filter(s=>!s.converted).length+')' : ''}</button>
         <button class="coach-add-btn" onclick="openBroadcast()" style="background:rgba(59,158,255,.08);color:#3B9EFF;border-color:rgba(59,158,255,.3)" title="Broadcast message">📢 Broadcast</button>
         <button class="coach-add-btn" onclick="openCompare()" style="background:rgba(155,89,182,.1);color:#9b59b6;border-color:#9b59b6" title="Compare clients">⚖ Compare</button>
@@ -704,6 +711,68 @@ function renderCoachDashboard() {
 
   const analyticsHtml = `<div class="analytics-panel${AppState._analyticsOpen?' open':''}" id="coachAnalyticsPanel">${buildAnalyticsPanel(allClients)}</div>`;
   document.getElementById('coachContent').innerHTML = headerHtml + analyticsHtml + buildActivityFeed(allClients) + groupsHtml + archivedHtml;
+  renderBulkBar();
+}
+
+/* ── BULK ACTIONS ─────────────────────────────────────────────
+   Select multiple clients and pause / unpause / notify them at once. */
+function toggleBulkMode() {
+  AppState._bulkMode = !AppState._bulkMode;
+  if (!AppState._bulkMode) AppState._bulkSel = null;
+  else if (!AppState._bulkSel) AppState._bulkSel = new Set();
+  renderCoachDashboard();
+}
+function toggleBulkSelect(cid) {
+  if (!AppState._bulkSel) AppState._bulkSel = new Set();
+  if (AppState._bulkSel.has(cid)) AppState._bulkSel.delete(cid);
+  else AppState._bulkSel.add(cid);
+  // Update just the card + the bar without a full re-render (keeps scroll).
+  const card = document.querySelector('.coach-bulk-box[data-cid="' + cid + '"]')?.closest('.coach-card');
+  const on = AppState._bulkSel.has(cid);
+  if (card) {
+    card.classList.toggle('bulk-checked', on);
+    const box = card.querySelector('.coach-bulk-box');
+    if (box) { box.classList.toggle('checked', on); box.textContent = on ? '✓' : ''; }
+  }
+  renderBulkBar();
+  if (typeof haptic === 'function') haptic('light');
+}
+function renderBulkBar() {
+  document.getElementById('coachBulkBar')?.remove();
+  if (!AppState._bulkMode) return;
+  const n = AppState._bulkSel ? AppState._bulkSel.size : 0;
+  const bar = document.createElement('div');
+  bar.id = 'coachBulkBar';
+  bar.className = 'coach-bulk-bar';
+  bar.innerHTML =
+    `<span class="coach-bulk-count">${n} selected</span>` +
+    `<div class="coach-bulk-actions">` +
+      `<button class="coach-bulk-act" ${n?'':'disabled'} onclick="bulkPause(true)">Pause</button>` +
+      `<button class="coach-bulk-act" ${n?'':'disabled'} onclick="bulkPause(false)">Unpause</button>` +
+      `<button class="coach-bulk-act primary" ${n?'':'disabled'} onclick="bulkNotify()">Notify</button>` +
+    `</div>`;
+  document.body.appendChild(bar);
+  requestAnimationFrame(() => bar.classList.add('show'));
+}
+function _bulkIds() { return AppState._bulkSel ? Array.from(AppState._bulkSel) : []; }
+async function bulkPause(pause) {
+  const ids = _bulkIds();
+  if (!ids.length) return;
+  const verb = pause ? 'Pause' : 'Unpause';
+  if (!await fitConfirm({ title: verb + ' ' + ids.length + ' client' + (ids.length!==1?'s':'') + '?', message: pause ? 'Paused clients keep their data but are hidden from active rotation.' : 'Bring these clients back into active rotation.', confirmText: verb })) return;
+  ids.forEach(cid => { if (pause) { if (typeof pauseClient === 'function') pauseClient(cid); } else if (typeof unpauseClient === 'function') unpauseClient(cid); });
+  AppState._bulkSel = new Set();
+  AppState._bulkMode = false;
+  renderCoachDashboard();
+  if (typeof showFitToast === 'function') showFitToast(verb + 'd ' + ids.length + ' client' + (ids.length!==1?'s':''));
+}
+function bulkNotify() {
+  const ids = _bulkIds();
+  if (!ids.length) return;
+  // Open the notification composer scoped to the selected clients. The send
+  // path (sendNotification) fans the message out to each as a direct message.
+  AppState._bulkMode = false;
+  if (typeof openNotifModal === 'function') openNotifModal(null, ids);
 }
 
 function buildCoachWeightSection(c) {

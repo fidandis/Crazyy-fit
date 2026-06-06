@@ -1405,7 +1405,7 @@ async function emailClientCredentials(cid) {
   if (!c) return;
   const email = c._meta?.email || '';
   if (!email) { showFitToast('No email on file — edit the client to add one'); return; }
-  if (!confirm('Generate a new PIN for ' + (c.name || 'this client') + ' and email it to ' + email + '?')) return;
+  if (!await fitConfirm({ title: 'Email a new PIN?', message: 'Generate a new PIN for ' + (c.name || 'this client') + ' and email it to ' + email + '? Their old PIN stops working.', confirmText: 'Generate & email' })) return;
   const newPin = generatePIN();
   const hashed = await hashPin(newPin);
   const dynamic = getDynamicClients();

@@ -68,8 +68,8 @@ function closeProgramEditor() {
   document.body.style.overflow = '';
 }
 
-function _peRequestClose() {
-  if (_peState.dirty && !confirm('Discard unsaved changes to this program?')) return;
+async function _peRequestClose() {
+  if (_peState.dirty && !await fitConfirm({ title: 'Discard changes?', message: 'You have unsaved changes to this program. Discard them?', confirmText: 'Discard', danger: true })) return;
   closeProgramEditor();
 }
 
