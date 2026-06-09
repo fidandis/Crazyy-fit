@@ -639,10 +639,11 @@ function buildAnalyticsPanel(clients) {
   const now = Date.now();
   const week = 7 * 86400000;
   const month = 30 * 86400000;
-  const atRisk = clients.filter(c => {
-    const ls = localStorage.getItem('last_seen_' + c.id);
-    return !ls || (now - parseInt(ls)) > week;
-  });
+  // Shared at-risk definition with the dashboard (coach.js isClientAtRisk) so
+  // the "At Risk (7d+)" count always matches the Needs-Attention group.
+  const atRisk = clients.filter(c => (typeof isClientAtRisk === 'function')
+    ? isClientAtRisk(c)
+    : (() => { const ls = localStorage.getItem('last_seen_' + c.id); return !ls || (now - parseInt(ls)) > week; })());
   const activeThisWeek = clients.length - atRisk.length;
   const totalSessionsMonth = clients.reduce((sum, c) =>
     sum + getFitnessLogs(c.id).filter(l => l.date && (now - new Date(l.date).getTime()) < month).length, 0);

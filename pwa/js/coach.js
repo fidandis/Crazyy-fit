@@ -210,6 +210,47 @@ function renderCoachOfflineState() {
     </div>`;
 }
 
+// ── COACH TRIAGE HELPERS ──────────────────────────────────────
+// Single source of truth for "how stale is this client". Mirrors the card's
+// last-seen resolution (newest of local cache + synced _meta.last_seen) so the
+// INACTIVE flag, the Needs-Attention group, and analytics never use different
+// thresholds. Returns whole days inactive, or null if never logged in.
+function getDaysInactive(c) {
+  try {
+    const cid = typeof c === 'string' ? c : c.id;
+    const meta = (typeof c === 'object' && c && c._meta && c._meta.last_seen) ? String(c._meta.last_seen) : null;
+    const local = localStorage.getItem('last_seen_' + cid);
+    const best = (local && meta) ? (parseInt(local) >= parseInt(meta) ? local : meta) : (local || meta);
+    if (!best) return null;
+    return Math.floor((Date.now() - parseInt(best)) / 86400000);
+  } catch (_) { return null; }
+}
+// At risk = never logged in, or no activity for 7+ days. Paused clients are
+// intentionally inactive and excluded by callers that triage.
+function isClientAtRisk(c) {
+  const d = getDaysInactive(c);
+  return d === null || d >= 7;
+}
+
+const COACH_SORTS = {
+  recent:   { label: 'Recent activity', fn: (a, b) => (getDaysInactive(a) ?? 1e9) - (getDaysInactive(b) ?? 1e9) },
+  inactive: { label: 'Most inactive',   fn: (a, b) => (getDaysInactive(b) ?? 1e9) - (getDaysInactive(a) ?? 1e9) },
+  name:     { label: 'Name A–Z',        fn: (a, b) => (a.name || '').localeCompare(b.name || '') },
+  adherence:{ label: 'Adherence ↑',     fn: (a, b) => _coachAdh(a) - _coachAdh(b) },
+};
+function _coachAdh(c) {
+  try {
+    const v = (typeof getAdherenceScore === 'function') ? getAdherenceScore(c.id, c.data?.schedule?.days || []) : null;
+    return v === null || v === undefined ? 1e9 : v; // unknown sorts last (ascending)
+  } catch (_) { return 1e9; }
+}
+// Order a client list by the active dashboard sort (default: recent activity).
+function _sortClients(list) {
+  const key = (typeof AppState === 'object' && AppState._dashSort) || 'recent';
+  const sort = COACH_SORTS[key] || COACH_SORTS.recent;
+  return list.slice().sort(sort.fn);
+}
+
 function buildClientCard(c) {
   const now = Date.now();
     const logs = getFitnessLogs(c.id);
@@ -273,7 +314,7 @@ function buildClientCard(c) {
         <div style="flex:1">
           <div class="coach-client-name">${esc(c.name)}${_unreadMsgs > 0 ? '' : ''}</div>
           <div class="coach-client-goal">${esc(c.goal)}</div>
-          <div class="coach-last-seen">Last active: ${lastSeenStr}${lastSeen && (Date.now()-parseInt(lastSeen)) > 7*86400000 ? '<span class="coach-inactive-flag">INACTIVE 7d+</span>' : ''}</div>
+          <div class="coach-last-seen">Last active: ${lastSeenStr}${(!_isPaused && getDaysInactive(c) !== null && getDaysInactive(c) >= 7) ? '<span class="coach-inactive-flag">INACTIVE 7d+</span>' : ''}</div>
           ${_isPaused ? '<div class="paused-badge">&#9208; Access Paused</div>' : ''}
           <div class="mode-switcher">
             <button class="mode-btn ${_mode==='inperson'?'active-inperson':''}" onclick="setClientMode('${c.id}','inperson');renderCoachDashboard()">🏋️ In-Person</button>
@@ -613,10 +654,24 @@ function renderCoachDashboard() {
   const allClients = getAllClients();
   const sbConnected = true;
   const searchQuery = AppState._dashSearch || '';
-  const searchFilter = c => !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.goal||'').toLowerCase().includes(searchQuery.toLowerCase());
-  const inperson  = allClients.filter(c => getClientMode(c.id) === 'inperson'  && searchFilter(c));
-  const remote    = allClients.filter(c => getClientMode(c.id) === 'remote'    && searchFilter(c));
-  const blueprint = allClients.filter(c => getClientMode(c.id) === 'blueprint' && searchFilter(c));
+  const statusFilter = AppState._dashFilter || 'all';
+  const matchesSearch = c => !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.goal||'').toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesStatus = c => {
+    if (statusFilter === 'active')   return !isClientAtRisk(c) && !isClientPaused(c.id);
+    if (statusFilter === 'inactive') return isClientAtRisk(c) && !isClientPaused(c.id);
+    if (statusFilter === 'paused')   return isClientPaused(c.id);
+    return true; // 'all'
+  };
+  const passes = c => matchesSearch(c) && matchesStatus(c);
+  const inperson  = allClients.filter(c => getClientMode(c.id) === 'inperson'  && passes(c));
+  const remote    = allClients.filter(c => getClientMode(c.id) === 'remote'    && passes(c));
+  const blueprint = allClients.filter(c => getClientMode(c.id) === 'blueprint' && passes(c));
+  // Needs Attention: at-risk, not paused — an extra triage lens above the mode
+  // groups (clients still appear in their own group too). Always most-inactive
+  // first regardless of the chosen sort.
+  const needsAttention = allClients
+    .filter(c => passes(c) && isClientAtRisk(c) && !isClientPaused(c.id))
+    .sort((a, b) => (getDaysInactive(b) ?? 1e9) - (getDaysInactive(a) ?? 1e9));
   const headerHtml = `
     <div class="coach-dashboard-header">
       <div style="display:flex;align-items:center;gap:10px">
@@ -630,6 +685,10 @@ function renderCoachDashboard() {
         <input id="dashSearchInput" type="search" placeholder="Search clients…" value="${esc(searchQuery)}"
           oninput="AppState._dashSearch=this.value;renderCoachDashboard()"
           style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);width:140px;outline:none">
+        <select class="coach-sort-select" onchange="AppState._dashSort=this.value;renderCoachDashboard()" title="Sort clients">
+          ${Object.entries(COACH_SORTS).map(([k, v]) => `<option value="${k}" ${(AppState._dashSort||'recent')===k?'selected':''}>${esc(v.label)}</option>`).join('')}
+        </select>
+        ${['all','active','inactive','paused'].map(f => `<button class="coach-filter-chip ${statusFilter===f?'active':''}" onclick="AppState._dashFilter='${f}';renderCoachDashboard()">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('')}
         <button class="coach-add-btn" onclick="startOnboarding()">+ Add Client</button>
         <button class="coach-add-btn" onclick="toggleBulkMode()" style="background:${AppState._bulkMode?'rgba(59,158,255,.22)':'rgba(59,158,255,.08)'};color:#3B9EFF;border-color:${AppState._bulkMode?'#3B9EFF':'rgba(59,158,255,.3)'}" title="Select multiple clients">${AppState._bulkMode?'✕ Done':'☑ Select'}</button>
         <button class="coach-add-btn" onclick="openLeads()" style="background:rgba(59,158,255,.1);color:#3B9EFF;border-color:#3B9EFF" title="Signup leads">📥 Leads${getLS('signups',[]).filter(s=>!s.converted).length > 0 ? ' ('+getLS('signups',[]).filter(s=>!s.converted).length+')' : ''}</button>
@@ -704,10 +763,17 @@ function renderCoachDashboard() {
     return;
   }
 
+  // Needs-Attention group is pinned on top (only when it has members and isn't
+  // suppressed by an explicit non-matching status filter). Mode groups follow,
+  // each ordered by the chosen sort.
+  const needsHtml = needsAttention.length
+    ? renderClientGroup('Needs Attention', '⚠️', '#e74c3c', needsAttention, '')
+    : '';
   const groupsHtml =
-    renderClientGroup('In-Person', '🏋️', '#e74c3c', inperson, 'No in-person clients yet.') +
-    renderClientGroup('Remote', '📡', '#3498db', remote, 'No remote clients yet.') +
-    renderClientGroup('Crazyy Blueprint', '⚡', 'var(--accent)', blueprint, 'No blueprint clients yet.');
+    needsHtml +
+    renderClientGroup('In-Person', '🏋️', '#e74c3c', _sortClients(inperson), 'No in-person clients yet.') +
+    renderClientGroup('Remote', '📡', '#3498db', _sortClients(remote), 'No remote clients yet.') +
+    renderClientGroup('Crazyy Blueprint', '⚡', 'var(--accent)', _sortClients(blueprint), 'No blueprint clients yet.');
 
   const analyticsHtml = `<div class="analytics-panel${AppState._analyticsOpen?' open':''}" id="coachAnalyticsPanel">${buildAnalyticsPanel(allClients)}</div>`;
   document.getElementById('coachContent').innerHTML = headerHtml + analyticsHtml + buildActivityFeed(allClients) + groupsHtml + archivedHtml;

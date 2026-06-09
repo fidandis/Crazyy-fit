@@ -800,6 +800,12 @@ button,a,[role=button]{touch-action:manipulation;}
 .coach-dashboard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .coach-add-btn{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:10px 20px;border-radius:6px;border:none;background:#3B9EFF;color:#000;cursor:pointer;font-weight:600;transition:opacity .15s;flex-shrink:0;}
 .coach-add-btn:hover{opacity:.85;}
+/* Dashboard triage controls (sort + status filter) */
+.coach-sort-select{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.5px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;outline:none;flex-shrink:0;}
+.coach-sort-select:hover{border-color:#3a4148;}
+.coach-filter-chip{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.coach-filter-chip:hover{color:var(--text);border-color:#3a4148;}
+.coach-filter-chip.active{background:rgba(59,158,255,.16);border-color:#3B9EFF;color:#3B9EFF;font-weight:600;}
 .coach-client-count{font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
 .coach-card-actions{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);}
 .coach-action-btn{flex:1;font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 10px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:none;color:var(--muted);}
