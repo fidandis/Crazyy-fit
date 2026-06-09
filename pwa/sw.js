@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v79';
+const CACHE = 'crazyy-fit-v80';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
@@ -142,7 +142,9 @@ self.addEventListener('fetch', e => {
         const clone = response.clone();
         caches.open(CACHE).then(cache => cache.put(e.request, clone));
         return response;
-      }).catch(() => caches.match('./index.html'));
+        // Don't fall back to index.html here: serving HTML to a script/font/CSS
+        // request causes a parse error instead of a clean network failure.
+      }).catch(() => Response.error());
     })
   );
 });

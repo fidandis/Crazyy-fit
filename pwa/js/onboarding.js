@@ -1203,7 +1203,6 @@ function obNextStep1() {
 function applyTrainingDayCount(days, targetCount, programType) {
   // Count current training days (days with exercises)
   const trainingIndices = days.map((d, i) => d.exercises.length > 0 ? i : -1).filter(i => i >= 0);
-  const restIndices = days.map((d, i) => d.exercises.length === 0 ? i : -1).filter(i => i >= 0);
   const currentTraining = trainingIndices.length;
 
   if (targetCount === currentTraining) return days; // already correct

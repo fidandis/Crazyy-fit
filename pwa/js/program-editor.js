@@ -162,8 +162,6 @@ function _peRenderCanvas() {
 }
 
 function _peExerciseRow(e, i) {
-  const cid = _peState.cid;
-  const di = _peState.activeDay;
   const vid = e.videoUrl
     ? `<a class="pe-row-vid" href="${esc(e.videoUrl)}" target="_blank" rel="noopener" title="Demo video" onclick="event.stopPropagation()">▶</a>`
     : '';

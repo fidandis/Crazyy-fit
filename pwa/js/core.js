@@ -34,6 +34,11 @@ function clientInitials(name) {
 /* ══════════════════════════════════════════════════════════════
    APP STATE — Centralized state management (prevents global pollution)
 ══════════════════════════════════════════════════════════════ */
+// Legacy global mirror of AppState.currentClient, read by feature screens
+// across files. Declared here (core.js loads first) so reads are never a
+// ReferenceError and the app survives a future 'use strict'.
+let currentClient = null;
+
 const AppState = {
   // Authentication & Navigation
   currentClient: null,
@@ -1012,7 +1017,7 @@ function buildBannerHTML(c) {
     const progress = calculateWeightProgress(c);
     if (!progress) return '';
     
-    const { current, lost, totalToLose, pct, remaining, done } = progress;
+    const { lost, pct, remaining, done } = progress;
     const wl = c.weightLoss;
 
     return `

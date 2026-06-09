@@ -396,13 +396,11 @@ function _anaBrowseHtml() {
 }
 
 function _anaCycleHtml() {
-  const opts = ANABOLIC_DB.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   let rows = '';
   if (AnaState.cycle.length === 0) {
     rows = `<div class="chart-empty">No compounds yet. Add 2–4 below or from the Compounds tab.</div>`;
   } else {
     rows = AnaState.cycle.map((row, i) => {
-      const c = ANABOLIC_DB.find(x => x.id === row.id);
       return `
         <div class="cycle-pick-row">
           <select onchange="anaCycleEdit(${i},'id',this.value)">

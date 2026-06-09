@@ -913,7 +913,6 @@ function _nutrHistory(cid, calTarget, accent) {
   const maxV  = Math.max(...vals, mode === 'cal' ? (calTarget || 1) : 1);
   const daysHit = mode === 'cal' ? last7.filter(d => d.cal > 0 && calTarget > 0 && d.cal >= calTarget * 0.9).length : 0;
   const modeColor = mode === 'p' ? '#ff9f7a' : mode === 'c' ? '#3B9EFF' : mode === 'f' ? '#7adfff' : accent;
-  const modeUnit  = mode === 'cal' ? 'kcal' : 'g';
 
   const bars = last7.map(d => {
     const v        = valOf(d);

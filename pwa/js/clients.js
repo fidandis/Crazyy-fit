@@ -60,6 +60,10 @@ function deleteDynamicClient(id) {
 }
 
 function updateDynamicClient(id, updatedClient) {
+  // Stamp _updated_at so newest-wins cloud pulls (pullClientData,
+  // coachSilentRefresh, macros on-load) can't revert this edit before
+  // the debounced sbAutoSync push lands.
+  updatedClient._updated_at = new Date().toISOString();
   const list = getDynamicClients().map(c => c.id === id ? updatedClient : c);
   saveDynamicClients(list);
 }

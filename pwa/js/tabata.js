@@ -135,8 +135,6 @@ function renderTabataSelector(c) {
 function showTabataDetail(workoutId, cid) {
   const w = TABATA_WORKOUTS.find(x => x.id === workoutId);
   if (!w) return;
-  const c = CLIENTS.find(cl => cl.id === cid);
-  const accent = c?.accent || '#3B9EFF';
   const levelColor = w.level === 'Beginner' ? '#2ecc71' : w.level === 'Intermediate' ? '#f1c40f' : '#e74c3c';
   const focusColors = { Push: '#3B9EFF', Pull: '#3498db', Legs: '#3B9EFF', Core: '#2ecc71' };
   const previewRows = w.exercises.map((ex, i) => `
@@ -594,6 +592,8 @@ function tabataClose() {
 
 
 /* ── TABATA STANDALONE SCREEN ── */
+
+let _tabataReturnScreen = 'login';
 
 function openTabataScreen() {
   // Remember which screen to return to

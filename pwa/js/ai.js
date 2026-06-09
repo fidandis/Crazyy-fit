@@ -1040,14 +1040,23 @@ function renderPeriodizationScreen() {
     const minD = new Date(Math.min(...dated.map(p => new Date(p.startDate))));
     const maxD = new Date(Math.max(...dated.map(p => new Date(p.endDate))));
     const totalDays = Math.max(1, (maxD - minD) / 86400000);
-    const segs = dated.map(p => {
+    const sorted = [...dated].sort((a, b) => a.startDate < b.startDate ? -1 : 1);
+    let cursor = 0; // days covered so far, from minD
+    const segs = sorted.map(p => {
       const start = Math.max(0, (new Date(p.startDate) - minD) / 86400000);
       const dur   = Math.max(1, (new Date(p.endDate) - new Date(p.startDate)) / 86400000);
       const flex  = (dur / totalDays * 100).toFixed(1);
       const isCurrent = p.startDate <= today && p.endDate >= today;
-      return `<div class="period-phase-seg${isCurrent?' current':''}" style="flex:${flex};background:${p.color||'#555'};color:${p.color?'#000':'#aaa'}">${p.name.slice(0,6)}</div>`;
+      // Transparent spacer for any gap between phases so segment widths
+      // stay true to the calendar instead of collapsing the gap.
+      const gap = start - cursor;
+      const spacer = gap > 0.5
+        ? `<div class="period-phase-seg" style="flex:${(gap / totalDays * 100).toFixed(1)};background:transparent"></div>`
+        : '';
+      cursor = Math.max(cursor, start + dur);
+      return spacer + `<div class="period-phase-seg${isCurrent?' current':''}" style="flex:${flex};background:${p.color||'#555'};color:${p.color?'#000':'#aaa'}">${p.name.slice(0,6)}</div>`;
     });
-    const legend = dated.map(p => `<div class="period-phase-legend-item"><div class="period-phase-dot" style="background:${p.color||'#555'}"></div>${esc(p.name)}</div>`).join('');
+    const legend = sorted.map(p => `<div class="period-phase-legend-item"><div class="period-phase-dot" style="background:${p.color||'#555'}"></div>${esc(p.name)}</div>`).join('');
     timelineHtml = `<div class="period-phase-bar">${segs.join('')}</div><div class="period-phase-legend">${legend}</div>`;
   }
 
@@ -2272,11 +2281,6 @@ function reorderSchedule(cid, fromIdx, toIdx) {
   const FULL_DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
   const days = [...c.data.schedule.days];
-
-  // Snapshot training-day titles BEFORE reorder so we can match workouts.days entries
-  const origTrainingTitles = days
-    .filter(d => d.type === 'wk-a' || d.type === 'wk-card')
-    .map(d => d.title);
 
   const [moved] = days.splice(fromIdx, 1);
   days.splice(toIdx, 0, moved);

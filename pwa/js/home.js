@@ -18,22 +18,11 @@ function buildRestDayContent() {
 }
 
 function renderHome(c) {
-  const logs = getFitnessLogs(c.id);
-  const xp   = getXP(c.id);
   const nowDate = new Date();
-  const now  = nowDate.getTime();
   const days7= ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const todayLabel = days7[nowDate.getDay()];
   const sched      = c.data.schedule && c.data.schedule.days ? c.data.schedule.days : [];
   const todayDay   = sched.find(s => s.label === todayLabel);
-  const weekLogs   = logs.filter(l => l.date && (now - new Date(l.date).getTime()) < 7*86400000);
-  const weekKcal   = weekLogs.reduce((s,l) => s+(l.calories||0), 0);
-  const trainingDays = sched.filter(d => d.tag !== 'Rest').length;
-  let adherencePct = null;
-  if (trainingDays) {
-    const logged4w = logs.filter(l => l.date && (now - new Date(l.date).getTime()) < 28*86400000).length;
-    adherencePct = Math.min(100, Math.round(logged4w / (trainingDays * 4) * 100));
-  }
   const hr = nowDate.getHours();
   const greet = hr < 12 ? 'Good morning,' : hr < 17 ? 'Good afternoon,' : 'Good evening,';
   const firstName = c.name.split(' ')[0];

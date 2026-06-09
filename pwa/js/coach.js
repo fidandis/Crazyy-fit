@@ -255,7 +255,6 @@ function buildClientCard(c) {
   const now = Date.now();
     const logs = getFitnessLogs(c.id);
     const macroLogs = getCoachMacroScores(c.id);
-    const notes = localStorage.getItem('coach_notes_' + c.id) || '';
     const lastSeenLocal = localStorage.getItem('last_seen_' + c.id);
     const lastSeenMeta  = c._meta?.last_seen ? String(c._meta.last_seen) : null;
     // Prefer whichever timestamp is newer
