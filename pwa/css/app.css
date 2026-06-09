@@ -1429,6 +1429,23 @@ button,a,[role=button]{touch-action:manipulation;}
 .home-goal-label{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .home-goal-pct{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-2,var(--muted));flex-shrink:0;}
 .home-goal-row .wt-track{height:6px;}
+/* ── HOME WEIGHT TREND ── */
+.home-wt-trend{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:-4px 20px 12px;padding:11px 16px 12px;}
+.home-wt-trend-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.home-wt-spark{display:flex;align-items:flex-end;gap:3px;height:46px;}
+.home-wt-trend-label{margin-top:6px;font-family:'Geist Mono',monospace;font-size:10px;}
+/* ── HOME QUICK ACCESS ── */
+.home-quick-row{display:flex;gap:8px;margin:0 20px 12px;}
+.home-quick-pill{flex:1;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.3px;padding:10px 8px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text-2,var(--muted));cursor:pointer;transition:all .15s;white-space:nowrap;}
+.home-quick-pill:hover,.home-quick-pill:active{color:var(--text);border-color:var(--accent);background:rgba(59,158,255,.06);}
+/* ── HOME CHECK-IN NUDGE ── */
+.home-nudge{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 20px 12px;width:calc(100% - 40px);background:linear-gradient(180deg,rgba(59,158,255,.07),var(--surface));border:1px solid rgba(59,158,255,.28);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--text);transition:all .15s;}
+.home-nudge:hover{border-color:var(--accent);}
+.home-nudge-ic{font-size:18px;flex-shrink:0;}
+.home-nudge-body{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.home-nudge-title{font-weight:600;font-size:13px;}
+.home-nudge-sub{font-size:11px;color:var(--text-2,var(--muted));}
+.home-nudge-arr{font-size:20px;color:var(--accent);flex-shrink:0;}
 /* ── HOME QUICK WEIGHT ── */
 .home-wt-strip{display:flex;align-items:center;gap:8px;margin:0 20px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px}
 .home-wt-label{font-family:'Geist Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;flex-shrink:0}

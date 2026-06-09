@@ -110,6 +110,9 @@ function renderHome(c) {
   h += buildRecentWinsCard(c);
   h += buildHomeGoalsStrip(c);
 
+  // Nudge a weekly check-in when one hasn't been submitted in 7+ days
+  h += buildCheckinNudge(c);
+
   // Broadcast message
   const _broadcast = localStorage.getItem('coach_broadcast');
   const _broadcastTs = localStorage.getItem('coach_broadcast_ts');
@@ -141,6 +144,12 @@ function renderHome(c) {
     <div class="home-wt-last" id="home-wt-last-${c.id}">${_homeLastWt ? _homeLastWt + ' lbs' : 'not logged'}</div>
     <button class="home-wt-btn" onclick="homeLogWeight('${c.id}')">Log</button>
   </div>`;
+
+  // Weight sparkline + trend + goal badge (surfaced from the buried Body view)
+  h += buildHomeWeightTrend(c);
+
+  // Quick access to features that otherwise live in the More menu
+  h += buildHomeQuickAccess(c);
 
   // Week Overview — always visible, popped out
   if (c.data && c.data.schedule && c.data.schedule.days) {
@@ -283,6 +292,79 @@ function buildHomeGoalsStrip(c) {
   return `<div class="home-goals-strip">
     <div class="home-wins-head">YOUR GOALS</div>
     ${rows}
+  </div>`;
+}
+
+// ── HOME: WEIGHT TREND ─────────────────────────────────────────
+// Sparkline + week trend + goal badge, inlined under the Home weight strip so
+// progress is visible without opening the buried Body feature. Mirrors the
+// logic in renderBodyStats (features.js). Renders nothing with <2 weigh-ins.
+function buildHomeWeightTrend(c) {
+  let history = [];
+  try { history = (typeof getWtHistory === 'function') ? getWtHistory(c.id) : []; } catch (_) {}
+  if (!history || history.length < 2) return '';
+  const recent = history.slice(-7);
+  const min = Math.min(...recent.map(w => w.weight));
+  const max = Math.max(...recent.map(w => w.weight));
+  const range = max - min || 1;
+  const bars = recent.map(w => {
+    const pct = Math.max(8, Math.round(((w.weight - min) / range) * 34 + 6));
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:100%;background:${c.accent};border-radius:2px 2px 0 0;height:${pct}px"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:7px;color:var(--muted)">${w.weight}</div>
+    </div>`;
+  }).join('');
+  // Week trend (latest vs ~7 entries ago)
+  let trend = '';
+  const latest  = history[history.length - 1].weight;
+  const weekAgo = history.length >= 7 ? history[history.length - 7].weight : history[0].weight;
+  const diff = (latest - weekAgo).toFixed(1);
+  if (diff < 0)      trend = `<span class="wt-trend-down">↓ ${Math.abs(diff)} lbs this week</span>`;
+  else if (diff > 0) trend = `<span class="wt-trend-up">↑ ${diff} lbs this week</span>`;
+  // Goal badge (matches renderBodyStats: goal from weightLoss.goal)
+  let badge = '';
+  const current = parseFloat(localStorage.getItem('wt_current_' + c.id)) || latest;
+  const goal = c.weightLoss?.goal || null;
+  if (current && goal) {
+    const gd = (current - goal).toFixed(1);
+    const col = gd <= 0 ? '#2ecc71' : '#f1c40f';
+    badge = `<span style="font-family:'Geist Mono',monospace;font-size:10px;color:${col}">${gd > 0 ? gd + ' lbs to go' : 'Goal reached 🎉'}</span>`;
+  }
+  return `<div class="home-wt-trend">
+    <div class="home-wt-trend-top"><span class="home-wins-head" style="padding:0">7-DAY WEIGHT</span>${badge}</div>
+    <div class="home-wt-spark">${bars}</div>
+    ${trend ? `<div class="home-wt-trend-label">${trend}</div>` : ''}
+  </div>`;
+}
+
+// ── HOME: WEEKLY CHECK-IN NUDGE ────────────────────────────────
+// A quiet prompt when no check-in has been submitted in the last 7 days, so
+// clients don't have to remember to open the buried feature. Hidden otherwise.
+function buildCheckinNudge(c) {
+  let checkins = [];
+  try { checkins = (typeof getCheckins === 'function') ? getCheckins(c.id) : []; } catch (_) {}
+  const last = checkins.reduce((max, ci) => {
+    const t = ci && ci.date ? new Date(ci.date).getTime() : 0;
+    return t > max ? t : max;
+  }, 0);
+  if (last && (Date.now() - last) < 7 * 86400000) return ''; // checked in recently
+  return `<button class="home-nudge" onclick="openFeature('checkin')">
+    <span class="home-nudge-ic">📋</span>
+    <span class="home-nudge-body">
+      <span class="home-nudge-title">Weekly check-in ready</span>
+      <span class="home-nudge-sub">Log your sleep, energy &amp; stress for your coach</span>
+    </span>
+    <span class="home-nudge-arr">›</span>
+  </button>`;
+}
+
+// ── HOME: QUICK ACCESS ─────────────────────────────────────────
+// One-tap reach to features that otherwise live in the More menu / accordion.
+function buildHomeQuickAccess(c) {
+  return `<div class="home-quick-row">
+    <button class="home-quick-pill" onclick="openFeature('habits')">✅ Habits</button>
+    <button class="home-quick-pill" onclick="openFeature('calendar')">📅 Calendar</button>
+    <button class="home-quick-pill" onclick="openFeature('checkin')">📋 Check-In</button>
   </div>`;
 }
 

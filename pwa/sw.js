@@ -1,4 +1,4 @@
-const CACHE = 'crazyy-fit-v78';
+const CACHE = 'crazyy-fit-v79';
 const OFFLINE_FALLBACK = './404.html';
 const ASSETS = [
   './',
